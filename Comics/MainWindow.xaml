@@ -52,7 +52,18 @@
     <DockPanel>
         <!-- Status bar -->
         <StatusBar DockPanel.Dock="Bottom" Height="22">
-            <StatusBarItem HorizontalAlignment="Left" FontSize="11">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0" HorizontalAlignment="Left" FontSize="11">
                 <Button x:Name="SettingsButton" Content="⚙" Width="16" Height="16" Padding="-1,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ShowSettings">
                     <Button.ContextMenu>
                         <ContextMenu Opened="DisableActions" Closed="EnableActionsWithDelay">
@@ -69,18 +80,39 @@
                     </Button.ContextMenu>
                 </Button>
             </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right" FontSize="11">
-                <Button x:Name="RightSidebarButton" Content="▶❚" Width="16" Height="16" Padding="0,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ToggleRightSidebar" FontStretch="UltraCondensed"/>
+            <StatusBarItem x:Name="Footer" Grid.Column="1" HorizontalAlignment="Center" FontSize="11" Padding="0">
+                <Label Content="Comics" Foreground="#FF37383A"></Label>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" FontSize="11">
+                <Button x:Name="RightSidebarButton" Content="▶❚" Width="16" Height="16" Padding="0,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ToggleRightSidebar" />
             </StatusBarItem>
         </StatusBar>
 
         <!-- Everything else -->
         <DockPanel>
             <!-- Right sidebar -->
-            <Rectangle x:Name="RightSidebar" Fill="#99000000" DockPanel.Dock="Right" Margin="0,0,0,0" Width="200"/>
+            <DockPanel x:Name="RightSidebar" DockPanel.Dock="Right" Margin="0,0,0,0" Width="200" Background="LightGray">
+                <Border BorderBrush="Gray" BorderThickness="1" DockPanel.Dock="Top" Margin="8">
+                    <DockPanel Background="White">
+                        <Label DockPanel.Dock="Left" Content="🔍" TextOptions.TextFormattingMode="Display" Foreground="#FF656565"/>
+                        <Label DockPanel.Dock="Left" Content="›" TextOptions.TextFormattingMode="Display" Foreground="#FF656565" RenderTransformOrigin="0.5,0.5" Margin="-8,0,-4,0" >
+                            <Label.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform/>
+                                    <RotateTransform Angle="90"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Label.RenderTransform>
+                        </Label>
+                        <TextBox x:Name="SearchBox" DockPanel.Dock="Left" TextOptions.TextFormattingMode="Display" Margin="0" Foreground="#FF656565" BorderBrush="{x:Null}" Background="{x:Null}" VerticalAlignment="Center" BorderThickness="0"></TextBox>
+                    </DockPanel>
+                </Border>
+                <Rectangle></Rectangle>
+            </DockPanel>
 
             <!-- Main area (collection view) -->
-            <DockPanel Margin="0,0,0,0" x:Name="ContentGrid">
+            <DockPanel Margin="0,0,0,0" x:Name="ContentGrid" SizeChanged="CollectionContainerSizeChanged">
                 <!-- Header (category and sort selection) -->
                 <DockPanel DockPanel.Dock="Top" Height="40" Background="#23000000">
                     <DockPanel DockPanel.Dock="Left" TextOptions.TextFormattingMode="Display">
@@ -98,7 +130,7 @@
                     </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
                         <Label Content="Sort:" />
-                        <ComboBox SelectionChanged="ChangeSortOrder">
+                        <ComboBox x:Name="SortOrderBox" SelectionChanged="ChangeSortOrder">
                             <ComboBoxItem>
                                 <TextBlock>Title</TextBlock>
                             </ComboBoxItem>
@@ -125,7 +157,7 @@
                 <ItemsControl x:Name="Collection" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <local:VirtualizingWrapPanel />
+                            <local:VirtualizingWrapPanel x:Name="Panel" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>

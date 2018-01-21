@@ -30,7 +30,23 @@ namespace Comics
         /// <summary>
         /// Stores all the comics.
         /// </summary>
+        private List<Comic> allItems = new List<Comic>();
         private List<Comic> items = new List<Comic>();
+        private List<Comic> Items
+        {
+            get
+            {
+                return items;
+            }
+            set
+            {
+                items = value;
+                Collection.ItemsSource = items;
+                ChangeSortOrder(null, null);
+                string footer = (items.Count == 1) ? " Item" : " Items";
+                Footer.Content = items.Count.ToString() + footer;
+            }
+        }
         /// <summary>
         /// Temporary storage before an action is confirmed
         /// </summary>
@@ -52,8 +68,7 @@ namespace Comics
             RightSidebarButton.Loaded += ((u, v) => RightSidebarButton.Content = "◀❚");
             Activated += EnableActionsWithDelay;
             Deactivated += DisableActions;
-            
-            Collection.ItemsSource = items;
+            SearchBox.TextChanged += CommitSearch;
 
             LoadComics();
         }
@@ -62,14 +77,18 @@ namespace Comics
         {
             LoadComicThumbnails();  // This can be very slow. Find a way to "background" it.
         }
+        
+        private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Collection.UpdateLayout();
+        }
 
         private void LoadComicThumbnails()
         {
             // Very primitive thumbnail caching being done here
-            String thumbnailFolder = "C:\\Users\\Lanxia\\Downloads\\comics_thumbnails";
-            foreach (Comic comic in items)
+            foreach (Comic comic in allItems)
             {
-                string thumbnailPath = System.IO.Path.Combine(thumbnailFolder, "[" + comic.Author + "]" + comic.Title + ".jpgthumbnail");
+                string thumbnailPath = System.IO.Path.Combine(Defaults.ThumbnailFolder, "[" + comic.Author + "]" + comic.Title + ".jpgthumbnail");
 
                 if (!(File.Exists(thumbnailPath)))
                 {
@@ -94,14 +113,7 @@ namespace Comics
 
         private void LoadComics()
         {
-            List<String> rootPaths = new List<string>
-            {
-                "D:\\ACG\\S\\Images\\Comic\\Artists\\long",
-                "D:\\ACG\\S\\Images\\Comic\\Artists\\pictures",
-                "D:\\ACG\\S\\Images\\Comic\\Artists\\short",
-            };
-
-            foreach (String rootPath in rootPaths)
+            foreach (string rootPath in Defaults.RootPaths)
             {
                 DirectoryInfo rootDirectory = new DirectoryInfo(rootPath);
                 DirectoryInfo[] authorDirectories = rootDirectory.GetDirectories();
@@ -139,11 +151,23 @@ namespace Comics
                                 ImagePath = firstImage,
                                 ThumbnailPath = "blank.png"
                             };
-                            items.Add(comic);
+                            allItems.Add(comic);
                         }
                     }
                 }
             }
+            Items = allItems;
+        }
+        
+        private void CommitSearch(object sender, TextChangedEventArgs e)
+        {
+            string searchText = ((TextBox)sender).Text.Trim().ToLowerInvariant();
+
+            if (searchText == null || searchText.Length == 0)
+                Items = allItems;
+            else
+                Items = allItems.Where(o => o.Title.ToLowerInvariant().Contains(searchText) ||
+                    o.Author.ToLowerInvariant().Contains(searchText)).ToList();
         }
 
         /// <summary>
@@ -225,7 +249,7 @@ namespace Comics
 
         private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
         {
-            items.Clear();
+            allItems.Clear();
             LoadComics();
             LoadComicThumbnails();
         }
@@ -262,16 +286,16 @@ namespace Comics
 
         private void ChangeSortOrder(object sender, SelectionChangedEventArgs e)
         {
-            switch (((ComboBox)sender).SelectedIndex)
+            switch (SortOrderBox.SelectedIndex)
             {
                 case 0:
-                    items.Sort((x, y) => x.Title.CompareTo(y.Title));
+                    Items.Sort((x, y) => x.Title.CompareTo(y.Title));
                     break;
                 case 1:
-                    items.Sort((x, y) => x.Author.CompareTo(y.Author));
+                    Items.Sort((x, y) => x.Author.CompareTo(y.Author));
                     break;
                 case 2:
-                    items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));
+                    Items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));
                     break;
             }
 

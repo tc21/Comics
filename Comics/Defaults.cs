@@ -16,6 +16,12 @@ namespace Comics
         private const int width = 180;  // Using the recommended value of height / sqrt(2)
         private const int margin = 3;
         private const int reactionTime = 140;
+        public static readonly string ThumbnailFolder = "C:\\Users\\Lanxia\\Downloads\\comics\\comics_thumbnails";
+        public static readonly string[] RootPaths = {
+                "D:\\ACG\\S\\Images\\Comic\\Artists\\long",
+                "D:\\ACG\\S\\Images\\Comic\\Artists\\pictures",
+                "D:\\ACG\\S\\Images\\Comic\\Artists\\short",
+            };
 
         public static int SafetyMargin { get { return 16 + 2 * margin; } }
 
