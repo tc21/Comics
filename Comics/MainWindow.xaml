@@ -20,7 +20,7 @@
             <Setter Property="ItemsPanel" Value="{StaticResource MenuItemPanelTemplate}"/>
         </Style>
         <!-- Indicate item hovering over -->
-        <Style x:Key="HoverEffect" TargetType="Border">
+        <Style x:Key="HoverEffect" TargetType="{x:Type Border}">
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#FFCCE8FF"/>
@@ -53,10 +53,24 @@
         <!-- Status bar -->
         <StatusBar DockPanel.Dock="Bottom" Height="22">
             <StatusBarItem HorizontalAlignment="Left" FontSize="11">
-                <Button Content="⚙" Width="16" Height="16" Padding="-1,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ShowSettings"/>
+                <Button x:Name="SettingsButton" Content="⚙" Width="16" Height="16" Padding="-1,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ShowSettings">
+                    <Button.ContextMenu>
+                        <ContextMenu Opened="DisableActions" Closed="EnableActionsWithDelay">
+                            <MenuItem Header="Settings" IsEnabled="False" />
+                            <MenuItem Header="Quick Toggles" IsEnabled="False">
+                                <MenuItem />
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Header="Reload Comics" Click="ContextMenu_ReloadComics" />
+                            <MenuItem Header="Reload Thumbnails" Click="ContextMenu_ReloadThumbnails" />
+                            <Separator />
+                            <MenuItem Header="Exit" Click="ContextMenu_Exit" />
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right" FontSize="11">
-                <Button Content="▶❚" Width="16" Height="16" Padding="0,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ToggleRightSidebar" FontStretch="UltraCondensed"/>
+                <Button x:Name="RightSidebarButton" Content="▶❚" Width="16" Height="16" Padding="0,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ToggleRightSidebar" FontStretch="UltraCondensed"/>
             </StatusBarItem>
         </StatusBar>
 
@@ -69,7 +83,19 @@
             <DockPanel Margin="0,0,0,0" x:Name="ContentGrid">
                 <!-- Header (category and sort selection) -->
                 <DockPanel DockPanel.Dock="Top" Height="40" Background="#23000000">
-                    <Label DockPanel.Dock="Left" Content="Category" TextOptions.TextFormattingMode="Display" FontSize="22" />
+                    <DockPanel DockPanel.Dock="Left" TextOptions.TextFormattingMode="Display">
+                        <Label DockPanel.Dock="Left" Content="All Comics" TextOptions.TextFormattingMode="Display" FontSize="22" Foreground="#FF656565"/>
+                        <Label DockPanel.Dock="Right" Content="›" TextOptions.TextFormattingMode="Display" FontSize="22" Foreground="#FF656565" RenderTransformOrigin="0.5,0.5">
+                            <Label.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform/>
+                                    <RotateTransform Angle="90"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Label.RenderTransform>
+                        </Label>
+                    </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
                         <Label Content="Sort:" />
                         <ComboBox SelectionChanged="ChangeSortOrder">
@@ -88,7 +114,7 @@
                         <Label Content="Group:" />
                         <ComboBox IsEnabled="False">
                             <ComboBoxItem IsSelected="True">
-                                <TextBlock>Not implemented</TextBlock>
+                                <TextBlock Foreground="#FF656565">Not implemented</TextBlock>
                             </ComboBoxItem>
                         </ComboBox>
                     </DockPanel>
@@ -96,30 +122,43 @@
                 </DockPanel>
 
                 <!-- Scrollable view -->
-                <ScrollViewer>
-                    <ItemsControl x:Name="Collection" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderThickness="1" Style="{StaticResource HoverEffect}">
-                                    <DockPanel Width="200" Height="300" Margin="3" PreviewMouseLeftButtonUp="DockPanel_PreviewMouseLeftButtonUp" PreviewMouseRightButtonUp="DockPanel_PreviewMouseRightButtonUp" PreviewMouseLeftButtonDown="DockPanel_PreviewMouseLeftButtonDown">
-                                        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
-                                        <Image Source="{Binding Path=ThumbnailPath}" />
-                                    </DockPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                        <ItemsControl.ContextMenu>
-                            <ContextMenu Opened="DisableActions" Closed="EnableActionsWithDelay">
-                                <MenuItem Header="Open" Click="ContextMenu_Open" />
-                            </ContextMenu>
-                        </ItemsControl.ContextMenu>
-                        <!-- Test element
+                <ItemsControl x:Name="Collection" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <local:VirtualizingWrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderThickness="1" Style="{StaticResource HoverEffect}">
+                                <DockPanel Width="Auto" Height="Auto" Margin="3" PreviewMouseLeftButtonUp="EndedLeftClickOnComic" PreviewMouseRightButtonUp="StartedRightClickOnComic" PreviewMouseLeftButtonDown="StartedLeftClickOnComic">
+                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                                    <Image Source="{Binding Path=ThumbnailPath}" />
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.Template>
+                        <ControlTemplate>
+                            <ScrollViewer Focusable="False">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </ControlTemplate>
+                    </ItemsControl.Template>
+                    <ItemsControl.ContextMenu>
+                        <ContextMenu Opened="DisableActions" Closed="EnableActionsWithDelay">
+                            <MenuItem Header="Open" Click="ContextMenu_Open" />
+                            <MenuItem Header="Edit Info" IsEnabled="False" />
+                            <Separator />
+                            <MenuItem Header="Like" IsEnabled="False" />
+                            <MenuItem Header="Disliked" IsEnabled="False" />
+                            <Separator />
+                            <MenuItem Header="Show in Explorer" Click="ContextMenu_ShowInExplorer" />
+                            <MenuItem Header="Redefine Thumbnail" IsEnabled="False" />
+                        </ContextMenu>
+                    </ItemsControl.ContextMenu>
+                    <!-- Test element
                         <Border BorderBrush="#FF99D1FF" Background="#FFCCE8FF" BorderThickness="1" Style="{StaticResource HoverEffect}">
                             <DockPanel Width="200" Height="300" Margin="3">
                                 <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Author" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
@@ -128,8 +167,7 @@
                             </DockPanel>
                         </Border>
                         -->
-                    </ItemsControl>
-                </ScrollViewer>
+                </ItemsControl>
             </DockPanel>
         </DockPanel>
     </DockPanel>

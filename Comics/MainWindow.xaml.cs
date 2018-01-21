@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -38,7 +39,7 @@ namespace Comics
         /// Used to disable left click actions when the application is out of focus
         /// or within a set time (200ms by default) of gaining focus.
         /// </summary>
-        private Timer actionDelayTimer = new Timer(200);  
+        private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);  
 
         public MainWindow()
         {
@@ -46,18 +47,58 @@ namespace Comics
             DisableActions(null, null);
 
             actionDelayTimer.Elapsed += EnableActions;
+            Loaded += ApplicationDidLoad;
+            RightSidebar.Loaded += ((u, v) => RightSidebar.Visibility = Visibility.Collapsed);
+            RightSidebarButton.Loaded += ((u, v) => RightSidebarButton.Content = "◀❚");
             Activated += EnableActionsWithDelay;
             Deactivated += DisableActions;
             
+            Collection.ItemsSource = items;
+
+            LoadComics();
+        }
+
+        private void ApplicationDidLoad(object sender, EventArgs e)
+        {
+            LoadComicThumbnails();  // This can be very slow. Find a way to "background" it.
+        }
+
+        private void LoadComicThumbnails()
+        {
             // Very primitive thumbnail caching being done here
             String thumbnailFolder = "C:\\Users\\Lanxia\\Downloads\\comics_thumbnails";
+            foreach (Comic comic in items)
+            {
+                string thumbnailPath = System.IO.Path.Combine(thumbnailFolder, "[" + comic.Author + "]" + comic.Title + ".jpgthumbnail");
 
-            // This will need to be changed
+                if (!(File.Exists(thumbnailPath)))
+                {
+
+                    BitmapImage image = new BitmapImage();
+                    image.BeginInit();
+                    image.UriSource = new Uri(comic.ImagePath);
+                    image.DecodePixelHeight = Defaults.ThumbnailWidthForVisual(this);
+                    image.EndInit();
+
+                    JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
+                    bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
+                    using (FileStream fileStream = new FileStream(thumbnailPath, FileMode.Create))
+                        bitmapEncoder.Save(fileStream);
+
+                }
+
+                comic.ThumbnailPath = thumbnailPath;
+            }
+
+        }
+
+        private void LoadComics()
+        {
             List<String> rootPaths = new List<string>
             {
-                "D:\\ACG\\S\\Images\\Comic\\Artists\\short",
                 "D:\\ACG\\S\\Images\\Comic\\Artists\\long",
                 "D:\\ACG\\S\\Images\\Comic\\Artists\\pictures",
+                "D:\\ACG\\S\\Images\\Comic\\Artists\\short",
             };
 
             foreach (String rootPath in rootPaths)
@@ -77,7 +118,7 @@ namespace Comics
                             continue;
 
                         FileInfo[] comicFiles = comicDirectory.GetFiles("*.*");
-                        String firstImage = null;
+                        string firstImage = null;
 
                         foreach (FileInfo comicFile in comicFiles)
                         {
@@ -90,44 +131,19 @@ namespace Comics
 
                         if (firstImage != null)
                         {
-                            string title = comicDirectory.Name;
-                            string author = authorDirectory.Name;
-                            string thumbnailPath = System.IO.Path.Combine(thumbnailFolder, "[" + author + "]" + title + ".jpgthumbnail");
-
-                            if (!(File.Exists(thumbnailPath)))
-                            {
-
-                                BitmapImage image = new BitmapImage();
-                                image.BeginInit();
-                                image.UriSource = new Uri(firstImage);
-                                image.DecodePixelHeight = 270 * 2;
-                                image.EndInit();
-
-                                JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
-                                bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
-                                using (FileStream fileStream = new FileStream(thumbnailPath, FileMode.Create))
-                                    bitmapEncoder.Save(fileStream);
-
-                            }
-
                             Comic comic = new Comic
                             {
-                                Title = title,
-                                Author = author,
+                                Title = comicDirectory.Name,
+                                Author = authorDirectory.Name,
+                                Path = comicDirectory.FullName,
                                 ImagePath = firstImage,
-                                ThumbnailPath = thumbnailPath
+                                ThumbnailPath = "blank.png"
                             };
-
-                            String thumbnailFullPath = System.IO.Path.Combine(thumbnailFolder, comic.ThumbnailPath);
-                            
-
                             items.Add(comic);
                         }
                     }
                 }
             }
-
-            Collection.ItemsSource = items;
         }
 
         /// <summary>
@@ -182,7 +198,17 @@ namespace Comics
 
         private void ShowSettings(object sender, RoutedEventArgs e)
         {
-            Debug.Write("Break\n");
+            if (!SettingsButton.ContextMenu.IsOpen)
+            {
+                e.Handled = true;
+
+                var mouseRightClickEvent = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right)
+                {
+                    RoutedEvent = Mouse.MouseUpEvent,
+                    Source = sender,
+                };
+                InputManager.Current.ProcessInput(mouseRightClickEvent);
+            }
         }
 
         private void ContextMenu_Open(object sender, RoutedEventArgs e)
@@ -191,7 +217,32 @@ namespace Comics
             temporaryComic = null;
         }
 
-        private void DockPanel_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void ContextMenu_ShowInExplorer(object sender, RoutedEventArgs e)
+        {
+            temporaryComic?.OpenContainingFolder();
+            temporaryComic = null;
+        }
+
+        private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
+        {
+            items.Clear();
+            LoadComics();
+            LoadComicThumbnails();
+        }
+
+        private void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e)
+        {
+            // Delete existing ones first, but warn the user that it'll take a long time
+            // Currently does basically nothing (unless you accidentally deleted something)
+            LoadComicThumbnails();
+        }
+
+        private void ContextMenu_Exit(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void EndedLeftClickOnComic(object sender, MouseButtonEventArgs e)
         {
             Comic comic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
             if (comic != null && comic.Equals(temporaryComic))
@@ -199,12 +250,12 @@ namespace Comics
             temporaryComic = null;
         }
 
-        private void DockPanel_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        private void StartedRightClickOnComic(object sender, MouseButtonEventArgs e)
         {
             temporaryComic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
         }
 
-        private void DockPanel_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void StartedLeftClickOnComic(object sender, MouseButtonEventArgs e)
         {
             temporaryComic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
         }
