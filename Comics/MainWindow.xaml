@@ -19,57 +19,116 @@
         <Style TargetType="{x:Type ContextMenu}">
             <Setter Property="ItemsPanel" Value="{StaticResource MenuItemPanelTemplate}"/>
         </Style>
+        <!-- Indicate item hovering over -->
+        <Style x:Key="HoverEffect" TargetType="Border">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFCCE8FF"/>
+                    <Setter Property="BorderBrush" Value="#FF99D1FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- General styling -->
+        <Style x:Key="Dropdown" TargetType="{x:Type DockPanel}">
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="DockPanel.Dock" Value="Right" />
+            <Style.Resources>
+                <Style TargetType="{x:Type Label}">
+                    <Setter Property="DockPanel.Dock" Value="Left" />
+                    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+                    <Setter Property="FontSize" Value="14" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+                <Style TargetType="{x:Type ComboBox}">
+                    <Setter Property="DockPanel.Dock" Value="Right" />
+                    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+                    <Setter Property="FontSize" Value="14" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+            </Style.Resources>
+        </Style>
     </Window.Resources>
-    
+
     <DockPanel>
         <!-- Status bar -->
         <StatusBar DockPanel.Dock="Bottom" Height="22">
             <StatusBarItem HorizontalAlignment="Left" FontSize="11">
-                <Button Content="⚙" Width="16" Height="16" Padding="-1,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" />
+                <Button Content="⚙" Width="16" Height="16" Padding="-1,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ShowSettings"/>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right" FontSize="11">
                 <Button Content="▶❚" Width="16" Height="16" Padding="0,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ToggleRightSidebar" FontStretch="UltraCondensed"/>
             </StatusBarItem>
         </StatusBar>
-        
+
         <!-- Everything else -->
         <DockPanel>
             <!-- Right sidebar -->
             <Rectangle x:Name="RightSidebar" Fill="#99000000" DockPanel.Dock="Right" Margin="0,0,0,0" Width="200"/>
-            
+
             <!-- Main area (collection view) -->
             <DockPanel Margin="0,0,0,0" x:Name="ContentGrid">
                 <!-- Header (category and sort selection) -->
                 <DockPanel DockPanel.Dock="Top" Height="40" Background="#23000000">
                     <Label DockPanel.Dock="Left" Content="Category" TextOptions.TextFormattingMode="Display" FontSize="22" />
-                    <Label DockPanel.Dock="Right" Content="Group:" TextOptions.TextFormattingMode="Display" FontSize="14" VerticalAlignment="Center" />
-                    <Label DockPanel.Dock="Right" Content="Sort:" TextOptions.TextFormattingMode="Display" FontSize="14" VerticalAlignment="Center" />
+                    <DockPanel Style="{StaticResource Dropdown}">
+                        <Label Content="Sort:" />
+                        <ComboBox SelectionChanged="ChangeSortOrder">
+                            <ComboBoxItem>
+                                <TextBlock>Title</TextBlock>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <TextBlock>Author</TextBlock>
+                            </ComboBoxItem>
+                            <ComboBoxItem IsSelected="True">
+                                <TextBlock>Load order</TextBlock>
+                            </ComboBoxItem>
+                        </ComboBox>
+                    </DockPanel>
+                    <DockPanel Style="{StaticResource Dropdown}">
+                        <Label Content="Group:" />
+                        <ComboBox IsEnabled="False">
+                            <ComboBoxItem IsSelected="True">
+                                <TextBlock>Not implemented</TextBlock>
+                            </ComboBoxItem>
+                        </ComboBox>
+                    </DockPanel>
                     <Rectangle />
                 </DockPanel>
-                
+
                 <!-- Scrollable view -->
                 <ScrollViewer>
-                    <ListBox x:Name="Collection" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                        <ListBox.ItemTemplate>
+                    <ItemsControl x:Name="Collection" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <DockPanel Width="200" Height="300">
-                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
-                                    <Image Source="{Binding Path=ThumbnailPath, Converter={StaticResource ThumbnailConverter}}" />
-                                </DockPanel>
+                                <Border BorderThickness="1" Style="{StaticResource HoverEffect}">
+                                    <DockPanel Width="200" Height="300" Margin="3" PreviewMouseLeftButtonUp="DockPanel_PreviewMouseLeftButtonUp" PreviewMouseRightButtonUp="DockPanel_PreviewMouseRightButtonUp" PreviewMouseLeftButtonDown="DockPanel_PreviewMouseLeftButtonDown">
+                                        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                                        <Image Source="{Binding Path=ThumbnailPathDISABLED, Converter={StaticResource ThumbnailConverter}}" />
+                                    </DockPanel>
+                                </Border>
                             </DataTemplate>
-                        </ListBox.ItemTemplate>
-                        <ListBox.ContextMenu>
-                            <ContextMenu>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ContextMenu>
+                            <ContextMenu Opened="DisableActions" Closed="EnableActionsWithDelay">
                                 <MenuItem Header="Open" Click="ContextMenu_Open" />
                             </ContextMenu>
-                        </ListBox.ContextMenu>
-                    </ListBox>
+                        </ItemsControl.ContextMenu>
+                        <!-- Test element
+                        <Border BorderBrush="#FF99D1FF" Background="#FFCCE8FF" BorderThickness="1" Style="{StaticResource HoverEffect}">
+                            <DockPanel Width="200" Height="300" Margin="3">
+                                <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Author" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="Title" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                                <Image Source="C:\Users\Lanxia\Downloads\sc\abgrund (さいかわゆさ)\不運な旅人の話 (CN)\001.jpg" />
+                            </DockPanel>
+                        </Border>
+                        -->
+                    </ItemsControl>
                 </ScrollViewer>
             </DockPanel>
         </DockPanel>
