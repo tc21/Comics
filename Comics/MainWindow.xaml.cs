@@ -48,23 +48,10 @@ namespace Comics
             actionDelayTimer.Elapsed += EnableActions;
             Activated += EnableActionsWithDelay;
             Deactivated += DisableActions;
+            
+            // Very primitive thumbnail caching being done here
+            String thumbnailFolder = "C:\\Users\\Lanxia\\Downloads\\comics_thumbnails";
 
-            String serializedFile = "C:\\Users\\Lanxia\\Downloads\\comics.tmp";
-            if (File.Exists(serializedFile))
-            {
-                
-                using (Stream stream = File.Open(serializedFile, FileMode.Open))
-                {
-                    Debug.Write("Using serizlized file");
-                    BinaryFormatter binaryFormatter = new BinaryFormatter();
-                    items = binaryFormatter.Deserialize(stream) as List<Comic>;
-                    Debug.Write("Backend load completed");
-                    Collection.ItemsSource = items;
-                    Debug.Write("Succesfully set ItemsSource");
-                }
-                return;
-            }
-            Debug.Write("Not using serizlized file");
             // This will need to be changed
             List<String> rootPaths = new List<string>
             {
@@ -76,49 +63,71 @@ namespace Comics
             foreach (String rootPath in rootPaths)
             {
                 DirectoryInfo rootDirectory = new DirectoryInfo(rootPath);
-
                 DirectoryInfo[] authorDirectories = rootDirectory.GetDirectories();
+
                 foreach (DirectoryInfo authorDirectory in authorDirectories)
                 {
                     if (authorDirectory.Name.First() == '~')
                         continue;
                     DirectoryInfo[] comicDirectories = authorDirectory.GetDirectories();
+
                     foreach (DirectoryInfo comicDirectory in comicDirectories)
                     {
                         if (comicDirectory.Name.First() == '~')
                             continue;
 
                         FileInfo[] comicFiles = comicDirectory.GetFiles("*.*");
-                        String thumbnail = null;
+                        String firstImage = null;
+
                         foreach (FileInfo comicFile in comicFiles)
                         {
                             if (isImage(comicFile.Name))
                             {
-                                thumbnail = comicFile.FullName;
+                                firstImage = comicFile.FullName;
                                 break;
                             }
                         }
-                        if (thumbnail != null)
+
+                        if (firstImage != null)
                         {
-                            items.Add(new Comic
+                            string title = comicDirectory.Name;
+                            string author = authorDirectory.Name;
+                            string thumbnailPath = System.IO.Path.Combine(thumbnailFolder, "[" + author + "]" + title + ".jpgthumbnail");
+
+                            if (!(File.Exists(thumbnailPath)))
                             {
-                                Title = comicDirectory.Name,
-                                Author = authorDirectory.Name,
-                                ThumbnailPath = thumbnail
-                            });
+
+                                BitmapImage image = new BitmapImage();
+                                image.BeginInit();
+                                image.UriSource = new Uri(firstImage);
+                                image.DecodePixelHeight = 270 * 2;
+                                image.EndInit();
+
+                                JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
+                                bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
+                                using (FileStream fileStream = new FileStream(thumbnailPath, FileMode.Create))
+                                    bitmapEncoder.Save(fileStream);
+
+                            }
+
+                            Comic comic = new Comic
+                            {
+                                Title = title,
+                                Author = author,
+                                ImagePath = firstImage,
+                                ThumbnailPath = thumbnailPath
+                            };
+
+                            String thumbnailFullPath = System.IO.Path.Combine(thumbnailFolder, comic.ThumbnailPath);
+                            
+
+                            items.Add(comic);
                         }
                     }
                 }
             }
 
-            //using (Stream stream = File.Open(serializedFile, FileMode.Create))
-            //{
-            //    BinaryFormatter binaryFormatter = new BinaryFormatter();
-            //    binaryFormatter.Serialize(stream, items);
-            //}
-            Debug.Write("Backend load completed");
             Collection.ItemsSource = items;
-            Debug.Write("Succesfully set ItemsSource");
         }
 
         /// <summary>
@@ -158,6 +167,7 @@ namespace Comics
         private void ToggleRightSidebar(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
+
             if (RightSidebar.Visibility == System.Windows.Visibility.Collapsed)
             {
                 RightSidebar.Visibility = System.Windows.Visibility.Visible;
@@ -177,7 +187,7 @@ namespace Comics
 
         private void ContextMenu_Open(object sender, RoutedEventArgs e)
         {
-            temporaryComic?.openWithDefaultApplication();
+            temporaryComic?.OpenWithDefaultApplication();
             temporaryComic = null;
         }
 
@@ -185,7 +195,7 @@ namespace Comics
         {
             Comic comic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
             if (comic != null && comic.Equals(temporaryComic))
-                comic.openWithDefaultApplication();
+                comic.OpenWithDefaultApplication();
             temporaryComic = null;
         }
 
@@ -210,9 +220,10 @@ namespace Comics
                     items.Sort((x, y) => x.Author.CompareTo(y.Author));
                     break;
                 case 2:
-                    items.Sort((x, y) => x.ThumbnailPath.CompareTo(y.ThumbnailPath));
+                    items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));
                     break;
             }
+
             Collection?.Items.Refresh();
         }
     }

@@ -109,7 +109,7 @@
                                     <DockPanel Width="200" Height="300" Margin="3" PreviewMouseLeftButtonUp="DockPanel_PreviewMouseLeftButtonUp" PreviewMouseRightButtonUp="DockPanel_PreviewMouseRightButtonUp" PreviewMouseLeftButtonDown="DockPanel_PreviewMouseLeftButtonDown">
                                         <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
                                         <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
-                                        <Image Source="{Binding Path=ThumbnailPathDISABLED, Converter={StaticResource ThumbnailConverter}}" />
+                                        <Image Source="{Binding Path=ThumbnailPath}" />
                                     </DockPanel>
                                 </Border>
                             </DataTemplate>
