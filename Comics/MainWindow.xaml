@@ -67,7 +67,7 @@
                 <Button x:Name="SettingsButton" Content="⚙" Width="16" Height="16" Padding="-1,-2,0,0" Background="{x:Null}" Foreground="#FF37383A" FontSize="14" BorderThickness="0" Click="ShowSettings">
                     <Button.ContextMenu>
                         <ContextMenu Opened="DisableActions" Closed="EnableActionsWithDelay">
-                            <MenuItem Header="Settings" IsEnabled="False" />
+                            <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
                             <MenuItem Header="Quick Toggles" IsEnabled="False">
                                 <MenuItem />
                             </MenuItem>
@@ -157,7 +157,7 @@
                 <ItemsControl x:Name="Collection" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <local:VirtualizingWrapPanel x:Name="Panel" />
+                            <local:VirtualizingWrapPanel />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -173,7 +173,7 @@
                     </ItemsControl.ItemTemplate>
                     <ItemsControl.Template>
                         <ControlTemplate>
-                            <ScrollViewer Focusable="False">
+                            <ScrollViewer Focusable="False" PanningMode="VerticalOnly">
                                 <ItemsPresenter />
                             </ScrollViewer>
                         </ControlTemplate>

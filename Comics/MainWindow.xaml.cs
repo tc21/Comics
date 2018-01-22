@@ -77,14 +77,17 @@ namespace Comics
         {
             LoadComicThumbnails();  // This can be very slow. Find a way to "background" it.
         }
-        
+
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            Collection.UpdateLayout();
+            //Collection.ItemsPanel.
         }
 
         private void LoadComicThumbnails()
         {
+            if (!Directory.Exists(Defaults.ThumbnailFolder))
+                Directory.CreateDirectory(Defaults.ThumbnailFolder);
+
             // Very primitive thumbnail caching being done here
             foreach (Comic comic in allItems)
             {
@@ -134,7 +137,7 @@ namespace Comics
 
                         foreach (FileInfo comicFile in comicFiles)
                         {
-                            if (isImage(comicFile.Name))
+                            if (IsImage(comicFile.Name))
                             {
                                 firstImage = comicFile.FullName;
                                 break;
@@ -197,11 +200,10 @@ namespace Comics
             actionDelayTimer.Stop();
         }
         
-        private static readonly List<String> imageSuffixes = new List<String> { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
-        private bool isImage(String filename)
+        private bool IsImage(String filename)
         {
             string suffix = System.IO.Path.GetExtension(filename).ToLowerInvariant();
-            return imageSuffixes.Contains(suffix);
+            return Defaults.ImageSuffixes.Contains(suffix);
         }
 
         private void ToggleRightSidebar(object sender, RoutedEventArgs e)
@@ -259,6 +261,12 @@ namespace Comics
             // Delete existing ones first, but warn the user that it'll take a long time
             // Currently does basically nothing (unless you accidentally deleted something)
             LoadComicThumbnails();
+        }
+
+        private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)
+        {
+            Window settings = new SettingsWindow();
+            settings.Show();
         }
 
         private void ContextMenu_Exit(object sender, RoutedEventArgs e)

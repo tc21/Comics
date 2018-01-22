@@ -37,14 +37,9 @@ namespace Comics
             obj.SetValue(VirtualItemIndexProperty, value);
         }
 
-        public double ItemHeight
+        public Size ItemSize
         {
-            get { return Defaults.DynamicHeight(_viewportSize.Width); }
-        }
-
-        public double ItemWidth
-        {
-            get { return Defaults.DynamicWidth(_viewportSize.Width); }
+            get { return Defaults.DynamicSize(_viewportSize.Width); }
         }
 
         public VirtualizingWrapPanel()
@@ -80,11 +75,11 @@ namespace Comics
             _isInMeasure = true;
             _childLayouts.Clear();
 
-            var extentInfo = GetExtentInfo(availableSize, ItemHeight);
+            var extentInfo = GetExtentInfo(availableSize, ItemSize.Height);
 
             EnsureScrollOffsetIsWithinConstrains(extentInfo);
 
-            var layoutInfo = GetLayoutInfo(availableSize, ItemHeight, extentInfo);
+            var layoutInfo = GetLayoutInfo(availableSize, ItemSize.Height, extentInfo);
 
             RecycleItems(layoutInfo);
 
@@ -138,19 +133,19 @@ namespace Comics
                     // only prepare the item once it has been added to the visual tree
                     _itemsGenerator.PrepareItemContainer(child);
 
-                    child.Measure(new Size(ItemWidth, ItemHeight));
+                    child.Measure(ItemSize);
 
-                    _childLayouts.Add(child, new Rect(currentX, currentY, ItemWidth, ItemHeight));
+                    _childLayouts.Add(child, new Rect(currentX, currentY, ItemSize.Width, ItemSize.Height));
 
-                    if (currentX + ItemWidth * 2 >= availableSize.Width)
+                    if (currentX + ItemSize.Width * 2 >= availableSize.Width)
                     {
                         // wrap to a new line
-                        currentY += ItemHeight;
+                        currentY += ItemSize.Height;
                         currentX = 0;
                     }
                     else
                     {
-                        currentX += ItemWidth;
+                        currentX += ItemSize.Width;
                     }
                 }
             }
@@ -240,10 +235,10 @@ namespace Comics
             var firstVisibleLine = (int)Math.Floor(VerticalOffset / itemHeight);
 
             var firstRealizedIndex = Math.Max(extentInfo.ItemsPerLine * firstVisibleLine - 1, 0);
-            var firstRealizedItemLeft = firstRealizedIndex % extentInfo.ItemsPerLine * ItemWidth - HorizontalOffset;
+            var firstRealizedItemLeft = firstRealizedIndex % extentInfo.ItemsPerLine * ItemSize.Width - HorizontalOffset;
             var firstRealizedItemTop = (firstRealizedIndex / extentInfo.ItemsPerLine) * itemHeight - VerticalOffset;
 
-            var firstCompleteLineTop = (firstVisibleLine == 0 ? firstRealizedItemTop : firstRealizedItemTop + ItemHeight);
+            var firstCompleteLineTop = (firstVisibleLine == 0 ? firstRealizedItemTop : firstRealizedItemTop + ItemSize.Height);
             var completeRealizedLines = (int)Math.Ceiling((availableSize.Height - firstCompleteLineTop) / itemHeight);
 
             var lastRealizedIndex = Math.Min(firstRealizedIndex + completeRealizedLines * extentInfo.ItemsPerLine + 2, _itemsControl.Items.Count - 1);
@@ -264,9 +259,9 @@ namespace Comics
                 return new ExtentInfo();
             }
 
-            var itemsPerLine = Math.Max((int)Math.Floor(viewPortSize.Width / ItemWidth), 1);
+            var itemsPerLine = Math.Max((int)Math.Floor(viewPortSize.Width / ItemSize.Width), 1);
             var totalLines = (int)Math.Ceiling((double)_itemsControl.Items.Count / itemsPerLine);
-            var extentHeight = Math.Max(totalLines * ItemHeight, viewPortSize.Height);
+            var extentHeight = Math.Max(totalLines * ItemSize.Height, viewPortSize.Height);
 
             return new ExtentInfo
             {
@@ -309,12 +304,12 @@ namespace Comics
 
         public void PageLeft()
         {
-            SetHorizontalOffset(HorizontalOffset + ItemWidth);
+            SetHorizontalOffset(HorizontalOffset + ItemSize.Width);
         }
 
         public void PageRight()
         {
-            SetHorizontalOffset(HorizontalOffset - ItemWidth);
+            SetHorizontalOffset(HorizontalOffset - ItemSize.Width);
         }
 
         public void MouseWheelUp()
@@ -412,7 +407,7 @@ namespace Comics
 
         public ItemLayoutInfo GetVisibleItemsRange()
         {
-            return GetLayoutInfo(_viewportSize, ItemHeight, GetExtentInfo(_viewportSize, ItemHeight));
+            return GetLayoutInfo(_viewportSize, ItemSize.Height, GetExtentInfo(_viewportSize, ItemSize.Height));
         }
 
         public bool CanVerticallyScroll
