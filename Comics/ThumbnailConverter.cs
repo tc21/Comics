@@ -18,7 +18,6 @@ namespace Comics
         {
             BitmapImage image = new BitmapImage();
             image.BeginInit();
-            image.DecodePixelHeight = 270 * 2;
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.UriSource = new Uri(value.ToString());
             image.EndInit();

@@ -50,6 +50,7 @@ namespace Comics
                 if (Defaults.ImageSuffixes.Contains(suffix))
                 {
                     imagePath = file.FullName;
+                    break;
                 }
             }
         }

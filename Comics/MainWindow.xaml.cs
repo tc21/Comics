@@ -106,6 +106,13 @@ namespace Comics
 
         }
 
+        public void ReloadComics()
+        {
+            allItems.Clear();
+            LoadComics();
+            LoadComicThumbnails();
+        }
+
         private void LoadComics()
         {
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.RootPaths)
@@ -118,7 +125,7 @@ namespace Comics
                     if (Defaults.NameShouldBeIgnored(authorDirectory.Name))
                         continue;
 
-                    LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, 2, null);
+                    LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.profile.WorkTraversalDepth, null);
                 }
             }
             Items = allItems;
@@ -243,21 +250,30 @@ namespace Comics
 
         private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
         {
-            allItems.Clear();
-            LoadComics();
-            LoadComicThumbnails();
+            ReloadComics();
         }
 
         private void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e)
         {
             // Delete existing ones first, but warn the user that it'll take a long time
             // Currently does basically nothing (unless you accidentally deleted something)
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be deleted and regenerated. This may take a long times.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.No)
+                return;
+
+            foreach (Comic comic in allItems)
+            {
+                if (File.Exists(comic.ThumbnailPath))
+                    File.Delete(comic.ThumbnailPath);
+            }
+
             LoadComicThumbnails();
         }
 
         private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)
         {
             Window settings = new SettingsWindow();
+            settings.Owner = this;
             settings.Show();
         }
 

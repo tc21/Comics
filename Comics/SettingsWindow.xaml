@@ -32,17 +32,11 @@
             <DockPanel Style="{StaticResource Dropdown}" DockPanel.Dock="Top">
                 <Label Content="Profile:" />
                 <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileChanged">
-                    <ComboBoxItem IsSelected="True">
-                        <TextBlock>Default (Comics)</TextBlock>
-                    </ComboBoxItem>
-                    <ComboBoxItem>
-                        <TextBlock IsEnabled="False" Foreground="#FF656565">Add new...</TextBlock>
-                    </ComboBoxItem>
                 </ComboBox>
             </DockPanel>
             <DockPanel DockPanel.Dock="Bottom">
                 <Button DockPanel.Dock="Right" Content="Confirm" IsEnabled="False" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Cancel" Margin="2" Padding="4,2,4,2"/>
+                <Button DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
                 <Button DockPanel.Dock="Right" Content="Apply" IsEnabled="False" Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
@@ -52,7 +46,22 @@
                         <Label Content="Recognized Extensions" DockPanel.Dock="Top"></Label>
                         <ListView x:Name="ExtensionList" DockPanel.Dock="Top"></ListView>
                         <Label Content="Folders" DockPanel.Dock="Top"></Label>
-                        <ListView x:Name="CategoryList" DockPanel.Dock="Top"></ListView>
+                        <ListView x:Name="CategoryList" DockPanel.Dock="Top">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Category}" Margin="0,0,4,0"  />
+                                        <Line Y2="1" HorizontalAlignment="Right" Grid.Column="1" Stroke="Gray" Stretch="Fill" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Path}" Margin="4,0,0,0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
                         <Rectangle />
                     </DockPanel>
                 </TabItem>
@@ -70,7 +79,6 @@
                     </DockPanel>
                 </TabItem>
             </TabControl>
-
         </DockPanel>
     </Border>
 </Window>

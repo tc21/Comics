@@ -201,7 +201,7 @@
                                     <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding DisplayAuthor}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding DisplayTitle}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
                                     <Grid>
-                                        <Image Source="{Binding Path=ThumbnailPath}" />
+                                        <Image Source="{Binding Path=ThumbnailPath, Converter={StaticResource ThumbnailConverter}}" />
                                         <Polygon Style="{StaticResource LoveBackground}" />
                                         <TextBlock Style="{StaticResource LoveLabel}" />
                                     </Grid>

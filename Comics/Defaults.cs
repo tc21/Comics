@@ -13,7 +13,7 @@ namespace Comics
     public class Defaults
     {
         // The default settings currently being used
-        public static UserDefaults shared;
+        public static UserDefaults profile;
 
         // Default settings for each instance
         public class UserDefaults
@@ -68,7 +68,7 @@ namespace Comics
             if (!LoadProfile(Properties.Settings.Default.CurrentProfile))
             {
                 string automaticallyGeneratedProfileName = "New Profile (Automatically Generated)";
-                shared = new UserDefaults()
+                profile = new UserDefaults()
                 {
                     ProfileName = automaticallyGeneratedProfileName,
                     ImageHeight = defaultImageHeight,
@@ -80,9 +80,7 @@ namespace Comics
                     ReactionTime = defaultReactionTime,
                     RootPaths = new List<CategorizedPath>()
                     {
-                        new CategorizedPath() {Category="Long", Path="D:\\ACG\\S\\Images\\Comic\\Artists\\long"},
-                        new CategorizedPath() {Category="Pictures", Path="D:\\ACG\\S\\Images\\Comic\\Artists\\pictures" },
-                        new CategorizedPath() {Category="Short", Path="D:\\ACG\\S\\Images\\Comic\\Artists\\short"},
+                        new CategorizedPath() {Category="Pictures", Path=Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)}
                     },
                     Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
                     IgnoredPrefixes = new List<string>() { "~", "(" },
@@ -110,21 +108,21 @@ namespace Comics
 
         public static bool NameShouldBeIgnored(string name)
         {
-            foreach (string prefix in shared.IgnoredPrefixes)
+            foreach (string prefix in profile.IgnoredPrefixes)
                 if (name.StartsWith(prefix))
                     return true;
             return false;
         }
 
         // The one thing that needs to wait to be user-defined
-        public static List<CategorizedPath> RootPaths { get { return shared.RootPaths; } }
-        public static List<string> ImageSuffixes { get { return shared.Extensions; } }
+        public static List<CategorizedPath> RootPaths { get { return profile.RootPaths; } }
+        public static List<string> ImageSuffixes { get { return profile.Extensions; } }
 
         // How the application was first coded
-        public static int SafetyMargin { get { return 16 + 2 * shared.TileMargin; } }
-        public static int DefaultHeight { get { return shared.ImageHeight + shared.LabelHeight + 2 * shared.TileMargin; } }
-        public static int DefaultWidth { get { return shared.ImageWidth + 2 * shared.TileMargin; } }
-        public static int ActivationDelay { get { return shared.ReactionTime; } }
+        public static int SafetyMargin { get { return 16 + 2 * profile.TileMargin; } }
+        public static int DefaultHeight { get { return profile.ImageHeight + profile.LabelHeight + 2 * profile.TileMargin; } }
+        public static int DefaultWidth { get { return profile.ImageWidth + 2 * profile.TileMargin; } }
+        public static int ActivationDelay { get { return profile.ReactionTime; } }
 
         // Provides dynamically-sized widths and heights to the wrap panel
         private static int MaximumDynamicWidth { get { return 2 * DefaultWidth - 1; } }
@@ -136,10 +134,10 @@ namespace Comics
             viewPortWidth -= 16;
             int numberOfColumns = EstimateNumberOfColumns(viewPortWidth / DefaultWidth);
             int dynamicWidth = (int)(viewPortWidth / numberOfColumns);
-            int dynamicImageWidth = dynamicWidth - 2 * shared.TileMargin;
-            int dynamicImageHeight = (int) Math.Round((double)shared.ImageHeight * dynamicImageWidth / DefaultWidth);
-            return new Size(dynamicImageWidth + 2 * shared.TileMargin,
-                dynamicImageHeight + shared.LabelHeight + 2 * shared.TileMargin);
+            int dynamicImageWidth = dynamicWidth - 2 * profile.TileMargin;
+            int dynamicImageHeight = (int) Math.Round((double)profile.ImageHeight * dynamicImageWidth / DefaultWidth);
+            return new Size(dynamicImageWidth + 2 * profile.TileMargin,
+                dynamicImageHeight + profile.LabelHeight + 2 * profile.TileMargin);
         }
 
         // Some weird formula
@@ -252,11 +250,11 @@ namespace Comics
         public static void SaveProfile()
         {
             XmlSerializer writer = new XmlSerializer(typeof(UserDefaults));
-            string path = Path.Combine(UserProfileFolder, shared.ProfileName + ".xmlprofile");
+            string path = Path.Combine(UserProfileFolder, profile.ProfileName + ".xmlprofile");
             string tempPath = path + ".tmp";
 
             using (FileStream tempFile = File.Create(tempPath))
-                writer.Serialize(tempFile, shared);
+                writer.Serialize(tempFile, profile);
      
             if (File.Exists(path))
                 File.Delete(path);
@@ -276,8 +274,8 @@ namespace Comics
             using (StreamReader file = new StreamReader(path))
                 profile = (UserDefaults)reader.Deserialize(file);
 
-            shared = profile;
-            Properties.Settings.Default.CurrentProfile = shared.ProfileName;
+            Defaults.profile = profile;
+            Properties.Settings.Default.CurrentProfile = Defaults.profile.ProfileName;
             return true;
         }
     }
