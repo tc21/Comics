@@ -47,6 +47,40 @@
                 </Style>
             </Style.Resources>
         </Style>
+        <Style x:Key="LoveBackground" TargetType="{x:Type Polygon}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Loved}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Setter Property="Fill" Value="#FFFF145F" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Disliked}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Setter Property="Fill" Value="#FF939393" />
+                </DataTrigger>
+            </Style.Triggers>
+            <Setter Property="Points" Value="0,0 0,-36 36,0" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="LoveLabel" TargetType="{x:Type TextBlock}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Loved}" Value="True">
+                    <Setter Property="Text" Value="♥" />
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Setter Property="FontSize" Value="18" />
+                    <Setter Property="Margin" Value="4,-1" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Disliked}" Value="True">
+                    <Setter Property="Text" Value="✖" />
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="Margin" Value="2,3" />
+                </DataTrigger>
+            </Style.Triggers>
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
     </Window.Resources>
 
     <DockPanel>
@@ -163,10 +197,14 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border BorderThickness="1" Style="{StaticResource HoverEffect}">
-                                <DockPanel Width="Auto" Height="Auto" Margin="3" PreviewMouseLeftButtonUp="EndedLeftClickOnComic" PreviewMouseRightButtonUp="StartedRightClickOnComic" PreviewMouseLeftButtonDown="StartedLeftClickOnComic">
-                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
-                                    <Image Source="{Binding Path=ThumbnailPath}" />
+                                <DockPanel Margin="3" Background="#00000000" PreviewMouseLeftButtonUp="EndedLeftClickOnComic" PreviewMouseRightButtonUp="StartedRightClickOnComic" PreviewMouseLeftButtonDown="StartedLeftClickOnComic">
+                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding DisplayAuthor}" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding DisplayTitle}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                                    <Grid>
+                                        <Image Source="{Binding Path=ThumbnailPath}" />
+                                        <Polygon Style="{StaticResource LoveBackground}" />
+                                        <TextBlock Style="{StaticResource LoveLabel}" />
+                                    </Grid>
                                 </DockPanel>
                             </Border>
                         </DataTemplate>
@@ -183,22 +221,13 @@
                             <MenuItem Header="Open" Click="ContextMenu_Open" />
                             <MenuItem Header="Edit Info" IsEnabled="False" />
                             <Separator />
-                            <MenuItem Header="Like" IsEnabled="False" />
-                            <MenuItem Header="Disliked" IsEnabled="False" />
+                            <MenuItem Header="Love" Click="ContextMenu_Love" />
+                            <MenuItem Header="Dislike" Click="ContextMenu_Dislike" />
                             <Separator />
                             <MenuItem Header="Show in Explorer" Click="ContextMenu_ShowInExplorer" />
                             <MenuItem Header="Redefine Thumbnail" IsEnabled="False" />
                         </ContextMenu>
                     </ItemsControl.ContextMenu>
-                    <!-- Test element
-                        <Border BorderBrush="#FF99D1FF" Background="#FFCCE8FF" BorderThickness="1" Style="{StaticResource HoverEffect}">
-                            <DockPanel Width="200" Height="300" Margin="3">
-                                <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Author" FontSize="10" LineHeight="14" Height="14" Foreground="#FF7F7F7F" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="Title" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
-                                <Image Source="C:\Users\Lanxia\Downloads\sc\abgrund (さいかわゆさ)\不運な旅人の話 (CN)\001.jpg" />
-                            </DockPanel>
-                        </Border>
-                        -->
                 </ItemsControl>
             </DockPanel>
         </DockPanel>

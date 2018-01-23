@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Comics"
         mc:Ignorable="d"
-        Title="SettingsWindow" Height="300" Width="300">
+        Title="SettingsWindow" Height="400" Width="400">
     <Window.Resources>
         <!-- General styling -->
         <Style x:Key="Dropdown" TargetType="{x:Type DockPanel}">
@@ -70,6 +70,7 @@
                     </DockPanel>
                 </TabItem>
             </TabControl>
+
         </DockPanel>
     </Border>
 </Window>

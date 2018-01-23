@@ -22,5 +22,65 @@ namespace Comics.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string StorageFullPath {
+            get {
+                return ((string)(this["StorageFullPath"]));
+            }
+            set {
+                this["StorageFullPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ProfilePath {
+            get {
+                return ((string)(this["ProfilePath"]));
+            }
+            set {
+                this["ProfilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CurrentProfile {
+            get {
+                return ((string)(this["CurrentProfile"]));
+            }
+            set {
+                this["CurrentProfile"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ThumbnailsPath {
+            get {
+                return ((string)(this["ThumbnailsPath"]));
+            }
+            set {
+                this["ThumbnailsPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string MetadataPath {
+            get {
+                return ((string)(this["MetadataPath"]));
+            }
+            set {
+                this["MetadataPath"] = value;
+            }
+        }
     }
 }

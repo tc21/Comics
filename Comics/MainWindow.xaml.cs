@@ -85,17 +85,11 @@ namespace Comics
 
         private void LoadComicThumbnails()
         {
-            if (!Directory.Exists(Defaults.ThumbnailFolder))
-                Directory.CreateDirectory(Defaults.ThumbnailFolder);
-
             // Very primitive thumbnail caching being done here
             foreach (Comic comic in allItems)
             {
-                string thumbnailPath = System.IO.Path.Combine(Defaults.ThumbnailFolder, "[" + comic.Author + "]" + comic.Title + ".jpgthumbnail");
-
-                if (!(File.Exists(thumbnailPath)))
+                if (!(File.Exists(comic.ThumbnailPath)))
                 {
-
                     BitmapImage image = new BitmapImage();
                     image.BeginInit();
                     image.UriSource = new Uri(comic.ImagePath);
@@ -104,62 +98,53 @@ namespace Comics
 
                     JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
                     bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
-                    using (FileStream fileStream = new FileStream(thumbnailPath, FileMode.Create))
+                    using (FileStream fileStream = new FileStream(comic.ThumbnailPath, FileMode.Create))
                         bitmapEncoder.Save(fileStream);
 
                 }
-
-                comic.ThumbnailPath = thumbnailPath;
             }
 
         }
 
         private void LoadComics()
         {
-            foreach (string rootPath in Defaults.RootPaths)
+            foreach (Defaults.CategorizedPath categorizedPath in Defaults.RootPaths)
             {
-                DirectoryInfo rootDirectory = new DirectoryInfo(rootPath);
+                DirectoryInfo rootDirectory = new DirectoryInfo(categorizedPath.Path);
                 DirectoryInfo[] authorDirectories = rootDirectory.GetDirectories();
 
                 foreach (DirectoryInfo authorDirectory in authorDirectories)
                 {
-                    if (authorDirectory.Name.First() == '~')
+                    if (Defaults.NameShouldBeIgnored(authorDirectory.Name))
                         continue;
-                    DirectoryInfo[] comicDirectories = authorDirectory.GetDirectories();
 
-                    foreach (DirectoryInfo comicDirectory in comicDirectories)
-                    {
-                        if (comicDirectory.Name.First() == '~')
-                            continue;
-
-                        FileInfo[] comicFiles = comicDirectory.GetFiles("*.*");
-                        string firstImage = null;
-
-                        foreach (FileInfo comicFile in comicFiles)
-                        {
-                            if (IsImage(comicFile.Name))
-                            {
-                                firstImage = comicFile.FullName;
-                                break;
-                            }
-                        }
-
-                        if (firstImage != null)
-                        {
-                            Comic comic = new Comic
-                            {
-                                Title = comicDirectory.Name,
-                                Author = authorDirectory.Name,
-                                Path = comicDirectory.FullName,
-                                ImagePath = firstImage,
-                                ThumbnailPath = "blank.png"
-                            };
-                            allItems.Add(comic);
-                        }
-                    }
+                    LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, 2, null);
                 }
             }
             Items = allItems;
+        }
+
+        private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts)
+        {
+            depth -= 1;
+            DirectoryInfo[] comicDirectories = directory.GetDirectories();
+
+            foreach(DirectoryInfo comicDirectory in comicDirectories)
+            {
+                if (Defaults.NameShouldBeIgnored(comicDirectory.Name))
+                    continue;
+
+                string currentName = comicDirectory.Name;
+                if (previousParts != null)
+                    currentName = previousParts + " - " + currentName;
+
+                Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
+                if (comic.ImagePath != null)
+                    allItems.Add(comic);
+
+                if (depth > 0)
+                    LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
+            }
         }
         
         private void CommitSearch(object sender, TextChangedEventArgs e)
@@ -169,8 +154,7 @@ namespace Comics
             if (searchText == null || searchText.Length == 0)
                 Items = allItems;
             else
-                Items = allItems.Where(o => o.Title.ToLowerInvariant().Contains(searchText) ||
-                    o.Author.ToLowerInvariant().Contains(searchText)).ToList();
+                Items = allItems.Where(comic => comic.MatchesSearchText(searchText)).ToList();
         }
 
         /// <summary>
@@ -198,12 +182,6 @@ namespace Comics
             PreviewMouseLeftButtonDown -= EventHandled;
             PreviewMouseLeftButtonUp -= EventHandled;
             actionDelayTimer.Stop();
-        }
-        
-        private bool IsImage(String filename)
-        {
-            string suffix = System.IO.Path.GetExtension(filename).ToLowerInvariant();
-            return Defaults.ImageSuffixes.Contains(suffix);
         }
 
         private void ToggleRightSidebar(object sender, RoutedEventArgs e)
@@ -240,6 +218,20 @@ namespace Comics
         private void ContextMenu_Open(object sender, RoutedEventArgs e)
         {
             temporaryComic?.OpenWithDefaultApplication();
+            temporaryComic = null;
+        }
+
+        private void ContextMenu_Love(object sender, RoutedEventArgs e)
+        {
+            if (temporaryComic != null)
+                temporaryComic.Loved = !temporaryComic.Loved;
+            temporaryComic = null;
+        }
+
+        private void ContextMenu_Dislike(object sender, RoutedEventArgs e)
+        {
+            if (temporaryComic != null)
+                temporaryComic.Disliked = !temporaryComic.Disliked;
             temporaryComic = null;
         }
 
@@ -297,10 +289,10 @@ namespace Comics
             switch (SortOrderBox.SelectedIndex)
             {
                 case 0:
-                    Items.Sort((x, y) => x.Title.CompareTo(y.Title));
+                    Items.Sort((x, y) => x.SortTitle.CompareTo(y.SortTitle));
                     break;
                 case 1:
-                    Items.Sort((x, y) => x.Author.CompareTo(y.Author));
+                    Items.Sort((x, y) => x.SortAuthor.CompareTo(y.SortAuthor));
                     break;
                 case 2:
                     Items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));

@@ -6,10 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Xml.Serialization;
 
 namespace Comics
 {
-    class Defaults
+    public class Defaults
     {
         // The default settings currently being used
         public static UserDefaults shared;
@@ -17,18 +18,21 @@ namespace Comics
         // Default settings for each instance
         public class UserDefaults
         {
-            public int ImageHeight;
-            public int ImageWidth;
-            public int TitleFontSize;
-            public int SubtitleFontSize;
-            public int TileMargin;
+            public string ProfileName { get; set; }
+            public int ImageHeight { get; set; }
+            public int ImageWidth { get; set; }
+            public int TitleFontSize { get; set; }
+            public int SubtitleFontSize { get; set; }
+            public int TileMargin { get; set; }
             // The all-important time between application is activated and application starts accepting left clicks
-            public int ReactionTime;
+            public int ReactionTime { get; set; }
             // This user-specified font family will fall back to default (probably Segoe UI) if it doesn't exist
-            public string ApplicationFontFamily;
-
-            public string ThumbnailFolder;
-            public LinkedList<Tuple<string, string>> RootPaths;
+            public string ApplicationFontFamily { get; set; }
+            public List<CategorizedPath> RootPaths { get; set; }
+            public List<string> Extensions { get; set; }
+            public List<string> IgnoredPrefixes { get; set; }
+            // Used for automatic naming naming, etc. Perhaps we'll eventually have better ways of doing it
+            public int WorkTraversalDepth { get; set; }
 
             // Margin applied to the right hand side of the collection area to prevent the user 
             // resizing faster than the application can resize tiles, which can cause the application to
@@ -51,24 +55,44 @@ namespace Comics
             }
         }
 
+        // Searializable "tuple"
+        public class CategorizedPath
+        {
+            public string Category { get; set; }
+            public string Path { get; set; }
+        }
+
         // Initialized a "default" defaults which is probably quickly replaced
         static Defaults()
         {
-            shared = new UserDefaults()
+            if (!LoadProfile(Properties.Settings.Default.CurrentProfile))
             {
-                ImageHeight = defaultImageHeight,
-                ImageWidth = defaultWidth,
-                TitleFontSize = defaultTitleFontSize,
-                SubtitleFontSize = defaultSubtitleFontSize,
-                ApplicationFontFamily = defaultFontFamily,
-                TileMargin = defaultMargin,
-                ReactionTime = defaultReactionTime,
-                ThumbnailFolder = defaultThumbnailFolder,
-                RootPaths = new LinkedList<Tuple<string, string>>()
+                string automaticallyGeneratedProfileName = "New Profile (Automatically Generated)";
+                shared = new UserDefaults()
+                {
+                    ProfileName = automaticallyGeneratedProfileName,
+                    ImageHeight = defaultImageHeight,
+                    ImageWidth = defaultWidth,
+                    TitleFontSize = defaultTitleFontSize,
+                    SubtitleFontSize = defaultSubtitleFontSize,
+                    ApplicationFontFamily = defaultFontFamily,
+                    TileMargin = defaultMargin,
+                    ReactionTime = defaultReactionTime,
+                    RootPaths = new List<CategorizedPath>()
+                    {
+                        new CategorizedPath() {Category="Long", Path="D:\\ACG\\S\\Images\\Comic\\Artists\\long"},
+                        new CategorizedPath() {Category="Pictures", Path="D:\\ACG\\S\\Images\\Comic\\Artists\\pictures" },
+                        new CategorizedPath() {Category="Short", Path="D:\\ACG\\S\\Images\\Comic\\Artists\\short"},
+                    },
+                    Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
+                    IgnoredPrefixes = new List<string>() { "~", "(" },
+                    WorkTraversalDepth = defaultWorkTraversalDepth,
             };
+                Properties.Settings.Default.CurrentProfile = automaticallyGeneratedProfileName;
+                SaveProfile();
+            }
         }
-
-        // These should be customizable in the future
+        
         private const int defaultImageHeight = 254;
         private const int defaultTitleFontSize = 12;
         private const int defaultSubtitleFontSize = 10;
@@ -76,14 +100,7 @@ namespace Comics
         private const int defaultWidth = 180;  // Using the recommended value of height / sqrt(2)
         private const int defaultMargin = 3;
         private const int defaultReactionTime = 140;
-        private static string defaultThumbnailFolder
-        {
-            get
-            {
-                return Path.Combine(UserDataFolder, "Comics", "comics_thumbnails");
-            }
-        }
-
+        private const int defaultWorkTraversalDepth = 1;
 
         // Calculates the height of a label containing a font with this size. 
         public static int LineHeightForFontWithSize(int fontsize)
@@ -91,21 +108,23 @@ namespace Comics
             return (int)Math.Ceiling(fontsize * 4.0 / 3.0);
         }
 
-        // The one thing that needs to wait to be user-defined
-        public static readonly string[] RootPaths = {
-                "D:\\ACG\\S\\Images\\Comic\\Artists\\long",
-                //"D:\\ACG\\S\\Images\\Comic\\Artists\\pictures",
-                //"D:\\ACG\\S\\Images\\Comic\\Artists\\short",
-            };
+        public static bool NameShouldBeIgnored(string name)
+        {
+            foreach (string prefix in shared.IgnoredPrefixes)
+                if (name.StartsWith(prefix))
+                    return true;
+            return false;
+        }
 
-        public static readonly List<string> ImageSuffixes = new List<string> { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
+        // The one thing that needs to wait to be user-defined
+        public static List<CategorizedPath> RootPaths { get { return shared.RootPaths; } }
+        public static List<string> ImageSuffixes { get { return shared.Extensions; } }
 
         // How the application was first coded
         public static int SafetyMargin { get { return 16 + 2 * shared.TileMargin; } }
         public static int DefaultHeight { get { return shared.ImageHeight + shared.LabelHeight + 2 * shared.TileMargin; } }
         public static int DefaultWidth { get { return shared.ImageWidth + 2 * shared.TileMargin; } }
         public static int ActivationDelay { get { return shared.ReactionTime; } }
-        public static string ThumbnailFolder { get { return shared.ThumbnailFolder; } }
 
         // Provides dynamically-sized widths and heights to the wrap panel
         private static int MaximumDynamicWidth { get { return 2 * DefaultWidth - 1; } }
@@ -158,11 +177,108 @@ namespace Comics
         {
             get
             {
-                string parentFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string folder = Path.Combine(parentFolder, "TC-C7");
-                return folder;
+                string userDataFolder = Properties.Settings.Default.StorageFullPath;
+                if (!Path.IsPathRooted(userDataFolder))
+                {
+                    string parentFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    userDataFolder = Path.Combine(parentFolder, "TC-C7", "Comics");
+                    Properties.Settings.Default.StorageFullPath = userDataFolder;
+
+                }
+
+                if (!Directory.Exists(userDataFolder))
+                    Directory.CreateDirectory(userDataFolder);
+
+                return userDataFolder;
             }
         }
 
+        public static string UserProfileFolder
+        {
+            get
+            {
+                string userProfileFolder = Properties.Settings.Default.ProfilePath;
+                if (!Path.IsPathRooted(userProfileFolder))
+                {
+                    userProfileFolder = Path.Combine(UserDataFolder, "profiles");
+                    Properties.Settings.Default.ProfilePath = userProfileFolder;
+
+                }
+
+                if (!Directory.Exists(userProfileFolder))
+                    Directory.CreateDirectory(userProfileFolder);
+
+                return userProfileFolder;
+            }
+        }
+
+        public static string UserThumbnailsFolder
+        {
+            get
+            {
+                string userThumbnailsFolder = Properties.Settings.Default.ThumbnailsPath;
+                if (!Path.IsPathRooted(userThumbnailsFolder))
+                {
+                    userThumbnailsFolder = Path.Combine(UserDataFolder, "thumbnails");
+                    Properties.Settings.Default.ThumbnailsPath = userThumbnailsFolder;
+                }
+
+                if (!Directory.Exists(userThumbnailsFolder))
+                    Directory.CreateDirectory(userThumbnailsFolder);
+
+                return userThumbnailsFolder;
+            }
+        }
+
+        public static string UserMetadataFolder
+        {
+            get
+            {
+                string userMetadataFolder = Properties.Settings.Default.MetadataPath;
+                if (!Path.IsPathRooted(userMetadataFolder))
+                {
+                    userMetadataFolder = Path.Combine(UserDataFolder, "metadata");
+                    Properties.Settings.Default.MetadataPath = userMetadataFolder;
+
+                }
+
+                if (!Directory.Exists(userMetadataFolder))
+                    Directory.CreateDirectory(userMetadataFolder);
+
+                return userMetadataFolder;
+            }
+        }
+
+        public static void SaveProfile()
+        {
+            XmlSerializer writer = new XmlSerializer(typeof(UserDefaults));
+            string path = Path.Combine(UserProfileFolder, shared.ProfileName + ".xmlprofile");
+            string tempPath = path + ".tmp";
+
+            using (FileStream tempFile = File.Create(tempPath))
+                writer.Serialize(tempFile, shared);
+     
+            if (File.Exists(path))
+                File.Delete(path);
+
+            File.Move(tempPath, path);
+        }
+
+        public static bool LoadProfile(string name)
+        {
+            UserDefaults profile;
+            XmlSerializer reader = new XmlSerializer(typeof(UserDefaults));
+            string path = Path.Combine(UserProfileFolder, name + ".xmlprofile");
+
+            if (!File.Exists(path))
+                return false;
+
+            using (StreamReader file = new StreamReader(path))
+                profile = (UserDefaults)reader.Deserialize(file);
+
+            shared = profile;
+            Properties.Settings.Default.CurrentProfile = shared.ProfileName;
+            return true;
+        }
     }
 }
