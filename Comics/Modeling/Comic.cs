@@ -11,7 +11,7 @@ using System.Xml.Serialization;
 
 namespace Comics
 {
-    class Comic : INotifyPropertyChanged
+    public class Comic : INotifyPropertyChanged
     {
         private readonly string title;
         private readonly string author;
@@ -110,6 +110,7 @@ namespace Comics
 
         public bool MatchesSearchText(string searchText)
         {
+            searchText = searchText.ToLowerInvariant();
             return DisplayTitle.ToLowerInvariant().Contains(searchText) ||
                 SortTitle.ToLowerInvariant().Contains(searchText) ||
                 DisplayAuthor.ToLowerInvariant().Contains(searchText) ||

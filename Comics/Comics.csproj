@@ -36,6 +36,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -54,15 +55,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Comic.cs" />
-    <Compile Include="Defaults.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="SettingsWindow.xaml.cs">
+    <Compile Include="Modeling\Comic.cs" />
+    <Compile Include="Support\Defaults.cs" />
+    <Compile Include="Modeling\MainViewModel.cs" />
+    <Compile Include="Support\Settings.cs" />
+    <Compile Include="UI\RemainingWidthConverter.cs" />
+    <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VirtualizingWrapPanel.cs" />
-    <Compile Include="VisualHelper.cs" />
-    <Page Include="MainWindow.xaml">
+    <Compile Include="UI\VirtualizingWrapPanel.cs" />
+    <Compile Include="Support\VisualHelper.cs" />
+    <Page Include="ApplicationResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -70,12 +77,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ThumbnailConverter.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="UI\ThumbnailConverter.cs" />
+    <Compile Include="Windows\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="SettingsWindow.xaml">
+    <Page Include="Windows\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -107,7 +114,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="blank.png" />
+    <None Include="Resources\EmptyImage.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

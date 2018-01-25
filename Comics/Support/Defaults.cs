@@ -87,6 +87,7 @@ namespace Comics
                     WorkTraversalDepth = defaultWorkTraversalDepth,
             };
                 Properties.Settings.Default.CurrentProfile = automaticallyGeneratedProfileName;
+                Properties.Settings.Default.Save();
                 SaveProfile();
             }
         }
@@ -181,7 +182,7 @@ namespace Comics
                     string parentFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                     userDataFolder = Path.Combine(parentFolder, "TC-C7", "Comics");
                     Properties.Settings.Default.StorageFullPath = userDataFolder;
-
+                    Properties.Settings.Default.Save();
                 }
 
                 if (!Directory.Exists(userDataFolder))
@@ -200,7 +201,7 @@ namespace Comics
                 {
                     userProfileFolder = Path.Combine(UserDataFolder, "profiles");
                     Properties.Settings.Default.ProfilePath = userProfileFolder;
-
+                    Properties.Settings.Default.Save();
                 }
 
                 if (!Directory.Exists(userProfileFolder))
@@ -219,6 +220,7 @@ namespace Comics
                 {
                     userThumbnailsFolder = Path.Combine(UserDataFolder, "thumbnails");
                     Properties.Settings.Default.ThumbnailsPath = userThumbnailsFolder;
+                    Properties.Settings.Default.Save();
                 }
 
                 if (!Directory.Exists(userThumbnailsFolder))
@@ -237,7 +239,7 @@ namespace Comics
                 {
                     userMetadataFolder = Path.Combine(UserDataFolder, "metadata");
                     Properties.Settings.Default.MetadataPath = userMetadataFolder;
-
+                    Properties.Settings.Default.Save();
                 }
 
                 if (!Directory.Exists(userMetadataFolder))
@@ -276,6 +278,7 @@ namespace Comics
 
             Defaults.profile = profile;
             Properties.Settings.Default.CurrentProfile = Defaults.profile.ProfileName;
+            Properties.Settings.Default.Save();
             return true;
         }
     }

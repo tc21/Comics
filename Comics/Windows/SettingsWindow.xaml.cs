@@ -49,7 +49,7 @@ namespace Comics
                 return;
 
             if (Defaults.LoadProfile(selectedProfile))
-                ((MainWindow)Owner).ReloadComics();
+                App.ViewModel.ReloadComics();
 
         }
 

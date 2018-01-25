@@ -9,7 +9,7 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
 // Inspired by https://blogs.msdn.microsoft.com/dditweb/2007/08/22/speeding-up-image-loading-in-wpf-using-thumbnails/
-namespace Comics
+namespace UI
 {
     class ThumbnailConverter : IValueConverter
     {

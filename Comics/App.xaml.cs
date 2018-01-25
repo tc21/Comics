@@ -13,5 +13,15 @@ namespace Comics
     /// </summary>
     public partial class App : Application
     {
+        private static MainViewModel viewModel = null;
+        public static MainViewModel ViewModel
+        {
+            get
+            {
+                if (viewModel == null)
+                    viewModel = new MainViewModel();
+                return viewModel;
+            }
+        }
     }
 }

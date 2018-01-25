@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Serialization;
+using System.ComponentModel;
 
 namespace Comics
 {
@@ -47,6 +48,7 @@ namespace Comics
                 Footer.Content = items.Count.ToString() + footer;
             }
         }
+
         /// <summary>
         /// Temporary storage before an action is confirmed
         /// </summary>
@@ -60,108 +62,38 @@ namespace Comics
         public MainWindow()
         {
             InitializeComponent();
-            DisableActions(null, null);
+            DataContext = App.ViewModel;
 
+            DisableActions(null, null);
             actionDelayTimer.Elapsed += EnableActions;
-            Loaded += ApplicationDidLoad;
+            // These two lines collapse the right sidebar. The program should eventually remember its previous state
             RightSidebar.Loaded += ((u, v) => RightSidebar.Visibility = Visibility.Collapsed);
             RightSidebarButton.Loaded += ((u, v) => RightSidebarButton.Content = "◀❚");
             Activated += EnableActionsWithDelay;
             Deactivated += DisableActions;
-            SearchBox.TextChanged += CommitSearch;
-
-            LoadComics();
+            // This also needs to be moved to XAML
         }
 
-        private void ApplicationDidLoad(object sender, EventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadComicThumbnails();  // This can be very slow. Find a way to "background" it.
+            CollectionViewSource.GetDefaultView(Collection.ItemsSource).Filter = ComicFilter;
         }
 
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             //Collection.ItemsPanel.
         }
-
-        private void LoadComicThumbnails()
-        {
-            // Very primitive thumbnail caching being done here
-            foreach (Comic comic in allItems)
-            {
-                if (!(File.Exists(comic.ThumbnailPath)))
-                {
-                    BitmapImage image = new BitmapImage();
-                    image.BeginInit();
-                    image.UriSource = new Uri(comic.ImagePath);
-                    image.DecodePixelHeight = Defaults.ThumbnailWidthForVisual(this);
-                    image.EndInit();
-
-                    JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
-                    bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
-                    using (FileStream fileStream = new FileStream(comic.ThumbnailPath, FileMode.Create))
-                        bitmapEncoder.Save(fileStream);
-
-                }
-            }
-
-        }
-
-        public void ReloadComics()
-        {
-            allItems.Clear();
-            LoadComics();
-            LoadComicThumbnails();
-        }
-
-        private void LoadComics()
-        {
-            foreach (Defaults.CategorizedPath categorizedPath in Defaults.RootPaths)
-            {
-                DirectoryInfo rootDirectory = new DirectoryInfo(categorizedPath.Path);
-                DirectoryInfo[] authorDirectories = rootDirectory.GetDirectories();
-
-                foreach (DirectoryInfo authorDirectory in authorDirectories)
-                {
-                    if (Defaults.NameShouldBeIgnored(authorDirectory.Name))
-                        continue;
-
-                    LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.profile.WorkTraversalDepth, null);
-                }
-            }
-            Items = allItems;
-        }
-
-        private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts)
-        {
-            depth -= 1;
-            DirectoryInfo[] comicDirectories = directory.GetDirectories();
-
-            foreach(DirectoryInfo comicDirectory in comicDirectories)
-            {
-                if (Defaults.NameShouldBeIgnored(comicDirectory.Name))
-                    continue;
-
-                string currentName = comicDirectory.Name;
-                if (previousParts != null)
-                    currentName = previousParts + " - " + currentName;
-
-                Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
-                if (comic.ImagePath != null)
-                    allItems.Add(comic);
-
-                if (depth > 0)
-                    LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
-            }
-        }
         
-        private void CommitSearch(object sender, TextChangedEventArgs e)
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string searchText = ((TextBox)sender).Text.Trim().ToLowerInvariant();
+            CollectionViewSource.GetDefaultView(Collection.ItemsSource).Refresh();
+        }
 
-            if (searchText == null || searchText.Length == 0)
-                Items = allItems;
-            else
-                Items = allItems.Where(comic => comic.MatchesSearchText(searchText)).ToList();
+        private bool ComicFilter(object item)
+        {
+            if (String.IsNullOrWhiteSpace(SearchBox.Text))
+                return true;
+            return ((Comic)item).MatchesSearchText(SearchBox.Text.TrimStart());
         }
 
         /// <summary>
@@ -250,7 +182,7 @@ namespace Comics
 
         private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
         {
-            ReloadComics();
+            App.ViewModel.ReloadComics();
         }
 
         private void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e)
@@ -267,7 +199,7 @@ namespace Comics
                     File.Delete(comic.ThumbnailPath);
             }
 
-            LoadComicThumbnails();
+            App.ViewModel.LoadComicThumbnails();
         }
 
         private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)

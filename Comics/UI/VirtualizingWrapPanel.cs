@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
-namespace Comics
+namespace UI
 {
 
     // class from: https://github.com/samueldjack/VirtualCollection/blob/master/VirtualCollection/VirtualCollection/VirtualizingWrapPanel.cs
@@ -39,7 +39,7 @@ namespace Comics
 
         public Size ItemSize
         {
-            get { return Defaults.DynamicSize(_viewportSize.Width); }
+            get { return Comics.Defaults.DynamicSize(_viewportSize.Width); }
         }
 
         public VirtualizingWrapPanel()
