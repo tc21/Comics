@@ -65,17 +65,24 @@
             </Setter>
         </Style>
         <!-- Main library source -->
-        <CollectionViewSource x:Key="VisibleComicsSource" Source="{Binding Path=VisibleComics}">
-            <CollectionViewSource.SortDescriptions>
-                <scm:SortDescription PropertyName="SortAuthor" />
-                <scm:SortDescription PropertyName="SortTitle" />
-                <scm:SortDescription PropertyName="ImagePath" />
-            </CollectionViewSource.SortDescriptions>
-            <CollectionViewSource.GroupDescriptions>
-                <dat:PropertyGroupDescription PropertyName="SortCategory" />
-                <dat:PropertyGroupDescription PropertyName="SortAuthor" />
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
+
+        <scm:SortDescriptionCollection x:Key="SortByAuthor">
+            <scm:SortDescription PropertyName="SortAuthor" />
+            <scm:SortDescription PropertyName="SortTitle" />
+            <scm:SortDescription PropertyName="SortCategory" />
+        </scm:SortDescriptionCollection>
+        <scm:SortDescriptionCollection x:Key="SortByTitle">
+            <scm:SortDescription PropertyName="SortTitle" />
+            <scm:SortDescription PropertyName="SortAuthor" />
+            <scm:SortDescription PropertyName="SortCategory" />
+        </scm:SortDescriptionCollection>
+        <scm:SortDescriptionCollection x:Key="SortByCategory">
+            <scm:SortDescription PropertyName="SortCategory" />
+            <scm:SortDescription PropertyName="SortAuthor" />
+            <scm:SortDescription PropertyName="SortTitle" />
+        </scm:SortDescriptionCollection>
+
+        <CollectionViewSource x:Key="VisibleComicsSource" Source="{Binding Path=VisibleComics}" />
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
@@ -173,6 +180,7 @@
                     ItemsSource="{Binding Source={StaticResource VisibleComicsSource}}"
                     ContextMenu="{StaticResource ComicsContextMenu}"
                     MouseDoubleClick="Collection_MouseDoubleClick"
+                    Loaded="Collection_Loaded"
                     >
                 </ListBox>
             </DockPanel>

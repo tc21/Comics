@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Timers;
@@ -14,7 +15,15 @@ namespace Comics
     {
         // Used to disable left click actions when the application is out of focus
         // or within a set time (200ms by default) of gaining focus.
-        private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);  
+        private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);
+
+        private ICollectionView ComicsView
+        {
+            get {
+                if (Collection == null)
+                    return null;
+                return CollectionViewSource.GetDefaultView(Collection.ItemsSource); }
+        }
 
         public MainWindow()
         {
@@ -33,18 +42,18 @@ namespace Comics
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            CollectionViewSource.GetDefaultView(Collection.ItemsSource).Filter = ComicFilter;
-            CollectionViewSource.GetDefaultView(Collection.ItemsSource).Refresh();
+            ComicsView.Filter = ComicFilter;
+            ComicsView.Refresh();
         }
 
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            CollectionViewSource.GetDefaultView(Collection.ItemsSource)?.Refresh();
+            ComicsView?.Refresh();
         }
         
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            CollectionViewSource.GetDefaultView(Collection.ItemsSource).Refresh();
+            ComicsView.Refresh();
         }
 
         private bool ComicFilter(object item)
@@ -169,25 +178,25 @@ namespace Comics
 
         private void ChangeSortOrder(object sender, SelectionChangedEventArgs e)
         {
-            //switch (SortOrderBox.SelectedIndex)
-            //{
-            //    case 0:
-            //        Items.Sort((x, y) => x.SortTitle.CompareTo(y.SortTitle));
-            //        break;
-            //    case 1:
-            //        Items.Sort((x, y) => x.SortAuthor.CompareTo(y.SortAuthor));
-            //        break;
-            //    case 2:
-            //        Items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));
-            //        break;
-            //}
+            if (ComicsView == null)
+                return;
 
-            //Collection?.Items.Refresh();
+            ComicsView.SortDescriptions.Clear();
+            foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(SortOrderBox.SelectedIndex))
+            {
+                ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
+            }
+            ComicsView.Refresh();
         }
 
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
+        }
+
+        private void Collection_Loaded(object sender, RoutedEventArgs e)
+        {
+            ChangeSortOrder(null, null);
         }
     }
 }

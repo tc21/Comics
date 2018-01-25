@@ -117,6 +117,18 @@ namespace Comics
                 SortAuthor.ToLowerInvariant().Contains(searchText);
         }
 
+        public static List<string> SortDescriptionPropertyNamesForIndex(int index)
+        {
+            List<String> propertyNames = new List<String> { "SortAuthor", "SortTitle", "SortCategory" };
+            if (index < propertyNames.Count)
+            {
+                String preferredProperty = propertyNames[index];
+                propertyNames.RemoveAt(index);
+                propertyNames.Insert(0, preferredProperty);
+            }
+            return propertyNames;
+        }
+
         public void SaveMetadata()
         {
             XmlSerializer writer = new XmlSerializer(typeof(Metadata));
