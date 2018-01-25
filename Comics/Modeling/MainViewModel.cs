@@ -13,30 +13,52 @@ namespace Comics
     public class MainViewModel : INotifyPropertyChanged
     {
         // Model
-        public const string PropertyName = "VisibleComics";
-        //private ObservableCollection<Comic> allComics;
-        private ObservableCollection<Comic> visibleComics;
+        public const string VisibleComicsPropertyName = "VisibleComics";
+        private ObservableCollection<Comic> allComics = new ObservableCollection<Comic>();
+        private ObservableCollection<Comic> visibleComics = new ObservableCollection<Comic>();
         public ObservableCollection<Comic> VisibleComics
         {
-            get
-            {
-                return visibleComics;
-            }
+            get { return visibleComics; }
             set
             {
                 if (visibleComics == value)
                     return;
                 visibleComics = value;
-                NotifyPropertyChanged(PropertyName);
+                NotifyPropertyChanged(VisibleComicsPropertyName);
+            }
+        }
+        public const string VisibleAuthorsPropertyName = "VisibleAuthors";
+        public ObservableCollection<Comic> VisibleAuthors
+        {
+            get {
+                ObservableCollection<Comic> visibleAuthors = new ObservableCollection<Comic>();
+                HashSet<string> displayed = new HashSet<string>();
+                foreach (Comic comic in visibleComics)
+                {
+                    if (!displayed.Contains(comic.DisplayAuthor))
+                    {
+                        displayed.Add(comic.DisplayAuthor);
+                        visibleAuthors.Add(comic);
+                    }
+                }
+                return visibleAuthors;
             }
         }
 
         public int ImageHeight => Defaults.DefaultHeight;
         public int ImageWidth => Defaults.DefaultHeight;
 
+        public ObservableCollection<Defaults.CategorizedPath> RootPaths
+        {
+            get { return new ObservableCollection<Defaults.CategorizedPath>(Defaults.profile.RootPaths); }
+        }
+        public ObservableCollection<string> SortPropertyDisplayName
+        {
+            get { return new ObservableCollection<string>(Comic.SortPropertyDisplayNames); }
+        }
+
         public MainViewModel()
         {
-            VisibleComics = new ObservableCollection<Comic>();
             LoadComics();
         }
 
@@ -56,6 +78,7 @@ namespace Comics
                     LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.profile.WorkTraversalDepth, null);
                 }
             }
+            UpdateSearch(null);
         }
 
         private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts)
@@ -74,11 +97,25 @@ namespace Comics
 
                 Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
                 if (comic.ImagePath != null)
-                    VisibleComics.Add(comic);
+                    allComics.Add(comic);
 
                 if (depth > 0)
                     LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
             }
+        }
+
+        public void UpdateSearch(string searchText)
+        {
+            visibleComics.Clear();
+
+            foreach (Comic comic in allComics)
+            {
+                if (!String.IsNullOrWhiteSpace(searchText) && !comic.MatchesSearchText(searchText))
+                    continue;
+                visibleComics.Add(comic);
+            }
+            NotifyPropertyChanged(VisibleComicsPropertyName);
+            NotifyPropertyChanged(VisibleAuthorsPropertyName);
         }
 
         public void LoadComicThumbnails()
@@ -87,7 +124,7 @@ namespace Comics
             //int width = Defaults.ThumbnailWidthForVisual(this);
             int width = Defaults.profile.ImageWidth;
             // Very primitive thumbnail caching being done here
-            foreach (Comic comic in VisibleComics)
+            foreach (Comic comic in allComics)
             {
                 if (!(File.Exists(comic.ThumbnailPath)))
                 {
@@ -107,7 +144,7 @@ namespace Comics
 
         public void ReloadComics()
         {
-            VisibleComics.Clear();
+            allComics.Clear();
             LoadComics();
             LoadComicThumbnails();
         }

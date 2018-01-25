@@ -82,5 +82,29 @@ namespace Comics.Properties {
                 this["MetadataPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int SelectedSortIndex {
+            get {
+                return ((int)(this["SelectedSortIndex"]));
+            }
+            set {
+                this["SelectedSortIndex"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RightSidebarVisible {
+            get {
+                return ((bool)(this["RightSidebarVisible"]));
+            }
+            set {
+                this["RightSidebarVisible"] = value;
+            }
+        }
     }
 }

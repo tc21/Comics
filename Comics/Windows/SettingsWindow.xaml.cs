@@ -61,7 +61,7 @@ namespace Comics
 
         private void Button_Cancel(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }

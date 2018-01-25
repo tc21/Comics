@@ -162,4 +162,21 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style x:Key="ScrollableCheckBoxStyle" TargetType="ItemsControl">
+        <Setter Property="Margin" Value="4,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <Style TargetType="{x:Type CheckBox}">
+                <Setter Property="Margin" Value="4,2,4,2" />
+            </Style>
+        </Style.Resources>
+    </Style>
 </ResourceDictionary>

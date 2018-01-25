@@ -65,7 +65,6 @@
             </Setter>
         </Style>
         <!-- Main library source -->
-
         <scm:SortDescriptionCollection x:Key="SortByAuthor">
             <scm:SortDescription PropertyName="SortAuthor" />
             <scm:SortDescription PropertyName="SortTitle" />
@@ -81,8 +80,12 @@
             <scm:SortDescription PropertyName="SortAuthor" />
             <scm:SortDescription PropertyName="SortTitle" />
         </scm:SortDescriptionCollection>
-
         <CollectionViewSource x:Key="VisibleComicsSource" Source="{Binding Path=VisibleComics}" />
+        <CollectionViewSource x:Key="VisibleAuthors" Source="{Binding Path=VisibleAuthors}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="SortAuthor" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
@@ -105,6 +108,17 @@
             <Separator />
             <MenuItem Header="Exit" Click="ContextMenu_Exit" />
         </ContextMenu>
+        <!-- Right footer button -->
+        <Style x:Key="RightSidebarButtonStyle" BasedOn="{StaticResource FooterButton}" TargetType="{x:Type Button}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Visibility, ElementName=RightSidebar, UpdateSourceTrigger=PropertyChanged}" Value="Visible">
+                    <Setter Property="Content" Value="▶❚" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Visibility, ElementName=RightSidebar, UpdateSourceTrigger=PropertyChanged}" Value="Collapsed">
+                    <Setter Property="Content" Value="◀❚" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <!-- Actual Window -->
@@ -130,7 +144,7 @@
                 <Label Content="Comics" Foreground="{StaticResource FooterColor}"></Label>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" FontSize="11">
-                <Button x:Name="RightSidebarButton" Style="{StaticResource FooterButton}" Content="▶❚" Click="ToggleRightSidebar" />
+                <Button x:Name="RightSidebarButton" Style="{StaticResource RightSidebarButtonStyle}" Click="ToggleRightSidebar" />
             </StatusBarItem>
         </StatusBar>
 
@@ -142,10 +156,29 @@
                     <DockPanel Background="White">
                         <Label DockPanel.Dock="Left" Content="🔍" TextOptions.TextFormattingMode="Display" Foreground="{StaticResource DisabledColor}"/>
                         <Label DockPanel.Dock="Left" Content="›" TextOptions.TextFormattingMode="Display" Foreground="{StaticResource DisabledColor}" Margin="-8,0,-4,0" Style="{StaticResource Rotate90Degrees}"/>
-                        <TextBox x:Name="SearchBox" DockPanel.Dock="Left" Style="{StaticResource UnstyledBox}" TextOptions.TextFormattingMode="Display" Foreground="{StaticResource DisabledColor}" TextChanged="SearchBox_TextChanged" />
+                        <TextBox x:Name="SearchBox" DockPanel.Dock="Left" Style="{StaticResource UnstyledBox}" TextOptions.TextFormattingMode="Display" TextChanged="SearchBox_TextChanged" />
                     </DockPanel>
                 </Border>
-                <Rectangle />
+
+                <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2">
+                    <Label DockPanel.Dock="Top" FontSize="14" Content="Categories"></Label>
+                    <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding RootPaths}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                        <ItemsControl.ItemTemplate>
+                            <HierarchicalDataTemplate>
+                                <CheckBox Content="{Binding Category}" Checked="Category_Checked" Unchecked="Category_Unchecked"></CheckBox>
+                            </HierarchicalDataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Label DockPanel.Dock="Top" FontSize="14" Content="Authors"></Label>
+                    <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource VisibleAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                        <ItemsControl.ItemTemplate>
+                            <HierarchicalDataTemplate>
+                                <CheckBox Content="{Binding DisplayAuthor}" Checked="Author_Checked" Unchecked="Author_Unchecked"/>
+                            </HierarchicalDataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Rectangle />
+                </DockPanel>
             </DockPanel>
 
             <!-- Main area (collection view) -->
@@ -158,16 +191,12 @@
                     </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
                         <Label Content="Sort:" />
-                        <ComboBox x:Name="SortOrderBox" SelectionChanged="ChangeSortOrder">
-                            <ComboBoxItem IsSelected="True">
-                                <TextBlock>Author</TextBlock>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <TextBlock>Title</TextBlock>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <TextBlock>Category</TextBlock>
-                            </ComboBoxItem>
+                        <ComboBox x:Name="SortOrderBox" SelectionChanged="ChangeSortOrder" ItemsSource="{Binding SortPropertyDisplayName}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding .}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </ComboBox>
                     </DockPanel>
                     <Rectangle />

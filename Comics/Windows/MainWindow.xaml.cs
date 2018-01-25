@@ -16,6 +16,8 @@ namespace Comics
         // Used to disable left click actions when the application is out of focus
         // or within a set time (200ms by default) of gaining focus.
         private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);
+        private HashSet<string> selectedCategories = new HashSet<string>();
+        private HashSet<string> selectedAuthors = new HashSet<string>();
 
         private ICollectionView ComicsView
         {
@@ -25,19 +27,31 @@ namespace Comics
                 return CollectionViewSource.GetDefaultView(Collection.ItemsSource); }
         }
 
+        private ICollectionView AuthorSelectorView
+        {
+            get
+            {
+                if (Collection == null)
+                    return null;
+                return CollectionViewSource.GetDefaultView(AuthorSelector.ItemsSource);
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             DataContext = App.ViewModel;
 
+            // Sets the selected sort to its saved state
+            SortOrderBox.SelectedIndex = Properties.Settings.Default.SelectedSortIndex;
+            // Sets the right sidebar visibility to its saved state
+            RightSidebar.Loaded += ((u, v) => RightSidebar.Visibility = 
+                (Properties.Settings.Default.RightSidebarVisible) ? Visibility.Visible : Visibility.Collapsed);
+            // Enables the left click delay
             DisableActions(null, null);
             actionDelayTimer.Elapsed += EnableActions;
-            // These two lines collapse the right sidebar. The program should eventually remember its previous state
-            RightSidebar.Loaded += ((u, v) => RightSidebar.Visibility = Visibility.Collapsed);
-            RightSidebarButton.Loaded += ((u, v) => RightSidebarButton.Content = "◀❚");
             Activated += EnableActionsWithDelay;
             Deactivated += DisableActions;
-            // This also needs to be moved to XAML
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -51,18 +65,22 @@ namespace Comics
             ComicsView?.Refresh();
         }
         
+        // This function handles search via the search box. The view model updates the comics 
+        // to be shown by passing it the search text.
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            ComicsView.Refresh();
+            App.ViewModel.UpdateSearch(SearchBox.Text);
         }
 
+        // This function handles filtering via the side panel. Thus it only affects the main
+        // area and not the side panel entries.
         private bool ComicFilter(object item)
         {
-            if (String.IsNullOrWhiteSpace(SearchBox.Text))
-                return true;
-            return ((Comic)item).MatchesSearchText(SearchBox.Text.TrimStart());
+            Comic comic = (Comic)item;
+            return ((selectedCategories.Count == 0 || selectedCategories.Contains(comic.DisplayCategory)) &&
+                    (selectedAuthors.Count == 0 || selectedAuthors.Contains(comic.DisplayAuthor)));
         }
-        
+
         // Handles a mouse event. By adding this handler to PreviewMouse..., 
         // the event is effectively disabled.
         private void EventHandled(object sender, MouseButtonEventArgs e)
@@ -93,15 +111,12 @@ namespace Comics
             Button button = sender as Button;
 
             if (RightSidebar.Visibility == Visibility.Collapsed)
-            {
                 RightSidebar.Visibility = Visibility.Visible;
-                button.Content = "▶❚";
-            }
             else
-            {
                 RightSidebar.Visibility = Visibility.Collapsed;
-                button.Content = "◀❚";
-            }
+
+            Properties.Settings.Default.RightSidebarVisible = !Properties.Settings.Default.RightSidebarVisible;
+            Properties.Settings.Default.Save();
         }
 
         private void ShowSettings(object sender, RoutedEventArgs e)
@@ -187,6 +202,9 @@ namespace Comics
                 ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
             }
             ComicsView.Refresh();
+
+            Properties.Settings.Default.SelectedSortIndex = SortOrderBox.SelectedIndex;
+            Properties.Settings.Default.Save();
         }
 
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -197,6 +215,30 @@ namespace Comics
         private void Collection_Loaded(object sender, RoutedEventArgs e)
         {
             ChangeSortOrder(null, null);
+        }
+
+        private void Category_Checked(object sender, RoutedEventArgs e)
+        {
+            selectedCategories.Add((string)((CheckBox)sender).Content);
+            ComicsView.Refresh();
+        }
+
+        private void Category_Unchecked(object sender, RoutedEventArgs e)
+        {
+            selectedCategories.Remove((string)((CheckBox)sender).Content);
+            ComicsView.Refresh();
+        }
+
+        private void Author_Checked(object sender, RoutedEventArgs e)
+        {
+            selectedAuthors.Add((string)((CheckBox)sender).Content);
+            ComicsView.Refresh();
+        }
+
+        private void Author_Unchecked(object sender, RoutedEventArgs e)
+        {
+            selectedAuthors.Remove((string)((CheckBox)sender).Content);
+            ComicsView.Refresh();
         }
     }
 }

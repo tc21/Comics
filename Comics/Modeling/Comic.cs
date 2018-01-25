@@ -96,6 +96,16 @@ namespace Comics
             set { metadata.Disliked = value; SaveMetadata(); NotifyPropertyChanged(); }
         }
 
+        //public SortElement<string> AuthorElement
+        //{
+        //    get { return new SortElement<string> { Display = DisplayAuthor, Sort = SortAuthor }; }
+        //}
+        
+        //public SortElement<string> TitleElement
+        //{
+        //    get { return new SortElement<string> { Display = DisplayTitle, Sort = SortTitle }; }
+        //}
+
         // Calls Process.Start on ThumbnailPath.
         // Maybe I will eventually code a viewer into this program, but I already have an image viewer.
         public void OpenWithDefaultApplication()
@@ -117,16 +127,28 @@ namespace Comics
                 SortAuthor.ToLowerInvariant().Contains(searchText);
         }
 
+        public bool MatchesCategories(ISet<string> categories)
+        {
+            return categories.Contains(DisplayCategory);
+        }
+
+        public bool MatchesAuthors(ISet<string> authors)
+        {
+            return authors.Contains(DisplayAuthor);
+        }
+
+        private static readonly List<string> SortPropertyNames = new List<string> { "SortAuthor", "SortTitle", "SortCategory" };
+        public static readonly List<string> SortPropertyDisplayNames = new List<string> { "Author", "Title", "Category" };
         public static List<string> SortDescriptionPropertyNamesForIndex(int index)
         {
-            List<String> propertyNames = new List<String> { "SortAuthor", "SortTitle", "SortCategory" };
-            if (index < propertyNames.Count)
+            List<string> sortPropertyNames = new List<string>(SortPropertyNames);
+            if (index > 0 && index < sortPropertyNames.Count)
             {
-                String preferredProperty = propertyNames[index];
-                propertyNames.RemoveAt(index);
-                propertyNames.Insert(0, preferredProperty);
+                string preferredProperty = sortPropertyNames[index];
+                sortPropertyNames.RemoveAt(index);
+                sortPropertyNames.Insert(0, preferredProperty);
             }
-            return propertyNames;
+            return sortPropertyNames;
         }
 
         public void SaveMetadata()
