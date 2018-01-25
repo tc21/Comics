@@ -14,19 +14,57 @@
     <Window.Resources>
         <ui:ThumbnailConverter x:Key="ThumbnailConverter" />
         <!-- Main library area -->
-        <DataTemplate x:Key="CollectionAreaTemplate" DataType="{x:Type local:Comic}">
-            <Border BorderThickness="1" Style="{StaticResource HoverEffect}">
-                <DockPanel Margin="3" Background="#00000000" PreviewMouseLeftButtonUp="EndedLeftClickOnComic" PreviewMouseRightButtonUp="StartedRightClickOnComic" PreviewMouseLeftButtonDown="StartedLeftClickOnComic">
-                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding DisplayAuthor}" FontSize="10" LineHeight="14" Height="14" Foreground="{StaticResource SubtitleColor}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{Binding DisplayTitle}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
-                    <Grid>
-                        <Image Source="{Binding Path=ThumbnailPath, Converter={StaticResource ThumbnailConverter}}" />
-                        <Polygon Style="{StaticResource PreferenceOverlay}" />
-                        <TextBlock Style="{StaticResource PreferenceLabel}" />
-                    </Grid>
-                </DockPanel>
-            </Border>
-        </DataTemplate>
+        <Style x:Key="CollectionListBoxStyle" TargetType="{x:Type ListBox}">
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="ItemTemplate">
+                <Setter.Value>
+                    <DataTemplate DataType="{x:Type local:Comic}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="16"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Image Source="{Binding Path=ThumbnailPath, Converter={StaticResource ThumbnailConverter}}"/>
+                                <Polygon Style="{StaticResource PreferenceOverlay}" />
+                                <TextBlock Style="{StaticResource PreferenceLabel}" />
+                            </Grid>
+                            <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding DisplayAuthor}" FontSize="10" LineHeight="14" Height="14" Foreground="{StaticResource SubtitleColor}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Row="2" HorizontalAlignment="Center" Text="{Binding DisplayTitle}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                        </Grid>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <ui:VirtualizingWrapPanel />
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <ScrollViewer Focusable="False" PanningMode="VerticalOnly">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Main library source -->
         <CollectionViewSource x:Key="VisibleComicsSource" Source="{Binding Path=VisibleComics}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="SortAuthor" />
@@ -38,14 +76,7 @@
                 <dat:PropertyGroupDescription PropertyName="SortAuthor" />
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
-        <ItemsPanelTemplate x:Key="VirtualizingWrapPanelTemplate">
-            <ui:VirtualizingWrapPanel />
-        </ItemsPanelTemplate>
-        <ControlTemplate x:Key="ScrollViewerControlTemplate">
-            <ScrollViewer Focusable="False" PanningMode="VerticalOnly">
-                <ItemsPresenter />
-            </ScrollViewer>
-        </ControlTemplate>
+        <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
             <MenuItem Header="Edit Info" IsEnabled="False" />
@@ -56,7 +87,6 @@
             <MenuItem Header="Show in Explorer" Click="ContextMenu_ShowInExplorer" />
             <MenuItem Header="Redefine Thumbnail" IsEnabled="False" />
         </ContextMenu>
-        <!-- Context menus -->
         <ContextMenu x:Key="SettingsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
             <MenuItem Header="Quick Toggles" IsEnabled="False">
@@ -137,16 +167,14 @@
                 </DockPanel>
 
                 <!-- Scrollable view -->
-                <ItemsControl 
+                <ListBox 
                     x:Name="Collection"
-                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                    ScrollViewer.CanContentScroll="True"
+                    Style="{StaticResource CollectionListBoxStyle}"
                     ItemsSource="{Binding Source={StaticResource VisibleComicsSource}}"
-                    ItemTemplate="{StaticResource CollectionAreaTemplate}"
-                    ItemsPanel="{StaticResource VirtualizingWrapPanelTemplate}"
-                    Template="{StaticResource ScrollViewerControlTemplate}"
-                    ContextMenu="{StaticResource ComicsContextMenu}">
-                </ItemsControl>
+                    ContextMenu="{StaticResource ComicsContextMenu}"
+                    MouseDoubleClick="Collection_MouseDoubleClick"
+                    >
+                </ListBox>
             </DockPanel>
         </DockPanel>
     </DockPanel>

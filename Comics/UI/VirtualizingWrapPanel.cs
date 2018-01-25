@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -37,9 +38,22 @@ namespace UI
             obj.SetValue(VirtualItemIndexProperty, value);
         }
 
+        // This is the change I made to the panel, to enable the process of dynamically changing items' size
+        // based on window size. An item's size is calculated by other classes and then retrieved here. Since
+        // the calculation of item size requires variables that are not always available, it is "cached" in 
+        // this variable. The fallback of calculating using _viewportSize.Width is a pretty good estimate, but
+        // may not be totally accurate. 
+        private Size? lastItemSize;
+
         public Size ItemSize
         {
-            get { return Comics.Defaults.DynamicSize(_viewportSize.Width); }
+            get { return lastItemSize ?? Comics.Defaults.DynamicSize(_viewportSize.Width); }
+        }
+
+        private Size GetItemSize(Size availableSize)
+        {
+            lastItemSize = Comics.Defaults.DynamicSize(availableSize.Width);
+            return (Size)lastItemSize;
         }
 
         public VirtualizingWrapPanel()
@@ -75,11 +89,13 @@ namespace UI
             _isInMeasure = true;
             _childLayouts.Clear();
 
-            var extentInfo = GetExtentInfo(availableSize, ItemSize.Height);
+            var itemSize = GetItemSize(availableSize);
+
+            var extentInfo = GetExtentInfo(availableSize, itemSize.Height);
 
             EnsureScrollOffsetIsWithinConstrains(extentInfo);
 
-            var layoutInfo = GetLayoutInfo(availableSize, ItemSize.Height, extentInfo);
+            var layoutInfo = GetLayoutInfo(availableSize, itemSize.Height, extentInfo);
 
             RecycleItems(layoutInfo);
 
@@ -133,19 +149,19 @@ namespace UI
                     // only prepare the item once it has been added to the visual tree
                     _itemsGenerator.PrepareItemContainer(child);
 
-                    child.Measure(ItemSize);
+                    child.Measure(itemSize);
 
-                    _childLayouts.Add(child, new Rect(currentX, currentY, ItemSize.Width, ItemSize.Height));
+                    _childLayouts.Add(child, new Rect(currentX, currentY, itemSize.Width, itemSize.Height));
 
-                    if (currentX + ItemSize.Width * 2 >= availableSize.Width)
+                    if (currentX + itemSize.Width * 2 >= availableSize.Width)
                     {
                         // wrap to a new line
-                        currentY += ItemSize.Height;
+                        currentY += itemSize.Height;
                         currentX = 0;
                     }
                     else
                     {
-                        currentX += ItemSize.Width;
+                        currentX += itemSize.Width;
                     }
                 }
             }
@@ -194,7 +210,7 @@ namespace UI
 
             return finalSize;
         }
-
+        
         private void UpdateScrollInfo(Size availableSize, ExtentInfo extentInfo)
         {
             _viewportSize = availableSize;
@@ -232,13 +248,14 @@ namespace UI
             // navigates up, the ListBox selects the previous item, and the scrolls that into view - and this triggers the loading of the rest of the items 
             // in that row
 
+            var itemSize = GetItemSize(availableSize);
             var firstVisibleLine = (int)Math.Floor(VerticalOffset / itemHeight);
 
             var firstRealizedIndex = Math.Max(extentInfo.ItemsPerLine * firstVisibleLine - 1, 0);
-            var firstRealizedItemLeft = firstRealizedIndex % extentInfo.ItemsPerLine * ItemSize.Width - HorizontalOffset;
+            var firstRealizedItemLeft = firstRealizedIndex % extentInfo.ItemsPerLine * itemSize.Width - HorizontalOffset;
             var firstRealizedItemTop = (firstRealizedIndex / extentInfo.ItemsPerLine) * itemHeight - VerticalOffset;
 
-            var firstCompleteLineTop = (firstVisibleLine == 0 ? firstRealizedItemTop : firstRealizedItemTop + ItemSize.Height);
+            var firstCompleteLineTop = (firstVisibleLine == 0 ? firstRealizedItemTop : firstRealizedItemTop + itemSize.Height);
             var completeRealizedLines = (int)Math.Ceiling((availableSize.Height - firstCompleteLineTop) / itemHeight);
 
             var lastRealizedIndex = Math.Min(firstRealizedIndex + completeRealizedLines * extentInfo.ItemsPerLine + 2, _itemsControl.Items.Count - 1);

@@ -1,62 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml.Serialization;
-using System.ComponentModel;
 
 namespace Comics
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        /// <summary>
-        /// Stores all the comics.
-        /// </summary>
-        private List<Comic> allItems = new List<Comic>();
-        private List<Comic> items = new List<Comic>();
-        private List<Comic> Items
-        {
-            get
-            {
-                return items;
-            }
-            set
-            {
-                items = value;
-                Collection.ItemsSource = items;
-                ChangeSortOrder(null, null);
-                string footer = (items.Count == 1) ? " Item" : " Items";
-                Footer.Content = items.Count.ToString() + footer;
-            }
-        }
-
-        /// <summary>
-        /// Temporary storage before an action is confirmed
-        /// </summary>
-        private Comic temporaryComic;
-        /// <summary>
-        /// Used to disable left click actions when the application is out of focus
-        /// or within a set time (200ms by default) of gaining focus.
-        /// </summary>
+        // Used to disable left click actions when the application is out of focus
+        // or within a set time (200ms by default) of gaining focus.
         private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);  
 
         public MainWindow()
@@ -77,11 +34,12 @@ namespace Comics
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             CollectionViewSource.GetDefaultView(Collection.ItemsSource).Filter = ComicFilter;
+            CollectionViewSource.GetDefaultView(Collection.ItemsSource).Refresh();
         }
 
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //Collection.ItemsPanel.
+            CollectionViewSource.GetDefaultView(Collection.ItemsSource)?.Refresh();
         }
         
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -95,11 +53,9 @@ namespace Comics
                 return true;
             return ((Comic)item).MatchesSearchText(SearchBox.Text.TrimStart());
         }
-
-        /// <summary>
-        /// Handles a mouse event. By adding this handler to PreviewMouse..., 
-        /// the event is effectively disabled.
-        /// </summary>
+        
+        // Handles a mouse event. By adding this handler to PreviewMouse..., 
+        // the event is effectively disabled.
         private void EventHandled(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
@@ -127,14 +83,14 @@ namespace Comics
         {
             Button button = sender as Button;
 
-            if (RightSidebar.Visibility == System.Windows.Visibility.Collapsed)
+            if (RightSidebar.Visibility == Visibility.Collapsed)
             {
-                RightSidebar.Visibility = System.Windows.Visibility.Visible;
+                RightSidebar.Visibility = Visibility.Visible;
                 button.Content = "▶❚";
             }
             else
             {
-                RightSidebar.Visibility = System.Windows.Visibility.Collapsed;
+                RightSidebar.Visibility = Visibility.Collapsed;
                 button.Content = "◀❚";
             }
         }
@@ -156,28 +112,26 @@ namespace Comics
 
         private void ContextMenu_Open(object sender, RoutedEventArgs e)
         {
-            temporaryComic?.OpenWithDefaultApplication();
-            temporaryComic = null;
+            (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
         }
 
         private void ContextMenu_Love(object sender, RoutedEventArgs e)
         {
-            if (temporaryComic != null)
-                temporaryComic.Loved = !temporaryComic.Loved;
-            temporaryComic = null;
+            Comic comic = (Collection.SelectedItem as Comic);
+            if (comic != null)
+                comic.Loved = !comic.Loved;
         }
 
         private void ContextMenu_Dislike(object sender, RoutedEventArgs e)
         {
-            if (temporaryComic != null)
-                temporaryComic.Disliked = !temporaryComic.Disliked;
-            temporaryComic = null;
+            Comic comic = (Collection.SelectedItem as Comic);
+            if (comic != null)
+                comic.Disliked = !comic.Disliked;
         }
 
         private void ContextMenu_ShowInExplorer(object sender, RoutedEventArgs e)
         {
-            temporaryComic?.OpenContainingFolder();
-            temporaryComic = null;
+            (Collection.SelectedItem as Comic)?.OpenContainingFolder();
         }
 
         private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
@@ -193,7 +147,7 @@ namespace Comics
             if (result == MessageBoxResult.No)
                 return;
 
-            foreach (Comic comic in allItems)
+            foreach (Comic comic in App.ViewModel.VisibleComics)
             {
                 if (File.Exists(comic.ThumbnailPath))
                     File.Delete(comic.ThumbnailPath);
@@ -204,8 +158,7 @@ namespace Comics
 
         private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)
         {
-            Window settings = new SettingsWindow();
-            settings.Owner = this;
+            Window settings = new SettingsWindow { Owner = this };
             settings.Show();
         }
 
@@ -214,40 +167,27 @@ namespace Comics
             Application.Current.Shutdown();
         }
 
-        private void EndedLeftClickOnComic(object sender, MouseButtonEventArgs e)
-        {
-            Comic comic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
-            if (comic != null && comic.Equals(temporaryComic))
-                comic.OpenWithDefaultApplication();
-            temporaryComic = null;
-        }
-
-        private void StartedRightClickOnComic(object sender, MouseButtonEventArgs e)
-        {
-            temporaryComic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
-        }
-
-        private void StartedLeftClickOnComic(object sender, MouseButtonEventArgs e)
-        {
-            temporaryComic = VisualHelper.ComicAtMouseButtonEvent(sender, e);
-        }
-
         private void ChangeSortOrder(object sender, SelectionChangedEventArgs e)
         {
-            switch (SortOrderBox.SelectedIndex)
-            {
-                case 0:
-                    Items.Sort((x, y) => x.SortTitle.CompareTo(y.SortTitle));
-                    break;
-                case 1:
-                    Items.Sort((x, y) => x.SortAuthor.CompareTo(y.SortAuthor));
-                    break;
-                case 2:
-                    Items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));
-                    break;
-            }
+            //switch (SortOrderBox.SelectedIndex)
+            //{
+            //    case 0:
+            //        Items.Sort((x, y) => x.SortTitle.CompareTo(y.SortTitle));
+            //        break;
+            //    case 1:
+            //        Items.Sort((x, y) => x.SortAuthor.CompareTo(y.SortAuthor));
+            //        break;
+            //    case 2:
+            //        Items.Sort((x, y) => x.ImagePath.CompareTo(y.ImagePath));
+            //        break;
+            //}
 
-            Collection?.Items.Refresh();
+            //Collection?.Items.Refresh();
+        }
+
+        private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
         }
     }
 }

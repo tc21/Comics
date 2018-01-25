@@ -31,6 +31,9 @@ namespace Comics
             }
         }
 
+        public int ImageHeight => Defaults.DefaultHeight;
+        public int ImageWidth => Defaults.DefaultHeight;
+
         public MainViewModel()
         {
             VisibleComics = new ObservableCollection<Comic>();

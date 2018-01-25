@@ -37,13 +37,7 @@ namespace Comics
             // Margin applied to the right hand side of the collection area to prevent the user 
             // resizing faster than the application can resize tiles, which can cause the application to
             // quickly alternate between the right number of columns and one less.
-            public int SafetyMargin
-            {
-                get
-                {
-                    return 16 + 2 * defaultMargin;
-                }
-            }
+            public int SafetyMargin { get { return 2; } }
 
             // The height of the title and subtitle, combined
             public int LabelHeight
@@ -96,7 +90,7 @@ namespace Comics
         private const int defaultTitleFontSize = 12;
         private const int defaultSubtitleFontSize = 10;
         private const string defaultFontFamily = "Segoe UI";
-        private const int defaultWidth = 180;  // Using the recommended value of height / sqrt(2)
+        private const int defaultWidth = 180;  // Using the "recommended" value of height / sqrt(2)
         private const int defaultMargin = 3;
         private const int defaultReactionTime = 140;
         private const int defaultWorkTraversalDepth = 1;
@@ -120,7 +114,7 @@ namespace Comics
         public static List<string> ImageSuffixes { get { return profile.Extensions; } }
 
         // How the application was first coded
-        public static int SafetyMargin { get { return 16 + 2 * profile.TileMargin; } }
+        public static int SafetyMargin { get { return profile.SafetyMargin; } }
         public static int DefaultHeight { get { return profile.ImageHeight + profile.LabelHeight + 2 * profile.TileMargin; } }
         public static int DefaultWidth { get { return profile.ImageWidth + 2 * profile.TileMargin; } }
         public static int ActivationDelay { get { return profile.ReactionTime; } }
@@ -132,7 +126,7 @@ namespace Comics
             if (viewPortWidth < DefaultWidth)
                 return new Size(DefaultWidth, DefaultHeight);
 
-            viewPortWidth -= 16;
+            viewPortWidth -= SafetyMargin;
             int numberOfColumns = EstimateNumberOfColumns(viewPortWidth / DefaultWidth);
             int dynamicWidth = (int)(viewPortWidth / numberOfColumns);
             int dynamicImageWidth = dynamicWidth - 2 * profile.TileMargin;
