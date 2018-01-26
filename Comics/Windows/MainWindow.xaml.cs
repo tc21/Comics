@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +20,8 @@ namespace Comics
         private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);
         private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedAuthors = new HashSet<string>();
+        private HashSet<string> availableAuthors = new HashSet<string>();
+        private HashSet<string> availableComics = new HashSet<string>();
 
         private ICollectionView ComicsView
         {
@@ -41,7 +45,9 @@ namespace Comics
         {
             InitializeComponent();
             DataContext = App.ViewModel;
-
+            // Sets the windows size to its saved state
+            Height = Properties.Settings.Default.MainWindowHeight;
+            Width = Properties.Settings.Default.MainWindowWidth;
             // Sets the selected sort to its saved state
             SortOrderBox.SelectedIndex = Properties.Settings.Default.SelectedSortIndex;
             // Sets the right sidebar visibility to its saved state
@@ -54,31 +60,65 @@ namespace Comics
             Deactivated += DisableActions;
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             ComicsView.Filter = ComicFilter;
+            AuthorSelectorView.Filter = AuthorSelectorFilter;
+            // Actually loads the comics on startup
+            await Task.Run(() => UpdateAvailableComics(null));
             ComicsView.Refresh();
+            AuthorSelectorView.Refresh();
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            Properties.Settings.Default.Save();
         }
 
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             ComicsView?.Refresh();
+            Properties.Settings.Default.MainWindowHeight = ActualHeight;
+            Properties.Settings.Default.MainWindowWidth = ActualWidth;
         }
         
-        // This function handles search via the search box. The view model updates the comics 
-        // to be shown by passing it the search text.
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        // A change in search actually requires looping through all comics, since the sidebar's author
+        // list is generated dynamically from the visible comics. My library of ~700 comics already causes
+        // lag when run on the UI thread., meaning we had to make this operation asynchronous. 
+        private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            App.ViewModel.UpdateSearch(SearchBox.Text);
+            string searchText = SearchBox.Text;
+            await Task.Run(() => UpdateAvailableComics(searchText));
+            ComicsView.Refresh();
+            AuthorSelectorView.Refresh();
         }
 
-        // This function handles filtering via the side panel. Thus it only affects the main
-        // area and not the side panel entries.
+        // This is the operation that had been causing lag.
+        private async Task UpdateAvailableComics(string searchText)
+        {
+            availableAuthors.Clear();
+            availableComics.Clear();
+            foreach (Comic comic in App.ViewModel.VisibleComics)
+            {
+                if (comic.MatchesSearchText(searchText))
+                {
+                    availableAuthors.Add(comic.Author.Display);
+                    if (comic.MatchesCategories(selectedCategories) && comic.MatchesAuthors(selectedAuthors))
+                        availableComics.Add(comic.UniqueIdentifier);
+                }
+            }
+        }
+        
         private bool ComicFilter(object item)
         {
             Comic comic = (Comic)item;
-            return ((selectedCategories.Count == 0 || selectedCategories.Contains(comic.DisplayCategory)) &&
-                    (selectedAuthors.Count == 0 || selectedAuthors.Contains(comic.DisplayAuthor)));
+            return availableComics.Contains(comic.UniqueIdentifier);
+        }
+
+        private bool AuthorSelectorFilter(object item)
+        {
+            SortedString author = (SortedString)item;
+            return availableAuthors.Contains(author.Display);
         }
 
         // Handles a mouse event. By adding this handler to PreviewMouse..., 
@@ -116,7 +156,6 @@ namespace Comics
                 RightSidebar.Visibility = Visibility.Collapsed;
 
             Properties.Settings.Default.RightSidebarVisible = !Properties.Settings.Default.RightSidebarVisible;
-            Properties.Settings.Default.Save();
         }
 
         private void ShowSettings(object sender, RoutedEventArgs e)
@@ -204,7 +243,6 @@ namespace Comics
             ComicsView.Refresh();
 
             Properties.Settings.Default.SelectedSortIndex = SortOrderBox.SelectedIndex;
-            Properties.Settings.Default.Save();
         }
 
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -217,27 +255,36 @@ namespace Comics
             ChangeSortOrder(null, null);
         }
 
-        private void Category_Checked(object sender, RoutedEventArgs e)
+        // For why these functions are async, see SearchBox_TextChanged
+        private async void Category_Checked(object sender, RoutedEventArgs e)
         {
-            selectedCategories.Add((string)((CheckBox)sender).Content);
+            selectedCategories.Add(((CheckBox)sender).Content.ToString());
+            string searchText = SearchBox.Text;
+            await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
 
-        private void Category_Unchecked(object sender, RoutedEventArgs e)
+        private async void Category_Unchecked(object sender, RoutedEventArgs e)
         {
-            selectedCategories.Remove((string)((CheckBox)sender).Content);
+            selectedCategories.Remove(((CheckBox)sender).Content.ToString());
+            string searchText = SearchBox.Text;
+            await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
 
-        private void Author_Checked(object sender, RoutedEventArgs e)
+        private async void Author_Checked(object sender, RoutedEventArgs e)
         {
-            selectedAuthors.Add((string)((CheckBox)sender).Content);
+            selectedAuthors.Add(((CheckBox)sender).Content.ToString());
+            string searchText = SearchBox.Text;
+            await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
 
-        private void Author_Unchecked(object sender, RoutedEventArgs e)
+        private async void Author_Unchecked(object sender, RoutedEventArgs e)
         {
-            selectedAuthors.Remove((string)((CheckBox)sender).Content);
+            selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
+            string searchText = SearchBox.Text;
+            await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
     }
