@@ -22,6 +22,9 @@ namespace Comics
         private HashSet<string> selectedAuthors = new HashSet<string>();
         private HashSet<string> availableAuthors = new HashSet<string>();
         private HashSet<string> availableComics = new HashSet<string>();
+        private bool onlyShowLoved = false;
+        private bool showDisliked = false;
+        private string searchText;
 
         private ICollectionView ComicsView
         {
@@ -87,7 +90,7 @@ namespace Comics
         // lag when run on the UI thread., meaning we had to make this operation asynchronous. 
         private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string searchText = SearchBox.Text;
+            searchText = SearchBox.Text;
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
             AuthorSelectorView.Refresh();
@@ -100,6 +103,9 @@ namespace Comics
             availableComics.Clear();
             foreach (Comic comic in App.ViewModel.VisibleComics)
             {
+                if ((onlyShowLoved && !comic.Loved) || (!showDisliked && comic.Disliked))
+                    continue;
+
                 if (comic.MatchesSearchText(searchText))
                 {
                     availableAuthors.Add(comic.Author.Display);
@@ -107,6 +113,9 @@ namespace Comics
                         availableComics.Add(comic.UniqueIdentifier);
                 }
             }
+            
+            string footer = availableComics.Count.ToString() + " Item" + (availableComics.Count == 1 ? "" : "s");
+            Dispatcher.Invoke(() => Footer.Content = footer);
         }
         
         private bool ComicFilter(object item)
@@ -259,7 +268,6 @@ namespace Comics
         private async void Category_Checked(object sender, RoutedEventArgs e)
         {
             selectedCategories.Add(((CheckBox)sender).Content.ToString());
-            string searchText = SearchBox.Text;
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
@@ -267,7 +275,6 @@ namespace Comics
         private async void Category_Unchecked(object sender, RoutedEventArgs e)
         {
             selectedCategories.Remove(((CheckBox)sender).Content.ToString());
-            string searchText = SearchBox.Text;
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
@@ -275,7 +282,6 @@ namespace Comics
         private async void Author_Checked(object sender, RoutedEventArgs e)
         {
             selectedAuthors.Add(((CheckBox)sender).Content.ToString());
-            string searchText = SearchBox.Text;
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
@@ -283,9 +289,40 @@ namespace Comics
         private async void Author_Unchecked(object sender, RoutedEventArgs e)
         {
             selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
-            string searchText = SearchBox.Text;
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
+        }
+
+        private async void ShowLoved_Checked(object sender, RoutedEventArgs e)
+        {
+            onlyShowLoved = true;
+            await Task.Run(() => UpdateAvailableComics(searchText));
+            ComicsView.Refresh();
+            AuthorSelectorView.Refresh();
+        }
+
+        private async void ShowLoved_Unchecked(object sender, RoutedEventArgs e)
+        {
+            onlyShowLoved = false;
+            await Task.Run(() => UpdateAvailableComics(searchText));
+            ComicsView.Refresh();
+            AuthorSelectorView.Refresh();
+        }
+
+        private async void ShowDisliked_Checked(object sender, RoutedEventArgs e)
+        {
+            showDisliked = true;
+            await Task.Run(() => UpdateAvailableComics(searchText));
+            ComicsView.Refresh();
+            AuthorSelectorView.Refresh();
+        }
+
+        private async void ShowDisliked_Unchecked(object sender, RoutedEventArgs e)
+        {
+            showDisliked = false;
+            await Task.Run(() => UpdateAvailableComics(searchText));
+            ComicsView.Refresh();
+            AuthorSelectorView.Refresh();
         }
     }
 }

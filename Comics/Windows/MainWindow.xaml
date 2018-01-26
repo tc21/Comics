@@ -147,6 +147,8 @@
                 </Border>
 
                 <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2">
+                    <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2" Checked="ShowLoved_Checked" Unchecked="ShowLoved_Unchecked"/>
+                    <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Checked" Unchecked="ShowDisliked_Unchecked"/>
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Categories"></Label>
                     <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding RootPaths}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
