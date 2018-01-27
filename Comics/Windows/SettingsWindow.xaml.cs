@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -19,41 +21,119 @@ namespace Comics
     /// <summary>
     /// Interaction logic for SettingsWindow.xaml
     /// </summary>
-    public partial class SettingsWindow : Window
+    public partial class SettingsWindow : Window, INotifyPropertyChanged
     {
-        public SettingsWindow()
+        public const string ProfilesPropertyName = "Profiles";
+        public ObservableCollection<string> profiles = new ObservableCollection<string>();
+        public ObservableCollection<string> Profiles
         {
-            InitializeComponent();
-            ExtensionList.ItemsSource = Defaults.ImageSuffixes;
-            CategoryList.ItemsSource = Defaults.RootPaths;
-            
-            FileInfo[] files = new DirectoryInfo(Defaults.UserProfileFolder).GetFiles("*.xmlprofile");
-            string[] profiles = new string[files.Length];
-            ProfileSelector.ItemsSource = profiles;
-
-            int index = 0;
-            for(int i = 0; i < profiles.Length; i++)
+            get { return profiles; }
+            set
             {
-                string name = System.IO.Path.GetFileNameWithoutExtension(files[i].Name);
-                profiles[i] = name;
-                if (Defaults.profile.ProfileName == name)
-                    ProfileSelector.SelectedIndex = index;
-                index++;
+                if (profiles == value)
+                    return;
+                profiles = value;
+                NotifyPropertyChanged(ProfilesPropertyName);
             }
         }
 
-        private void ProfileChanged(object sender, SelectionChangedEventArgs e)
+        public const string ExtensionsPropertyName = "Extensions";
+        public ObservableCollection<StringObject> extensions;
+        public ObservableCollection<StringObject> Extensions
         {
-            string selectedProfile = (string)((ComboBox)sender).SelectedItem;
-            if (Defaults.profile.ProfileName == selectedProfile)
-                return;
-
-            if (Defaults.LoadProfile(selectedProfile))
-                App.ViewModel.ReloadComics();
-
+            get { return extensions; }
+            set
+            {
+                if (extensions == value)
+                    return;
+                extensions = value;
+                NotifyPropertyChanged(ExtensionsPropertyName);
+            }
         }
 
-        class ProfileItem
+        public const string CategoriesPropertyName = "Categories";
+        public ObservableCollection<Defaults.CategorizedPath> categories;
+        public ObservableCollection<Defaults.CategorizedPath> Categories
+        {
+            get { return categories; }
+            set
+            {
+                if (categories == value)
+                    return;
+                categories = value;
+                NotifyPropertyChanged(CategoriesPropertyName);
+            }
+        }
+
+        public const string IgnoredPrefixesPropertyName = "IgnoredPrefixes";
+        private ObservableCollection<StringObject> ignoredPrefixes;
+        public ObservableCollection<StringObject> IgnoredPrefixes
+        {
+            get { return ignoredPrefixes; }
+            set
+            {
+                if (ignoredPrefixes == value)
+                    return;
+                ignoredPrefixes = value;
+                NotifyPropertyChanged(IgnoredPrefixesPropertyName);
+            }
+        }
+
+        public const string ProfileChangedPropertyName = "ProfileChanged";
+        private bool profileChanged = false;
+        public bool ProfileChanged
+        {
+            get { return profileChanged; }
+            set
+            {
+                if (profileChanged == value)
+                    return;
+                profileChanged = value;
+                NotifyPropertyChanged(ProfileChangedPropertyName);
+            }
+        }
+        public SettingsWindow()
+        {
+            InitializeComponent();
+            App.SettingsWindow = this;
+            PopulateProfileSettings();
+        }
+
+        public void PopulateProfileSettings()
+        {
+            Profiles = new ObservableCollection<string>(App.ViewModel.Profiles);
+            ProfileSelector.SelectedIndex = App.ViewModel.SelectedProfile;
+            Extensions = StringCollection(Defaults.Profile.Extensions);
+            Categories = new ObservableCollection<Defaults.CategorizedPath>(Defaults.Profile.RootPaths);
+            IgnoredPrefixes = StringCollection(Defaults.Profile.IgnoredPrefixes);
+        }
+
+        private ObservableCollection<StringObject> StringCollection(ICollection<string> collection)
+        {
+            ObservableCollection<StringObject> result = new ObservableCollection<StringObject>();
+            foreach (string str in collection)
+                result.Add(new StringObject { Value = str });
+            return result;
+        }
+
+        private void ProfileSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            App.ViewModel.SelectedProfile = ((ComboBox)sender).SelectedIndex;
+        }
+
+        private void WriteChangesToProfile()
+        {
+            if (!ProfileChanged)
+                return;
+            ProfileChanged = false;
+            Defaults.Profile.Extensions = Extensions.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
+            Defaults.Profile.IgnoredPrefixes = IgnoredPrefixes.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
+            Defaults.Profile.RootPaths = Categories.Where(o => !String.IsNullOrEmpty(o.Category) && !String.IsNullOrEmpty(o.Path)).ToList();
+            Defaults.SaveProfile();
+            App.ViewModel.UpdateUIAfterProfileChanged();
+        }
+
+        private class ProfileItem
         {
             public string Name { get; set; }
             public bool Selected { get; set; }
@@ -62,6 +142,67 @@ namespace Comics
         private void Button_Cancel(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void Button_Apply(object sender, RoutedEventArgs e)
+        {
+            WriteChangesToProfile();
+        }
+
+        private void Button_Confirm(object sender, RoutedEventArgs e)
+        {
+            WriteChangesToProfile();
+            Close();
+        }
+
+        // INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public class StringObject
+        {
+            public string Value { get; set; }
+        }
+
+        private void CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.EditAction == DataGridEditAction.Commit)
+            {
+                string header = e.Column.Header as string;
+                TextBox textBox = e.EditingElement as TextBox;
+                if (header == null || textBox == null)
+                    return;
+                if (String.IsNullOrWhiteSpace(textBox.Text))
+                    return;
+
+                switch (header)
+                {
+                    case "Extension":
+                        textBox.Text = Defaults.FormatExtension(textBox.Text);
+                        break;
+                    case "Path":
+                        textBox.Text = Defaults.FormatDirectory(textBox.Text);
+                        break;
+                    case "Prefix":
+                    case "Category":
+                        textBox.Text = Defaults.FormatText(textBox.Text);
+                        break;
+                    default:
+                        textBox.Text = null;
+                        break;
+                }
+                if (String.IsNullOrEmpty(textBox.Text))
+                    e.Cancel = true;
+                ProfileChanged = true;
+            }
+        }
+
+        private void SettingsWindow_Closing(object sender, CancelEventArgs e)
+        {
+            App.SettingsWindow = null;
         }
     }
 }

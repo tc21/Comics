@@ -47,7 +47,7 @@ namespace Comics
             foreach (FileInfo file in files)
             {
                 string suffix = Path.GetExtension(file.Name).ToLowerInvariant();
-                if (Defaults.ImageSuffixes.Contains(suffix))
+                if (Defaults.Profile.Extensions.Contains(suffix))
                 {
                     imagePath = file.FullName;
                     break;

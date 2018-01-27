@@ -6,21 +6,31 @@
         xmlns:local="clr-namespace:Comics"
         xmlns:ui="clr-namespace:UI"
         mc:Ignorable="d"
-        Title="SettingsWindow" Height="400" Width="400">
+        Title="Settings"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Closing="SettingsWindow_Closing"
+        Height="400" Width="400">
     <Window.Resources>
         <ui:RemainingWidthConverter x:Key="RemainingWidthConverter"/>
+        <Style x:Key="ApplyButtonStyle" TargetType="Button">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ProfileChanged}" Value="False">
+                    <Setter Property="IsEnabled" Value="False" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Border Background="{StaticResource OverlayBackgroundColor}">
         <DockPanel Margin="4">
             <DockPanel Style="{StaticResource Dropdown}" DockPanel.Dock="Top">
                 <Label Content="Profile:" />
-                <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileChanged">
+                <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}">
                 </ComboBox>
             </DockPanel>
             <DockPanel DockPanel.Dock="Bottom">
-                <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
+                <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
                 <Button DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
+                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
             <TabControl Background="{StaticResource OverlayBackgroundColor}">
@@ -32,8 +42,8 @@
                                     <ColumnDefinition />
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
-                                <Label Grid.Column="0" Content="Dummy" />
-                                <Label Grid.Column="1" Content="Dummy" />
+                                <Label Grid.Column="0" Content="Dummy (WorkTraversalDepth)" />
+                                <Label Grid.Column="1" Content="Dummy (AuthorTraversalDepth)" />
                             </Grid>
                             <Grid MinHeight="400">
                                 <Grid.RowDefinitions>
@@ -43,15 +53,15 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0">
                                     <Label Content="Recognized Extensions" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="ExtensionList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}">
+                                    <DataGrid x:Name="ExtensionList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Extensions}" CellEditEnding="CellEditEnding">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Extension" Width="*" Binding="{Binding .}" />
+                                            <DataGridTextColumn Header="Extension" Width="*" Binding="{Binding Value}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </DockPanel>
                                 <DockPanel Grid.Row="1">
                                     <Label Content="Folders" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="CategoryList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}">
+                                    <DataGrid x:Name="CategoryList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Categories}" CellEditEnding="CellEditEnding">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Category" Width="100" Binding="{Binding Category}" />
                                             <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" />
@@ -60,9 +70,9 @@
                                 </DockPanel>
                                 <DockPanel Grid.Row="2">
                                     <Label Content="Ignored Prefixes" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="IgnoredPrefixList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}">
+                                    <DataGrid x:Name="IgnoredPrefixList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding IgnoredPrefixes}" CellEditEnding="CellEditEnding">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Prefix" Width="100" Binding="{Binding .}" />
+                                            <DataGridTextColumn Header="Prefix" Width="*" Binding="{Binding Value}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </DockPanel>
@@ -75,11 +85,11 @@
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4">
                             <Label Content="Image Height" Width="125"></Label>
-                            <TextBox Text="254"></TextBox>
+                            <TextBox Text="Not implemented"></TextBox>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4">
                             <Label Content="Image Width" Width="125"></Label>
-                            <TextBox Text="254"></TextBox>
+                            <TextBox Text="Not implemented"></TextBox>
                         </DockPanel>
                         <Rectangle />
                     </DockPanel>

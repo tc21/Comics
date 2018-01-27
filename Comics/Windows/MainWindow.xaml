@@ -72,6 +72,11 @@
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
+        <CollectionViewSource x:Key="VisibleCategories" Source="{Binding Path=VisibleCategories}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="Sort" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
@@ -104,6 +109,28 @@
                     <Setter Property="Content" Value="◀❚" />
                 </DataTrigger>
             </Style.Triggers>
+        </Style>
+        <!-- Profile selector dropdown -->
+        <Style x:Key="ProfileSelectorStyle" TargetType="{x:Type ComboBox}">
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="ItemTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="FontSize" Value="14"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -150,10 +177,10 @@
                     <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2" Checked="ShowLoved_Checked" Unchecked="ShowLoved_Unchecked"/>
                     <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Checked" Unchecked="ShowDisliked_Unchecked"/>
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Categories"></Label>
-                    <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding RootPaths}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                    <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource VisibleCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding Category}" Checked="Category_Checked" Unchecked="Category_Unchecked"></CheckBox>
+                                <CheckBox Content="{Binding .}" Checked="Category_Checked" Unchecked="Category_Unchecked"></CheckBox>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -174,8 +201,7 @@
                 <!-- Header (category and sort selection) -->
                 <DockPanel DockPanel.Dock="Top" Height="40" Background="{StaticResource OverlayBackgroundColor}">
                     <DockPanel DockPanel.Dock="Left" TextOptions.TextFormattingMode="Display">
-                        <Label DockPanel.Dock="Left" Content="All Comics" TextOptions.TextFormattingMode="Display" FontSize="22" Foreground="{StaticResource DisabledColor}"/>
-                        <Label DockPanel.Dock="Right" Content="›" TextOptions.TextFormattingMode="Display" FontSize="22" Foreground="{StaticResource DisabledColor}" Style="{StaticResource Rotate90Degrees}" />
+                        <ComboBox x:Name="ProfileSelector" Style="{StaticResource ProfileSelectorStyle}" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}" SelectedIndex="{Binding SelectedProfile}"/>
                     </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
                         <Label Content="Sort:" />

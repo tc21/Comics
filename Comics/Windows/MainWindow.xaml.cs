@@ -17,36 +17,42 @@ namespace Comics
     {
         // Used to disable left click actions when the application is out of focus
         // or within a set time (200ms by default) of gaining focus.
-        private Timer actionDelayTimer = new Timer(Defaults.ActivationDelay);
+        private Timer actionDelayTimer = new Timer(Defaults.Profile.ReactionTime);
         private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedAuthors = new HashSet<string>();
         private HashSet<string> availableAuthors = new HashSet<string>();
+        private HashSet<string> availableCategories = new HashSet<string>();
         private HashSet<string> availableComics = new HashSet<string>();
         private bool onlyShowLoved = false;
         private bool showDisliked = false;
-        private string searchText;
+        private string searchText = null;
 
         private ICollectionView ComicsView
         {
             get {
-                if (Collection == null)
-                    return null;
-                return CollectionViewSource.GetDefaultView(Collection.ItemsSource); }
+                return CollectionViewSource.GetDefaultView(Collection?.ItemsSource); }
         }
 
         private ICollectionView AuthorSelectorView
         {
             get
             {
-                if (Collection == null)
-                    return null;
-                return CollectionViewSource.GetDefaultView(AuthorSelector.ItemsSource);
+                return CollectionViewSource.GetDefaultView(AuthorSelector?.ItemsSource);
+            }
+        }
+
+        private ICollectionView CategorySelectorView
+        {
+            get
+            {
+                return CollectionViewSource.GetDefaultView(CategorySelector?.ItemsSource);
             }
         }
 
         public MainWindow()
         {
             InitializeComponent();
+            App.ComicsWindow = this;
             DataContext = App.ViewModel;
             // Sets the windows size to its saved state
             Height = Properties.Settings.Default.MainWindowHeight;
@@ -63,19 +69,19 @@ namespace Comics
             Deactivated += DisableActions;
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             ComicsView.Filter = ComicFilter;
             AuthorSelectorView.Filter = AuthorSelectorFilter;
+            CategorySelectorView.Filter = CategorySelectorFilter;
             // Actually loads the comics on startup
-            await Task.Run(() => UpdateAvailableComics(null));
-            ComicsView.Refresh();
-            AuthorSelectorView.Refresh();
+            RefreshAll();
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             Properties.Settings.Default.Save();
+            App.ComicsWindow = null;
         }
 
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
@@ -84,21 +90,34 @@ namespace Comics
             Properties.Settings.Default.MainWindowHeight = ActualHeight;
             Properties.Settings.Default.MainWindowWidth = ActualWidth;
         }
-        
-        // A change in search actually requires looping through all comics, since the sidebar's author
-        // list is generated dynamically from the visible comics. My library of ~700 comics already causes
-        // lag when run on the UI thread., meaning we had to make this operation asynchronous. 
-        private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+
+        public async void RefreshComics()
         {
-            searchText = SearchBox.Text;
+            await Task.Run(() => UpdateAvailableComics(searchText));
+            ComicsView.Refresh();
+        }
+
+        public async void RefreshAll()
+        {
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
             AuthorSelectorView.Refresh();
+            CategorySelectorView.Refresh();
+        }
+
+        // A change in search actually requires looping through all comics, since the sidebar's author
+        // list is generated dynamically from the visible comics. My library of ~700 comics already causes
+        // lag when run on the UI thread., meaning we had to make this operation asynchronous. 
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            searchText = SearchBox.Text;
+            RefreshAll();
         }
 
         // This is the operation that had been causing lag.
-        private async Task UpdateAvailableComics(string searchText)
+        private void UpdateAvailableComics(string searchText)
         {
+            availableCategories.Clear();
             availableAuthors.Clear();
             availableComics.Clear();
             foreach (Comic comic in App.ViewModel.VisibleComics)
@@ -109,15 +128,16 @@ namespace Comics
                 if (comic.MatchesSearchText(searchText))
                 {
                     availableAuthors.Add(comic.Author.Display);
+                    availableCategories.Add(comic.Category.Display);
                     if (comic.MatchesCategories(selectedCategories) && comic.MatchesAuthors(selectedAuthors))
                         availableComics.Add(comic.UniqueIdentifier);
                 }
             }
-            
+
             string footer = availableComics.Count.ToString() + " Item" + (availableComics.Count == 1 ? "" : "s");
             Dispatcher.Invoke(() => Footer.Content = footer);
         }
-        
+
         private bool ComicFilter(object item)
         {
             Comic comic = (Comic)item;
@@ -128,6 +148,12 @@ namespace Comics
         {
             SortedString author = (SortedString)item;
             return availableAuthors.Contains(author.Display);
+        }
+
+        private bool CategorySelectorFilter(object item)
+        {
+            SortedString category = (SortedString)item;
+            return availableCategories.Contains(category.Display);
         }
 
         // Handles a mouse event. By adding this handler to PreviewMouse..., 
@@ -230,6 +256,12 @@ namespace Comics
 
         private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)
         {
+            if (App.SettingsWindow != null)
+            {
+                App.SettingsWindow.Activate();
+                return;
+            }
+
             Window settings = new SettingsWindow { Owner = this };
             settings.Show();
         }
@@ -265,64 +297,62 @@ namespace Comics
         }
 
         // For why these functions are async, see SearchBox_TextChanged
-        private async void Category_Checked(object sender, RoutedEventArgs e)
+        private void Category_Checked(object sender, RoutedEventArgs e)
         {
             selectedCategories.Add(((CheckBox)sender).Content.ToString());
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
+            RefreshComics();
         }
 
-        private async void Category_Unchecked(object sender, RoutedEventArgs e)
+        private void Category_Unchecked(object sender, RoutedEventArgs e)
         {
             selectedCategories.Remove(((CheckBox)sender).Content.ToString());
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
+            RefreshComics();
         }
 
-        private async void Author_Checked(object sender, RoutedEventArgs e)
+        private void Author_Checked(object sender, RoutedEventArgs e)
         {
             selectedAuthors.Add(((CheckBox)sender).Content.ToString());
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
+            RefreshComics();
         }
 
-        private async void Author_Unchecked(object sender, RoutedEventArgs e)
+        private void Author_Unchecked(object sender, RoutedEventArgs e)
         {
             selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
+            RefreshComics();
         }
 
-        private async void ShowLoved_Checked(object sender, RoutedEventArgs e)
+        private void ShowLoved_Checked(object sender, RoutedEventArgs e)
         {
             onlyShowLoved = true;
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
-            AuthorSelectorView.Refresh();
+            RefreshAll();
         }
 
-        private async void ShowLoved_Unchecked(object sender, RoutedEventArgs e)
+        private void ShowLoved_Unchecked(object sender, RoutedEventArgs e)
         {
             onlyShowLoved = false;
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
-            AuthorSelectorView.Refresh();
+            RefreshAll();
         }
 
-        private async void ShowDisliked_Checked(object sender, RoutedEventArgs e)
+        private void ShowDisliked_Checked(object sender, RoutedEventArgs e)
         {
             showDisliked = true;
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
-            AuthorSelectorView.Refresh();
+            RefreshAll();
         }
 
-        private async void ShowDisliked_Unchecked(object sender, RoutedEventArgs e)
+        private void ShowDisliked_Unchecked(object sender, RoutedEventArgs e)
         {
             showDisliked = false;
-            await Task.Run(() => UpdateAvailableComics(searchText));
-            ComicsView.Refresh();
-            AuthorSelectorView.Refresh();
+            RefreshAll();
+        }
+
+        private void ProfileSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //string selectedProfile = (string)((ComboBox)sender).SelectedItem;
+            //if (Defaults.Profile.ProfileName == selectedProfile)
+            //    return;
+
+            //if (Defaults.LoadProfile(selectedProfile))
+            //    ProfileChanged();
         }
     }
 }

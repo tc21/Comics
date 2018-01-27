@@ -13,7 +13,7 @@ namespace Comics
     public class Defaults
     {
         // The default settings currently being used
-        public static UserDefaults profile;
+        public static UserDefaults Profile;
 
         // Default settings for each instance
         public class UserDefaults
@@ -47,6 +47,9 @@ namespace Comics
                     return LineHeightForFontWithSize(TitleFontSize) + LineHeightForFontWithSize(SubtitleFontSize);
                 }
             }
+            
+            public int ItemHeight { get { return ImageHeight + LabelHeight + 2 * TileMargin; } }
+            public int ItemWidth { get { return ImageWidth + 2 * TileMargin; } }
         }
 
         // Searializable "tuple"
@@ -62,7 +65,7 @@ namespace Comics
             if (!LoadProfile(Properties.Settings.Default.CurrentProfile))
             {
                 string automaticallyGeneratedProfileName = "New Profile (Automatically Generated)";
-                profile = new UserDefaults()
+                Profile = new UserDefaults()
                 {
                     ProfileName = automaticallyGeneratedProfileName,
                     ImageHeight = defaultImageHeight,
@@ -103,36 +106,28 @@ namespace Comics
 
         public static bool NameShouldBeIgnored(string name)
         {
-            foreach (string prefix in profile.IgnoredPrefixes)
+            foreach (string prefix in Profile.IgnoredPrefixes)
                 if (name.StartsWith(prefix))
                     return true;
             return false;
         }
 
-        // The one thing that needs to wait to be user-defined
-        public static List<CategorizedPath> RootPaths { get { return profile.RootPaths; } }
-        public static List<string> ImageSuffixes { get { return profile.Extensions; } }
-
         // How the application was first coded
-        public static int SafetyMargin { get { return profile.SafetyMargin; } }
-        public static int DefaultHeight { get { return profile.ImageHeight + profile.LabelHeight + 2 * profile.TileMargin; } }
-        public static int DefaultWidth { get { return profile.ImageWidth + 2 * profile.TileMargin; } }
-        public static int ActivationDelay { get { return profile.ReactionTime; } }
 
         // Provides dynamically-sized widths and heights to the wrap panel
-        private static int MaximumDynamicWidth { get { return 2 * DefaultWidth - 1; } }
+        private static int MaximumDynamicWidth { get { return 2 * Profile.ItemWidth - 1; } }
         public static Size DynamicSize (double viewPortWidth)
         {
-            if (viewPortWidth < DefaultWidth)
-                return new Size(DefaultWidth, DefaultHeight);
+            if (viewPortWidth < Profile.ItemWidth)
+                return new Size(Profile.ItemWidth, Profile.ItemHeight);
 
-            viewPortWidth -= SafetyMargin;
-            int numberOfColumns = EstimateNumberOfColumns(viewPortWidth / DefaultWidth);
+            viewPortWidth -= Profile.SafetyMargin;
+            int numberOfColumns = EstimateNumberOfColumns(viewPortWidth / Profile.ItemWidth);
             int dynamicWidth = (int)(viewPortWidth / numberOfColumns);
-            int dynamicImageWidth = dynamicWidth - 2 * profile.TileMargin;
-            int dynamicImageHeight = (int) Math.Round((double)profile.ImageHeight * dynamicImageWidth / DefaultWidth);
-            return new Size(dynamicImageWidth + 2 * profile.TileMargin,
-                dynamicImageHeight + profile.LabelHeight + 2 * profile.TileMargin);
+            int dynamicImageWidth = dynamicWidth - 2 * Profile.TileMargin;
+            int dynamicImageHeight = (int) Math.Round((double)Profile.ImageHeight * dynamicImageWidth / Profile.ItemWidth);
+            return new Size(dynamicImageWidth + 2 * Profile.TileMargin,
+                dynamicImageHeight + Profile.LabelHeight + 2 * Profile.TileMargin);
         }
 
         // Some weird formula
@@ -246,11 +241,11 @@ namespace Comics
         public static void SaveProfile()
         {
             XmlSerializer writer = new XmlSerializer(typeof(UserDefaults));
-            string path = Path.Combine(UserProfileFolder, profile.ProfileName + ".xmlprofile");
+            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmlprofile");
             string tempPath = path + ".tmp";
 
             using (FileStream tempFile = File.Create(tempPath))
-                writer.Serialize(tempFile, profile);
+                writer.Serialize(tempFile, Profile);
      
             if (File.Exists(path))
                 File.Delete(path);
@@ -270,10 +265,39 @@ namespace Comics
             using (StreamReader file = new StreamReader(path))
                 profile = (UserDefaults)reader.Deserialize(file);
 
-            Defaults.profile = profile;
-            Properties.Settings.Default.CurrentProfile = Defaults.profile.ProfileName;
+            Defaults.Profile = profile;
+            Properties.Settings.Default.CurrentProfile = Defaults.Profile.ProfileName;
             Properties.Settings.Default.Save();
             return true;
+        }
+
+        public static string FormatExtension(string extension)
+        {
+            if (String.IsNullOrWhiteSpace(extension))
+                return null;
+
+            extension = extension.Trim();
+            if (extension.Any(Char.IsWhiteSpace) || extension.Substring(1).Contains('.'))
+                return null;
+
+            if (extension[0] == '.')
+                return extension;
+
+            return "." + extension;
+        }
+
+        public static string FormatText(string prefix)
+        {
+            if (String.IsNullOrWhiteSpace(prefix))
+                return prefix;
+            return prefix.Trim();
+        }
+
+        public static string FormatDirectory(string directory)
+        {
+            if (Directory.Exists(directory))
+                return Path.GetFullPath(directory);
+            return null;
         }
     }
 }
