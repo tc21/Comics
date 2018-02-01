@@ -44,6 +44,11 @@
                                 </Grid.ColumnDefinitions>
                                 <Label Grid.Column="0" Content="Dummy (WorkTraversalDepth)" />
                                 <Label Grid.Column="1" Content="Dummy (AuthorTraversalDepth)" />
+                                <!-- An option for "Treat child folders as separate works" vs "... as the same work" 
+                                     See D:\ACG\S\Images\Comic\Artists\pictures\WHITEWILL\女冒険者孕ませトラップ for an example of option 1
+                                     See D:\ACG\S\Audio\シロクマの嫁\理想の玩具の作り方～実験素材募集中☆～ for an example of option 2-->
+                                <!-- Also, an option for "open first file when opening" (e.g. images in a folder) 
+                                     vs "open all files" (e.g. mp3 files in multiple subfolders) -->
                             </Grid>
                             <Grid MinHeight="400">
                                 <Grid.RowDefinitions>

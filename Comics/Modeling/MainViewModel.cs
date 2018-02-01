@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -114,7 +115,7 @@ namespace Comics
             int index = 0;
             for (int i = 0; i < files.Length; i++)
             {
-                string name = System.IO.Path.GetFileNameWithoutExtension(files[i].Name);
+                string name = Path.GetFileNameWithoutExtension(files[i].Name);
                 Profiles.Add(name);
                 if (Defaults.Profile.ProfileName == name)
                     SelectedProfile = index;
@@ -138,6 +139,12 @@ namespace Comics
                         continue;
 
                     LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null);
+                    FileInfo[] rootFiles = authorDirectory.GetFiles();
+                    foreach (FileInfo file in rootFiles)
+                    {
+                        if (Defaults.Profile.Extensions.Contains(file.Extension))
+                            AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName));
+                    }
                 }
             }
         }
@@ -157,17 +164,44 @@ namespace Comics
                     currentName = previousParts + " - " + currentName;
 
                 Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
-                if (comic.ImagePath != null)
-                {
-                    VisibleComics.Add(comic);
-                    if (!VisibleAuthors.Contains(comic.Author))
-                        VisibleAuthors.Add(comic.Author);
-                    if (!VisibleCategories.Contains(comic.Category))
-                        VisibleCategories.Add(comic.Category);
-                }
 
                 if (depth > 0)
-                    LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
+                {
+                    if (Defaults.Profile.TreatSubdirectoriesAsSeparateWorks)
+                    {
+                        LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
+                    }
+                    else
+                    {
+                        DirectoryInfo[] subdirectories = comicDirectory.GetDirectories();
+                        foreach (DirectoryInfo subdirectory in subdirectories)
+                            AddFolderToExistingComic(subdirectory, comic, depth);
+                    }
+                }
+
+                if (comic.FilePaths.Count > 0)
+                    AddComicToVisibleComics(comic);
+            }
+        }
+
+        private void AddComicToVisibleComics(Comic comic)
+        {
+            VisibleComics.Add(comic);
+            if (!VisibleAuthors.Contains(comic.Author))
+                VisibleAuthors.Add(comic.Author);
+            if (!VisibleCategories.Contains(comic.Category))
+                VisibleCategories.Add(comic.Category);
+        }
+
+        private void AddFolderToExistingComic(DirectoryInfo directory, Comic comic, int depth)
+        {
+            comic.AddDirectory(directory);
+            depth -= 1;
+            if (depth > 0)
+            {
+                DirectoryInfo[] subdirectories = directory.GetDirectories();
+                foreach (DirectoryInfo subdirectory in subdirectories)
+                    AddFolderToExistingComic(subdirectory, comic, depth);
             }
         }
 
@@ -175,23 +209,11 @@ namespace Comics
         {
             // We're supposed to account for display scaling here.
             //int width = Defaults.ThumbnailWidthForVisual(this);
-            int width = Defaults.Profile.ImageWidth;
             // Very primitive thumbnail caching being done here
             foreach (Comic comic in VisibleComics)
             {
                 if (!(File.Exists(comic.ThumbnailPath)))
-                {
-                    BitmapImage image = new BitmapImage();
-                    image.BeginInit();
-                    image.UriSource = new Uri(comic.ImagePath);
-                    image.DecodePixelWidth = width;
-                    image.EndInit();
-
-                    JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
-                    bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
-                    using (FileStream fileStream = new FileStream(comic.ThumbnailPath, FileMode.Create))
-                        bitmapEncoder.Save(fileStream);
-                }
+                    comic.CreateThumbnail();
             }
         }
 

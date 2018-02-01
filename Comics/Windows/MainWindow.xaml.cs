@@ -232,17 +232,39 @@ namespace Comics
             (Collection.SelectedItem as Comic)?.OpenContainingFolder();
         }
 
+        private void ContextMenu_RedefineThumbnail(object sender, RoutedEventArgs e)
+        {
+            Comic comic = (Collection.SelectedItem as Comic);
+            if (comic == null)
+                return;
+
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                InitialDirectory = comic.ContainingPath
+            };
+            if (openFileDialog.ShowDialog() != true)
+                return;
+
+            comic.Metadata.ThumbnailSource = openFileDialog.FileName;
+            comic.SaveMetadata();
+
+            File.Delete(comic.ThumbnailPath);
+            comic.CreateThumbnail();
+            RefreshComics();
+        }
+
         private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
         {
             App.ViewModel.ReloadComics();
+            RefreshComics();
         }
 
         private void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e)
         {
             // Delete existing ones first, but warn the user that it'll take a long time
             // Currently does basically nothing (unless you accidentally deleted something)
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be deleted and regenerated. This may take a long times.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.No)
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be deleted and regenerated. This may take a long times.", "Warning", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.Cancel)
                 return;
 
             foreach (Comic comic in App.ViewModel.VisibleComics)
@@ -252,6 +274,7 @@ namespace Comics
             }
 
             App.ViewModel.LoadComicThumbnails();
+            RefreshComics();
         }
 
         private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)
@@ -343,16 +366,6 @@ namespace Comics
         {
             showDisliked = false;
             RefreshAll();
-        }
-
-        private void ProfileSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //string selectedProfile = (string)((ComboBox)sender).SelectedItem;
-            //if (Defaults.Profile.ProfileName == selectedProfile)
-            //    return;
-
-            //if (Defaults.LoadProfile(selectedProfile))
-            //    ProfileChanged();
         }
     }
 }

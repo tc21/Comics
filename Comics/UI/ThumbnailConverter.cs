@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,13 +17,23 @@ namespace UI
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            BitmapImage image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.UriSource = new Uri(value.ToString());
-            image.EndInit();
+            if (!File.Exists(value.ToString()))
+                return null;
 
-            return image;
+            try
+            {
+                BitmapImage image = new BitmapImage();
+                image.BeginInit();
+                image.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                image.CacheOption = BitmapCacheOption.OnLoad; // Does this line still matter after the previous line?
+                image.UriSource = new Uri(value.ToString());
+                image.EndInit();
+                return image;
+            } catch (FileNotFoundException) {
+                return null;
+            }
+
+
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

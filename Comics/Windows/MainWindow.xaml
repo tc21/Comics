@@ -86,7 +86,7 @@
             <MenuItem Header="Dislike" Click="ContextMenu_Dislike" />
             <Separator />
             <MenuItem Header="Show in Explorer" Click="ContextMenu_ShowInExplorer" />
-            <MenuItem Header="Redefine Thumbnail" IsEnabled="False" />
+            <MenuItem Header="Redefine Thumbnail" Click="ContextMenu_RedefineThumbnail" />
         </ContextMenu>
         <ContextMenu x:Key="SettingsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
@@ -201,7 +201,7 @@
                 <!-- Header (category and sort selection) -->
                 <DockPanel DockPanel.Dock="Top" Height="40" Background="{StaticResource OverlayBackgroundColor}">
                     <DockPanel DockPanel.Dock="Left" TextOptions.TextFormattingMode="Display">
-                        <ComboBox x:Name="ProfileSelector" Style="{StaticResource ProfileSelectorStyle}" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}" SelectedIndex="{Binding SelectedProfile}"/>
+                        <ComboBox x:Name="ProfileSelector" Style="{StaticResource ProfileSelectorStyle}" ItemsSource="{Binding Profiles}" SelectedIndex="{Binding SelectedProfile}"/>
                     </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
                         <Label Content="Sort:" />

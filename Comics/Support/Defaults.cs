@@ -33,6 +33,7 @@ namespace Comics
             public List<string> IgnoredPrefixes { get; set; }
             // Used for automatic naming naming, etc. Perhaps we'll eventually have better ways of doing it
             public int WorkTraversalDepth { get; set; }
+            public bool TreatSubdirectoriesAsSeparateWorks { get; set; }
 
             // Margin applied to the right hand side of the collection area to prevent the user 
             // resizing faster than the application can resize tiles, which can cause the application to
@@ -82,13 +83,16 @@ namespace Comics
                     Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
                     IgnoredPrefixes = new List<string>() { "~", "(" },
                     WorkTraversalDepth = defaultWorkTraversalDepth,
-            };
+                    TreatSubdirectoriesAsSeparateWorks = true
+                };
                 Properties.Settings.Default.CurrentProfile = automaticallyGeneratedProfileName;
                 Properties.Settings.Default.Save();
                 SaveProfile();
             }
         }
-        
+
+        public static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
+
         private const int defaultImageHeight = 254;
         private const int defaultTitleFontSize = 12;
         private const int defaultSubtitleFontSize = 10;
