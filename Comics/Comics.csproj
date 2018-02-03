@@ -74,7 +74,7 @@
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\VirtualizingWrapPanel.cs" />
+    <Compile Include="UI\VirtualizingWrapPanel\VirtualizingWrapPanel.cs" />
     <Compile Include="Support\VisualHelper.cs" />
     <Page Include="ApplicationResources.xaml">
       <SubType>Designer</SubType>
@@ -126,7 +126,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\EmptyImage.png" />
+    <Resource Include="UI\VirtualizingWrapPanel\License.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

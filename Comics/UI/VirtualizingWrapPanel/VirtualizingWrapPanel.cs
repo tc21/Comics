@@ -10,10 +10,9 @@ using System.Windows.Media;
 namespace UI
 {
     // class from: https://github.com/samueldjack/VirtualCollection/blob/master/VirtualCollection/VirtualCollection/VirtualizingWrapPanel.cs
+    // (Original Author: Samuel Jack)
     // MakeVisible() method from: http://www.switchonthecode.com/tutorials/wpf-tutorial-implementing-iscrollinfo
-    // Licensed under the Boost Software License - Version 1.0
-    // The license isn't included, which is a direct violation of the license terms.
-    // It's why this project isn't in open source yet. 
+    // Further modified by Tianyi Cao
     public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     {
         private const double ScrollLineAmount = 16.0;

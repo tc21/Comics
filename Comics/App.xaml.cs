@@ -6,10 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-// This project is currently closed source, non-production, for personal use by me only
-// Copyright (C) Tianyi Cao, 2018, All Rights Reserved
-// To anyone obtaining a copy of this, this project will *most likely* eventually
-// Be licensed under BSD 2-clause. 
+// Comics: An iTunes-like organizer and viewer for comics and much more. 
+// Copyright (C) Tianyi Cao, 2018
+// Licensed under the BSD 2-Clause "Simplified" License. You should have received copy of the license with this software.
 namespace Comics
 {
     // Interaction logic for App.xaml

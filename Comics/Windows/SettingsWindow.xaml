@@ -9,7 +9,7 @@
         Title="Settings"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Closing="SettingsWindow_Closing"
-        Height="800" Width="400">
+        Height="400" Width="400">
     <Window.Resources>
         <ui:RemainingWidthConverter x:Key="RemainingWidthConverter"/>
         <Style x:Key="ApplyButtonStyle" TargetType="Button">
