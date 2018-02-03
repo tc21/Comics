@@ -28,6 +28,8 @@ namespace Comics
         public string ContainingPath { get { return path; } }
         public List<string> FilePaths { get { return filePaths; } }
 
+        public int Random { get; set; }
+
         public Metadata Metadata { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -70,7 +72,9 @@ namespace Comics
 
         public void CreateThumbnail()
         {
-            int width = Defaults.Profile.ImageWidth * 2;
+            // We're supposed to account for display scaling here.
+            // int width = Defaults.ThumbnailWidthForVisual(this);
+            int width = Defaults.ThumbnailWidthForVisual(null);
             if (File.Exists(ImagePath) &&
                 Thumbnails.CreateThumbnailFromImage(ImagePath, width, ThumbnailPath)) { }
             else if (Thumbnails.CanCreateThumbnailFromAudio(ImagePath) &&
@@ -150,7 +154,8 @@ namespace Comics
             return authors.Count == 0 || authors.Contains(Author.Display);
         }
         
-        public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category" };
+        public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category", "Random" };
+        public static readonly int RandomSortIndex = 3;
         public static List<string> SortDescriptionPropertyNamesForIndex(int index)
         {
             List<string> sortPropertyNames = new List<string>(SortPropertyNames);

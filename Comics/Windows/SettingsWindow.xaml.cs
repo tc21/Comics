@@ -23,8 +23,11 @@ namespace Comics
     /// </summary>
     public partial class SettingsWindow : Window, INotifyPropertyChanged
     {
+        // These following properties are observable by the ui, when the property changes, 
+        // The UI will automatically update.
+        // The list of profiles to switch between
         public const string ProfilesPropertyName = "Profiles";
-        public ObservableCollection<string> profiles = new ObservableCollection<string>();
+        private ObservableCollection<string> profiles = new ObservableCollection<string>();
         public ObservableCollection<string> Profiles
         {
             get { return profiles; }
@@ -36,9 +39,9 @@ namespace Comics
                 NotifyPropertyChanged(ProfilesPropertyName);
             }
         }
-
+        // The extensions for the currently selected profile
         public const string ExtensionsPropertyName = "Extensions";
-        public ObservableCollection<StringObject> extensions;
+        private ObservableCollection<StringObject> extensions;
         public ObservableCollection<StringObject> Extensions
         {
             get { return extensions; }
@@ -50,9 +53,9 @@ namespace Comics
                 NotifyPropertyChanged(ExtensionsPropertyName);
             }
         }
-
+        // Categories | Paths for the current profile
         public const string CategoriesPropertyName = "Categories";
-        public ObservableCollection<Defaults.CategorizedPath> categories;
+        private ObservableCollection<Defaults.CategorizedPath> categories;
         public ObservableCollection<Defaults.CategorizedPath> Categories
         {
             get { return categories; }
@@ -64,7 +67,7 @@ namespace Comics
                 NotifyPropertyChanged(CategoriesPropertyName);
             }
         }
-
+        // List of ignored prefixes for the profile
         public const string IgnoredPrefixesPropertyName = "IgnoredPrefixes";
         private ObservableCollection<StringObject> ignoredPrefixes;
         public ObservableCollection<StringObject> IgnoredPrefixes
@@ -78,7 +81,7 @@ namespace Comics
                 NotifyPropertyChanged(IgnoredPrefixesPropertyName);
             }
         }
-
+        // An indicator that the profile was modified
         public const string ProfileChangedPropertyName = "ProfileChanged";
         private bool profileChanged = false;
         public bool ProfileChanged
@@ -92,6 +95,8 @@ namespace Comics
                 NotifyPropertyChanged(ProfileChangedPropertyName);
             }
         }
+
+        // Initializer
         public SettingsWindow()
         {
             InitializeComponent();
@@ -99,6 +104,7 @@ namespace Comics
             PopulateProfileSettings();
         }
 
+        // Populates the extensions, categories, and prefixes boxes after a profile is selected.
         public void PopulateProfileSettings()
         {
             Profiles = new ObservableCollection<string>(App.ViewModel.Profiles);
@@ -108,6 +114,7 @@ namespace Comics
             IgnoredPrefixes = StringCollection(Defaults.Profile.IgnoredPrefixes);
         }
 
+        // Creates an observable collection of "String Objects" from a collectoin of strings
         private ObservableCollection<StringObject> StringCollection(ICollection<string> collection)
         {
             ObservableCollection<StringObject> result = new ObservableCollection<StringObject>();
@@ -115,12 +122,14 @@ namespace Comics
                 result.Add(new StringObject { Value = str });
             return result;
         }
-
+        
+        // Changes the currently selected profile. The UI is then updated by the viewmodel.
         private void ProfileSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             App.ViewModel.SelectedProfile = ((ComboBox)sender).SelectedIndex;
         }
 
+        // Writes the current changes to the profile when the user selects "apply" or "confirm"
         private void WriteChangesToProfile()
         {
             if (!ProfileChanged)
@@ -132,13 +141,7 @@ namespace Comics
             Defaults.SaveProfile();
             App.ViewModel.UpdateUIAfterProfileChanged();
         }
-
-        private class ProfileItem
-        {
-            public string Name { get; set; }
-            public bool Selected { get; set; }
-        }
-
+        
         private void Button_Cancel(object sender, RoutedEventArgs e)
         {
             Close();
@@ -155,18 +158,21 @@ namespace Comics
             Close();
         }
 
-        // INotifyPropertyChanged
+        // Implementation of INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        // A wrapper around strings to make DataGrid's automatic row adding work
         public class StringObject
         {
             public string Value { get; set; }
         }
 
+        // After the user edits a cell in the DataGrid, either "normalizes" the user's input
+        // or sets it to null.
         private void CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
             if (e.EditAction == DataGridEditAction.Commit)
@@ -199,7 +205,7 @@ namespace Comics
                 ProfileChanged = true;
             }
         }
-
+        
         private void SettingsWindow_Closing(object sender, CancelEventArgs e)
         {
             App.SettingsWindow = null;

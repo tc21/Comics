@@ -42,7 +42,16 @@ namespace Comics
 
         public static bool CreateThumbnailFromAudio(string path, int width, string pathToSave)
         {
-            TagLib.File tagFile = TagLib.File.Create(path);
+            TagLib.File tagFile;
+            try
+            {
+                tagFile = TagLib.File.Create(path);
+            }
+            catch (TagLib.CorruptFileException)
+            {
+                return false;
+            }
+
             if (tagFile.Tag.Pictures.Length == 0)
                 return false;
 

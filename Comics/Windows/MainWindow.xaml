@@ -150,7 +150,7 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0" HorizontalAlignment="Left" FontSize="11">
-                <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}"  Content="⚙" Click="ShowSettings" ContextMenu="{StaticResource SettingsContextMenu}">
+                <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}"  Content="⚙" Click="ShowSettingsContextMenu" ContextMenu="{StaticResource SettingsContextMenu}">
                 </Button>
             </StatusBarItem>
             <StatusBarItem x:Name="Footer" Grid.Column="1" HorizontalAlignment="Center" FontSize="11" Padding="0">
@@ -205,7 +205,7 @@
                     </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
                         <Label Content="Sort:" />
-                        <ComboBox x:Name="SortOrderBox" SelectionChanged="ChangeSortOrder" ItemsSource="{Binding SortPropertyDisplayName}">
+                        <ComboBox x:Name="SortOrderBox" SelectionChanged="SortOrderBox_SelectionChanged" ItemsSource="{Binding SortPropertyDisplayName}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}" />
@@ -223,6 +223,7 @@
                     ItemsSource="{Binding Source={StaticResource VisibleComicsSource}}"
                     ContextMenu="{StaticResource ComicsContextMenu}"
                     MouseDoubleClick="Collection_MouseDoubleClick"
+                    KeyDown="Collection_KeyDown"
                     Loaded="Collection_Loaded"
                     >
                 </ListBox>

@@ -119,7 +119,7 @@ namespace Comics
         // How the application was first coded
 
         // Provides dynamically-sized widths and heights to the wrap panel
-        private static int MaximumDynamicWidth { get { return 2 * Profile.ItemWidth - 1; } }
+        private static int MaximumDynamicWidth { get { return (int)(16.301 / 10 * Profile.ItemWidth + 1); } }
         public static Size DynamicSize (double viewPortWidth)
         {
             if (viewPortWidth < Profile.ItemWidth)
@@ -160,7 +160,13 @@ namespace Comics
         // Only one thumbnail is generated, which needs to account for display scaling
         public static int ThumbnailWidthForVisual(Visual visual)
         {
-            double scale = PresentationSource.FromVisual(visual).CompositionTarget.TransformToDevice.M11;
+            double scale = 1;
+            if (visual != null)
+                scale *= PresentationSource.FromVisual(visual).CompositionTarget.TransformToDevice.M11;
+            // This else clause ideally shouldn't need to be here, but since we can't set the scale manually,
+            // and I use a hidpi display...
+            else
+                scale *= 2;
             return (int)Math.Ceiling(scale * MaximumDynamicWidth);
         }
         

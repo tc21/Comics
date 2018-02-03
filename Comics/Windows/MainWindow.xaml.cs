@@ -18,35 +18,31 @@ namespace Comics
         // Used to disable left click actions when the application is out of focus
         // or within a set time (200ms by default) of gaining focus.
         private Timer actionDelayTimer = new Timer(Defaults.Profile.ReactionTime);
+        // These two sets are in sync with the user's checked items in the sidebar
         private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedAuthors = new HashSet<string>();
+        // These three sets are in sync with all the visible items in the window
         private HashSet<string> availableAuthors = new HashSet<string>();
         private HashSet<string> availableCategories = new HashSet<string>();
         private HashSet<string> availableComics = new HashSet<string>();
+        // The two sidebar options
         private bool onlyShowLoved = false;
         private bool showDisliked = false;
+        // The text currently inside the search bar
         private string searchText = null;
 
+        // These three private properties return the view containing objects so the view can be updated 
         private ICollectionView ComicsView
         {
-            get {
-                return CollectionViewSource.GetDefaultView(Collection?.ItemsSource); }
+            get { return CollectionViewSource.GetDefaultView(Collection?.ItemsSource); }
         }
-
         private ICollectionView AuthorSelectorView
         {
-            get
-            {
-                return CollectionViewSource.GetDefaultView(AuthorSelector?.ItemsSource);
-            }
+            get { return CollectionViewSource.GetDefaultView(AuthorSelector?.ItemsSource); }
         }
-
         private ICollectionView CategorySelectorView
         {
-            get
-            {
-                return CollectionViewSource.GetDefaultView(CategorySelector?.ItemsSource);
-            }
+            get { return CollectionViewSource.GetDefaultView(CategorySelector?.ItemsSource); }
         }
 
         public MainWindow()
@@ -84,6 +80,7 @@ namespace Comics
             App.ComicsWindow = null;
         }
 
+        // When the window changes size, the view must be refreshed to update the size of each item
         private void CollectionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             ComicsView?.Refresh();
@@ -91,12 +88,16 @@ namespace Comics
             Properties.Settings.Default.MainWindowWidth = ActualWidth;
         }
 
+        // Asynchronously updates comics and refreshes the main view. 
+        // Used when a category or author selection changes
         public async void RefreshComics()
         {
             await Task.Run(() => UpdateAvailableComics(searchText));
             ComicsView.Refresh();
         }
 
+        // Asynchronously updates comics and refreshes all views
+        // Used when a general selection / search term changes
         public async void RefreshAll()
         {
             await Task.Run(() => UpdateAvailableComics(searchText));
@@ -114,7 +115,7 @@ namespace Comics
             RefreshAll();
         }
 
-        // This is the operation that had been causing lag.
+        // This is the operation that was causing lag.
         private void UpdateAvailableComics(string searchText)
         {
             availableCategories.Clear();
@@ -138,6 +139,12 @@ namespace Comics
             Dispatcher.Invoke(() => Footer.Content = footer);
         }
 
+        public void NotifyLoading()
+        {
+            Footer.Content = "Loading...";
+        }
+
+        // With the actual filtering done asynchronously, the filter imposed on the views are then quite simple.
         private bool ComicFilter(object item)
         {
             Comic comic = (Comic)item;
@@ -158,15 +165,18 @@ namespace Comics
 
         // Handles a mouse event. By adding this handler to PreviewMouse..., 
         // the event is effectively disabled.
-        private void EventHandled(object sender, MouseButtonEventArgs e)
+        private void MouseEventHandled(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
         }
 
+        // These functions enable the "left click delay". Since nothing that happens in the 
+        // program actually only requires 1 left click anymore, I'm considering disabling it
+        // by default.
         private void DisableActions(object sender, EventArgs e)
         {
-            PreviewMouseLeftButtonDown += EventHandled;
-            PreviewMouseLeftButtonUp += EventHandled;
+            PreviewMouseLeftButtonDown += MouseEventHandled;
+            PreviewMouseLeftButtonUp += MouseEventHandled;
         }
 
         private void EnableActionsWithDelay(object sender, EventArgs e)
@@ -176,11 +186,12 @@ namespace Comics
 
         private void EnableActions(object sender, EventArgs e)
         {
-            PreviewMouseLeftButtonDown -= EventHandled;
-            PreviewMouseLeftButtonUp -= EventHandled;
+            PreviewMouseLeftButtonDown -= MouseEventHandled;
+            PreviewMouseLeftButtonUp -= MouseEventHandled;
             actionDelayTimer.Stop();
         }
 
+        // Happens when the "toggle right sidebar" footer button is pressed
         private void ToggleRightSidebar(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
@@ -193,7 +204,8 @@ namespace Comics
             Properties.Settings.Default.RightSidebarVisible = !Properties.Settings.Default.RightSidebarVisible;
         }
 
-        private void ShowSettings(object sender, RoutedEventArgs e)
+        // Happens when the "settings" footer button is pressed
+        private void ShowSettingsContextMenu(object sender, RoutedEventArgs e)
         {
             if (!SettingsButton.ContextMenu.IsOpen)
             {
@@ -208,6 +220,7 @@ namespace Comics
             }
         }
 
+        // Handlers for context menu items. This includes the right click and settings menus
         private void ContextMenu_Open(object sender, RoutedEventArgs e)
         {
             (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
@@ -253,13 +266,12 @@ namespace Comics
             RefreshComics();
         }
 
-        private void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
+        private async void ContextMenu_ReloadComics(object sender, RoutedEventArgs e)
         {
-            App.ViewModel.ReloadComics();
-            RefreshComics();
+            await App.ViewModel.ReloadComics();
         }
 
-        private void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e)
+        private async void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e)
         {
             // Delete existing ones first, but warn the user that it'll take a long time
             // Currently does basically nothing (unless you accidentally deleted something)
@@ -273,8 +285,7 @@ namespace Comics
                     File.Delete(comic.ThumbnailPath);
             }
 
-            App.ViewModel.LoadComicThumbnails();
-            RefreshComics();
+            await App.ViewModel.ReloadComicThumbnails();
         }
 
         private void ContextMenu_ShowSettings(object sender, RoutedEventArgs e)
@@ -294,32 +305,47 @@ namespace Comics
             Application.Current.Shutdown();
         }
 
-        private void ChangeSortOrder(object sender, SelectionChangedEventArgs e)
+        // When the user changes the sort order, we update the sort descriptions on the comics view.
+        // When the user selects "random", we have to randomize a field inside the comic object.
+        private async void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ComicsView == null)
                 return;
 
-            ComicsView.SortDescriptions.Clear();
-            foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(SortOrderBox.SelectedIndex))
-            {
-                ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
-            }
-            ComicsView.Refresh();
+            if (SortOrderBox.SelectedIndex == Comic.RandomSortIndex)
+                await Task.Run(() => App.ViewModel.RandomizeComics());
 
+            UpdateSortDescriptions();
             Properties.Settings.Default.SelectedSortIndex = SortOrderBox.SelectedIndex;
         }
 
+        private void UpdateSortDescriptions()
+        {
+            ComicsView.SortDescriptions.Clear();
+
+            foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(SortOrderBox.SelectedIndex))
+                ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
+        }
+
+        // Ways for the user to open a comic
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
         }
 
-        private void Collection_Loaded(object sender, RoutedEventArgs e)
+        private void Collection_KeyDown(object sender, KeyEventArgs e)
         {
-            ChangeSortOrder(null, null);
+            if (e.Key == Key.Enter)
+                (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
         }
 
-        // For why these functions are async, see SearchBox_TextChanged
+        // Ensures the collection is sorted when it is first loaded.
+        private void Collection_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdateSortDescriptions();
+        }
+
+        // Handlers for when the user checks and unchecks sidebar options
         private void Category_Checked(object sender, RoutedEventArgs e)
         {
             selectedCategories.Add(((CheckBox)sender).Content.ToString());

@@ -8,12 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace Comics
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        // Model
+        // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
+        // All loaded comics
         public const string VisibleComicsPropertyName = "VisibleComics";
         private ObservableCollection<Comic> visibleComics = new ObservableCollection<Comic>();
         public ObservableCollection<Comic> VisibleComics
@@ -28,6 +30,7 @@ namespace Comics
             }
         }
 
+        // All loaded authors
         public const string VisibleAuthorsPropertyName = "VisibleAuthors";
         public ObservableCollection<SortedString> visibleAuthors = new ObservableCollection<SortedString>();
         public ObservableCollection<SortedString> VisibleAuthors
@@ -42,6 +45,7 @@ namespace Comics
             }
         }
 
+        // All loaded categories
         public const string VisibleCategoriesPropertyName = "VisibleCategories";
         public ObservableCollection<SortedString> visibleCategories = new ObservableCollection<SortedString>();
         public ObservableCollection<SortedString> VisibleCategories
@@ -56,6 +60,7 @@ namespace Comics
             }
         }
 
+        // The currently selected profile. Changing this updates internal settings and the UI
         public const string SelectedProfileCategoryName = "SelectedProfile";
         private int selectedProfile;
         public int SelectedProfile {
@@ -66,6 +71,7 @@ namespace Comics
                     return;
                 selectedProfile = value;
                 NotifyPropertyChanged(SelectedProfileCategoryName);
+                App.ComicsWindow?.NotifyLoading();
 
                 string profile = Profiles[selectedProfile];
                 if (Defaults.Profile.ProfileName == profile)
@@ -76,13 +82,6 @@ namespace Comics
                     UpdateUIAfterProfileChanged();
                 }
             }
-        }
-
-        public void UpdateUIAfterProfileChanged()
-        {
-            ReloadComics();
-            App.SettingsWindow?.PopulateProfileSettings();
-            App.ComicsWindow?.RefreshAll();
         }
 
         public const string ProfilesPropertyName = "Profiles";
@@ -122,11 +121,26 @@ namespace Comics
                 index++;
             }
 
-            LoadComics();
+            UpdateUIAfterProfileChanged();
+        }
+
+        // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
+        public async void UpdateUIAfterProfileChanged()
+        {
+            Debug.Print("1");
+            VisibleComics.Clear();
+            Debug.Print("2");
+            await Task.Run(() => LoadComics());
+            Debug.Print("3");
+            await Task.Run(() => LoadComicThumbnails());
+            Debug.Print("4");
+            App.SettingsWindow?.PopulateProfileSettings();
+            Debug.Print("5");
+            App.ComicsWindow?.RefreshAll();
         }
 
         // View Model Events
-        public void LoadComics()
+        private void LoadComics()
         {
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths)
             {
@@ -186,11 +200,14 @@ namespace Comics
 
         private void AddComicToVisibleComics(Comic comic)
         {
-            VisibleComics.Add(comic);
-            if (!VisibleAuthors.Contains(comic.Author))
-                VisibleAuthors.Add(comic.Author);
-            if (!VisibleCategories.Contains(comic.Category))
-                VisibleCategories.Add(comic.Category);
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                VisibleComics.Add(comic);
+                if (!VisibleAuthors.Contains(comic.Author))
+                    VisibleAuthors.Add(comic.Author);
+                if (!VisibleCategories.Contains(comic.Category))
+                    VisibleCategories.Add(comic.Category);
+            });
         }
 
         private void AddFolderToExistingComic(DirectoryInfo directory, Comic comic, int depth)
@@ -205,11 +222,8 @@ namespace Comics
             }
         }
 
-        public void LoadComicThumbnails()
+        private void LoadComicThumbnails()
         {
-            // We're supposed to account for display scaling here.
-            //int width = Defaults.ThumbnailWidthForVisual(this);
-            // Very primitive thumbnail caching being done here
             foreach (Comic comic in VisibleComics)
             {
                 if (!(File.Exists(comic.ThumbnailPath)))
@@ -217,11 +231,27 @@ namespace Comics
             }
         }
 
-        public void ReloadComics()
+        public async Task ReloadComics()
         {
             VisibleComics.Clear();
-            LoadComics();
-            LoadComicThumbnails();
+            await Task.Run(() => LoadComics());
+            await Task.Run(() => LoadComicThumbnails());
+            App.ComicsWindow?.RefreshComics();
+        }
+
+        public async Task ReloadComicThumbnails()
+        {
+            await Task.Run(() => LoadComicThumbnails());
+            App.ComicsWindow?.RefreshComics();
+        }
+
+        public void RandomizeComics()
+        {
+            Random random = new Random();
+            foreach (Comic comic in VisibleComics)
+            {
+                comic.Random = random.Next();
+            }
         }
 
         // INotifyPropertyChanged
