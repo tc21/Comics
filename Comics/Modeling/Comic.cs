@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -120,17 +121,89 @@ namespace Comics
             set { Metadata.Disliked = value; SaveMetadata(); NotifyPropertyChanged("Disliked"); }
         }
         
-        // Calls Process.Start on ThumbnailPath.
         // Maybe I will eventually code a viewer into this program, but I already have an image viewer.
-        public void OpenWithDefaultApplication()
+        public void Open()
         {
-            Process.Start(filePaths.First());
+            if (String.IsNullOrEmpty(Defaults.Profile.ExecutionString))
+                Process.Start(filePaths.First());
+            else
+                Process.Start(ExecutionString.CreateExecutionString(Defaults.Profile.ExecutionString, this));
         }
 
         public void OpenContainingFolder()
         {
             Process.Start(path);
         }
+
+        static class ExecutionString
+        {
+            // A special syntax for "opening" an item. The syntax defines 3 "special" characters:
+            // { : used to start an expression; } : used to end an expression; \ : used to escape a special character
+            // An expression uses the syntax {key:args}, where key and args are alphanumeric. 
+            // "key" specifies what kind of argument, while "args" modify the way it is presented.
+            private const string FirstFileKey = "first";
+            private const string AllFilesKey = "all";
+            private const string ContainingFolderKey = "folder";
+            private const string FirstFilenameKey = "firstname";
+            private const string AllFilenamesKey = "allname";
+            private const string TitleKey = "title";
+            private const string AuthorKey = "author";
+            private const string CategoryKey = "category";
+            
+            public static string CreateExecutionString(string format, Comic comic)
+            {
+                if (String.IsNullOrEmpty(format))
+                    return comic.FilePaths.First();
+                string parsed = Regex.Replace(format, "\\\\(.)", m => UnescapeToken(m.Groups[1].Value));
+                return Regex.Replace(format, "{(\\w*)(:)?(.*)?}", m => ProcessToken(comic, m.Groups[1].Value, m.Groups[2].Success, m.Groups[3].Value));
+            }
+
+            private static string UnescapeToken(string token)
+            {
+                switch (token)
+                {
+                    case "\\":
+                    case "{":
+                    case "}":
+                        return token;
+                    default:
+                        throw new Exception("Invalid escape sequence: \\" + token);
+                }
+            }
+
+            private static string ProcessToken(Comic comic, string key, bool argsGiven, string args)
+            {
+                switch (key)
+                {
+                    case FirstFileKey:
+                        return comic.FilePaths.First();
+                    case AllFilesKey:
+                        {
+                            string separator = argsGiven ? args : " ";
+                            return String.Join(separator, comic.FilePaths);
+                        }
+                    case ContainingFolderKey:
+                        return comic.ContainingPath;
+                    case FirstFilenameKey:
+                        return Path.GetFileName(comic.FilePaths.First());
+                    case AllFilenamesKey:
+                        {
+                            string separator = argsGiven ? args : " ";
+                            return String.Join(separator, comic.FilePaths.Select(p => Path.GetFileName(p)));
+                        }
+                    case TitleKey:
+                        return comic.Title.Display;
+                    case AuthorKey:
+                        return comic.Author.Display;
+                    case CategoryKey:
+                        return comic.Category.Display;
+                    default:
+                        throw new Exception("Invalid key: " + key);
+                }
+            }
+        }
+
+
 
         public bool MatchesSearchText(string searchText)
         {

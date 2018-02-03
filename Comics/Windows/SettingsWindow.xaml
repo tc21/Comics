@@ -9,7 +9,7 @@
         Title="Settings"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Closing="SettingsWindow_Closing"
-        Height="400" Width="400">
+        Height="800" Width="400">
     <Window.Resources>
         <ui:RemainingWidthConverter x:Key="RemainingWidthConverter"/>
         <Style x:Key="ApplyButtonStyle" TargetType="Button">
@@ -60,13 +60,6 @@
                                     <ColumnDefinition />
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
-                                <Label Grid.Column="0" Content="Dummy (WorkTraversalDepth)" />
-                                <Label Grid.Column="1" Content="Dummy (AuthorTraversalDepth)" />
-                                <!-- An option for "Treat child folders as separate works" vs "... as the same work" 
-                                     See D:\ACG\S\Images\Comic\Artists\pictures\WHITEWILL\女冒険者孕ませトラップ for an example of option 1
-                                     See D:\ACG\S\Audio\シロクマの嫁\理想の玩具の作り方～実験素材募集中☆～ for an example of option 2-->
-                                <!-- Also, an option for "open first file when opening" (e.g. images in a folder) 
-                                     vs "open all files" (e.g. mp3 files in multiple subfolders) -->
                             </Grid>
                             <Grid MinHeight="400">
                                 <Grid.RowDefinitions>
@@ -106,26 +99,39 @@
                 </TabItem>
                 <TabItem Header="Behavior">
                     <DockPanel>
-                        <DockPanel DockPanel.Dock="Top" Margin="4">
-                            <Label Content="Image Height" Width="125"></Label>
-                            <TextBox Text="Not implemented"></TextBox>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Label DockPanel.Dock="Left" Content="Child folder traversal depth" Width="180" />
+                            <TextBox IsEnabled="False"/>
                         </DockPanel>
-                        <DockPanel DockPanel.Dock="Top" Margin="4">
-                            <Label Content="Image Width" Width="125"></Label>
-                            <TextBox Text="Not implemented"></TextBox>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Label DockPanel.Dock="Left" Content="Treat child folders as separate works"/>
+                            <CheckBox DockPanel.Dock="Right" VerticalAlignment="Center" IsEnabled="False"/>
+                            <Rectangle />
                         </DockPanel>
+                        <Label DockPanel.Dock="Top" Content="Command to execute when opening work:" Margin="4,2,16,2"/>
+                        <TextBox DockPanel.Dock="Top" Margin="8,2,16,2" Height="24" IsEnabled="False"/>
+                        <Label DockPanel.Dock="Top" Content="Example Command:"  Margin="4,2,16,2" />
+                        <TextBlock DockPanel.Dock="Top" Text="firstfile.png" Margin="8,2,16,2" TextWrapping="Wrap"/>
                         <Rectangle />
                     </DockPanel>
                 </TabItem>
                 <TabItem Header="Interface">
                     <DockPanel>
-                        <DockPanel DockPanel.Dock="Top" Margin="4">
-                            <Label Content="Image Height" Width="125"></Label>
-                            <TextBox Text="Not implemented"></TextBox>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Label DockPanel.Dock="Left" Content="Image Height" Width="180" />
+                            <TextBox IsEnabled="False"/>
                         </DockPanel>
-                        <DockPanel DockPanel.Dock="Top" Margin="4">
-                            <Label Content="Image Width" Width="125"></Label>
-                            <TextBox Text="Not implemented"></TextBox>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Label DockPanel.Dock="Left" Content="Image Width" Width="180" />
+                            <TextBox IsEnabled="False"/>
+                        </DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Label DockPanel.Dock="Left" Content="Title Font Size" Width="180" />
+                            <TextBox IsEnabled="False"/>
+                        </DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Label DockPanel.Dock="Left" Content="Subtitle Font Size" Width="180" />
+                            <TextBox IsEnabled="False"/>
                         </DockPanel>
                         <Rectangle />
                     </DockPanel>

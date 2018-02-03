@@ -227,7 +227,7 @@ namespace Comics
         // Handlers for context menu items. This includes the right click and settings menus
         private void ContextMenu_Open(object sender, RoutedEventArgs e)
         {
-            (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
+            (Collection.SelectedItem as Comic)?.Open();
         }
 
         private void ContextMenu_Love(object sender, RoutedEventArgs e)
@@ -334,13 +334,13 @@ namespace Comics
         // Ways for the user to open a comic
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
+            (Collection.SelectedItem as Comic)?.Open();
         }
 
         private void Collection_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-                (Collection.SelectedItem as Comic)?.OpenWithDefaultApplication();
+                (Collection.SelectedItem as Comic)?.Open();
         }
 
         // Ensures the collection is sorted when it is first loaded.
