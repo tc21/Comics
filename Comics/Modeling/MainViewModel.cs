@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -14,6 +15,8 @@ namespace Comics
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        //private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
         // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
         // All loaded comics
         public const string VisibleComicsPropertyName = "VisibleComics";
@@ -71,19 +74,11 @@ namespace Comics
                     return;
                 selectedProfile = value;
                 NotifyPropertyChanged(SelectedProfileCategoryName);
-                App.ComicsWindow?.NotifyLoading();
-
-                string profile = Profiles[selectedProfile];
-                if (Defaults.Profile.ProfileName == profile)
-                    return;
-
-                if (Defaults.LoadProfile(profile))
-                {
-                    UpdateUIAfterProfileChanged();
-                }
+                ProfileChanged();
             }
         }
 
+        // List of profiles
         public const string ProfilesPropertyName = "Profiles";
         public ObservableCollection<string> profiles = new ObservableCollection<string>();
         public ObservableCollection<string> Profiles
@@ -97,17 +92,21 @@ namespace Comics
                 NotifyPropertyChanged(ProfilesPropertyName);
             }
         }
-
-        public ObservableCollection<Defaults.CategorizedPath> RootPaths
-        {
-            get { return new ObservableCollection<Defaults.CategorizedPath>(Defaults.Profile.RootPaths); }
-        }
+        
+        // List of sort orders to display in ui
         public ObservableCollection<string> SortPropertyDisplayName
         {
             get { return new ObservableCollection<string>(Comic.SortPropertyNames); }
         }
 
+        // Initializer. Populates profiles and loads comics
         public MainViewModel()
+        {
+            LoadProfiles();
+            UpdateComicsAfterProfileChanged();
+        }
+
+        private void LoadProfiles()
         {
             FileInfo[] files = new DirectoryInfo(Defaults.UserProfileFolder).GetFiles("*.xmlprofile");
 
@@ -120,28 +119,99 @@ namespace Comics
                     SelectedProfile = index;
                 index++;
             }
+        }
 
-            UpdateUIAfterProfileChanged();
+        public void ReloadProfiles()
+        {
+            Profiles.Clear();
+            LoadProfiles();
+            ProfileChanged();
+        }
+
+        public void ProfileChanged()
+        {
+            if (selectedProfile < 0 || selectedProfile >= Profiles.Count)
+                return;
+
+            string profile = Profiles[selectedProfile];
+            if (Defaults.Profile.ProfileName == profile)
+                return;
+
+            if (Defaults.LoadProfile(profile))
+                UpdateComicsAfterProfileChanged();
+        }
+
+        // The loading of comics in a profile is done asynchronously. This is done to improve
+        // the fluidity of the program. Loading thumbnails is also done asynchronously, because 
+        // it takes a long time and the user still should be able to use the program. If we load
+        // a now profile before any of this is done, we modify the collection of comics while the 
+        // async operations are still looping over it. We can cancel the operations, ensure these
+        // two operations are themselves happening synchronously, or do this.
+        private void ProfileLoadStarted()
+        {
+            if (App.ComicsWindow != null)
+            {
+                App.ComicsWindow.Footer.Content = "Loading...";
+                App.ComicsWindow.ProfileSelector.IsEnabled = false;
+                App.ComicsWindow.SettingsButton.IsEnabled = false;
+            }
+            if (App.SettingsWindow != null)
+            {
+                App.SettingsWindow.ProfileSelector.IsEnabled = false;
+            }
+        }
+        
+        private void ProfileLoadEnded()
+        {
+            if (App.ComicsWindow != null)
+            {
+                App.ComicsWindow.ProfileSelector.IsEnabled = true;
+                App.ComicsWindow.SettingsButton.IsEnabled = true;
+            }
+            if (App.SettingsWindow != null)
+            {
+                App.SettingsWindow.ProfileSelector.IsEnabled = true;
+            }
         }
 
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
-        public async void UpdateUIAfterProfileChanged()
+        public async void UpdateComicsAfterProfileChanged()
         {
-            Debug.Print("1");
+            //cancellationTokenSource.Cancel();
+            //cancellationTokenSource = new CancellationTokenSource();
+            ProfileLoadStarted();
             VisibleComics.Clear();
-            Debug.Print("2");
-            await Task.Run(() => LoadComics());
-            Debug.Print("3");
-            await Task.Run(() => LoadComicThumbnails());
-            Debug.Print("4");
+            await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
+            ProfileLoadEnded();
             App.SettingsWindow?.PopulateProfileSettings();
-            Debug.Print("5");
             App.ComicsWindow?.RefreshAll();
         }
-
-        // View Model Events
-        private void LoadComics()
+        
+        // Public interface to reload all comics
+        public async Task ReloadComics()
         {
+            //cancellationTokenSource.Cancel();
+            //cancellationTokenSource = new CancellationTokenSource();
+            ProfileLoadStarted();
+            VisibleComics.Clear();
+            await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
+            ProfileLoadEnded();
+            App.ComicsWindow?.RefreshComics();
+        }
+
+        // Public interface to reload (regenerate) all thumbnails
+        public async Task ReloadComicThumbnails()
+        {
+            await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
+            App.ComicsWindow?.RefreshComics();
+        }
+
+        // Loads all comics based on the current profile
+        private void LoadComics(/*CancellationToken cancellationToken*/)
+        {
+            Debug.Print("> lc");
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths)
             {
                 DirectoryInfo rootDirectory = new DirectoryInfo(categorizedPath.Path);
@@ -152,22 +222,32 @@ namespace Comics
                     if (Defaults.NameShouldBeIgnored(authorDirectory.Name))
                         continue;
 
-                    LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null);
-                    FileInfo[] rootFiles = authorDirectory.GetFiles();
-                    foreach (FileInfo file in rootFiles)
-                    {
-                        if (Defaults.Profile.Extensions.Contains(file.Extension))
-                            AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName));
-                    }
+                    //try
+                    //{
+                        LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null/*, cancellationToken*/);
+                        FileInfo[] rootFiles = authorDirectory.GetFiles();
+                        foreach (FileInfo file in rootFiles)
+                        {
+                            if (Defaults.Profile.Extensions.Contains(file.Extension))
+                                AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
+                        }
+                    //}
+                    //catch (OperationCanceledException)
+                    //{
+                    //    return;
+                    //}
                 }
+
             }
+            Debug.Print("< lc");
         }
 
-        private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts)
+        // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
+        private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts/*, CancellationToken cancellationToken*/)
         {
             depth -= 1;
             DirectoryInfo[] comicDirectories = directory.GetDirectories();
-
+            
             foreach (DirectoryInfo comicDirectory in comicDirectories)
             {
                 if (Defaults.NameShouldBeIgnored(comicDirectory.Name))
@@ -183,7 +263,7 @@ namespace Comics
                 {
                     if (Defaults.Profile.TreatSubdirectoriesAsSeparateWorks)
                     {
-                        LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
+                        LoadComicsForAuthor(comicDirectory, author, category, depth, currentName/*, cancellationToken*/);
                     }
                     else
                     {
@@ -194,12 +274,16 @@ namespace Comics
                 }
 
                 if (comic.FilePaths.Count > 0)
-                    AddComicToVisibleComics(comic);
+                {
+                    AddComicToVisibleComics(comic/*, cancellationToken*/);
+                }
             }
         }
 
-        private void AddComicToVisibleComics(Comic comic)
+        // Adds a comic to the visible comics list
+        private void AddComicToVisibleComics(Comic comic/*, CancellationToken cancellationToken*/)
         {
+            //cancellationToken.ThrowIfCancellationRequested();
             App.Current.Dispatcher.Invoke(() =>
             {
                 VisibleComics.Add(comic);
@@ -210,6 +294,7 @@ namespace Comics
             });
         }
 
+        // Given a folder and a comic, adds contents of the folder to the comic
         private void AddFolderToExistingComic(DirectoryInfo directory, Comic comic, int depth)
         {
             comic.AddDirectory(directory);
@@ -222,29 +307,21 @@ namespace Comics
             }
         }
 
-        private void LoadComicThumbnails()
+        // Generates thumbnails for comics
+        private void GenerateComicThumbnails(/*CancellationToken cancellationToken*/)
         {
+            Debug.Print("> gct");
             foreach (Comic comic in VisibleComics)
             {
                 if (!(File.Exists(comic.ThumbnailPath)))
                     comic.CreateThumbnail();
+                //if (cancellationToken.IsCancellationRequested)
+                //    return;
             }
+            Debug.Print("< gct");
         }
 
-        public async Task ReloadComics()
-        {
-            VisibleComics.Clear();
-            await Task.Run(() => LoadComics());
-            await Task.Run(() => LoadComicThumbnails());
-            App.ComicsWindow?.RefreshComics();
-        }
-
-        public async Task ReloadComicThumbnails()
-        {
-            await Task.Run(() => LoadComicThumbnails());
-            App.ComicsWindow?.RefreshComics();
-        }
-
+        // Randomizes the .Random field for each comic
         public void RandomizeComics()
         {
             Random random = new Random();
@@ -254,7 +331,7 @@ namespace Comics
             }
         }
 
-        // INotifyPropertyChanged
+        // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(string propertyName)
         {

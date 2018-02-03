@@ -70,11 +70,10 @@ namespace Comics
             }
         }
 
+        // Creates a thumbnail for this comic and saves it to disk
         public void CreateThumbnail()
         {
-            // We're supposed to account for display scaling here.
-            // int width = Defaults.ThumbnailWidthForVisual(this);
-            int width = Defaults.ThumbnailWidthForVisual(null);
+            int width = Defaults.ThumbnailWidthForVisual();
             if (File.Exists(ImagePath) &&
                 Thumbnails.CreateThumbnailFromImage(ImagePath, width, ThumbnailPath)) { }
             else if (Thumbnails.CanCreateThumbnailFromAudio(ImagePath) &&
@@ -90,6 +89,7 @@ namespace Comics
             NotifyPropertyChanged("ThumbnailPath");
         }
 
+        // Public properties that update the UI when changed
         public SortedString Title
         {
             get { return Metadata.Title ?? new SortedString(title); }

@@ -19,13 +19,31 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="ProfileOptionsButton" TargetType="{x:Type Button}">
+            <Setter Property="Content" Value="···" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="Background" Value="{x:Null}" />
+            <Setter Property="Foreground" Value="{StaticResource FooterColor}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Height" Value="19" />
+            <Setter Property="Padding" Value="0,-8,0,0" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+        <ContextMenu x:Key="ProfileOptionsContextMenu">
+            <MenuItem Header="Rename" Click="ProfileMenu_Rename" />
+            <MenuItem Header="Delete" Click="ProfileMenu_Delete" />
+            <MenuItem Header="New" Click="ProfileMenu_New"/>
+        </ContextMenu>
     </Window.Resources>
     <Border Background="{StaticResource OverlayBackgroundColor}">
         <DockPanel Margin="4">
             <DockPanel Style="{StaticResource Dropdown}" DockPanel.Dock="Top">
-                <Label Content="Profile:" />
-                <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}">
-                </ComboBox>
+                <Label DockPanel.Dock="Left" Content="Profile:" />
+                <Button DockPanel.Dock="Right" x:Name="ProfileOptionsButton" Style="{StaticResource ProfileOptionsButton}" ContextMenu="{StaticResource ProfileOptionsContextMenu}" Click="ProfileOptionsButton_Click"/>
+                <Grid>
+                    <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}" />
+                    <TextBox x:Name="ProfileNameEditor" Visibility="Hidden" Text="Profile Name" FontSize="14" VerticalAlignment="Center" TextOptions.TextFormattingMode="Display" Padding="4,2,0,2" KeyDown="ProfileNameEditor_KeyDown"/>
+                </Grid>
             </DockPanel>
             <DockPanel DockPanel.Dock="Bottom">
                 <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
@@ -86,7 +104,20 @@
                         </DockPanel>
                     </ScrollViewer>
                 </TabItem>
-                <TabItem Header="Interface" HorizontalAlignment="Right">
+                <TabItem Header="Behavior">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4">
+                            <Label Content="Image Height" Width="125"></Label>
+                            <TextBox Text="Not implemented"></TextBox>
+                        </DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4">
+                            <Label Content="Image Width" Width="125"></Label>
+                            <TextBox Text="Not implemented"></TextBox>
+                        </DockPanel>
+                        <Rectangle />
+                    </DockPanel>
+                </TabItem>
+                <TabItem Header="Interface">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4">
                             <Label Content="Image Height" Width="125"></Label>

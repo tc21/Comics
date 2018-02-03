@@ -17,7 +17,7 @@ namespace Comics
     {
         // Used to disable left click actions when the application is out of focus
         // or within a set time (200ms by default) of gaining focus.
-        private Timer actionDelayTimer = new Timer(Defaults.Profile.ReactionTime);
+        //private Timer actionDelayTimer = new Timer(Defaults.Profile.ReactionTime);
         // These two sets are in sync with the user's checked items in the sidebar
         private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedAuthors = new HashSet<string>();
@@ -59,10 +59,10 @@ namespace Comics
             RightSidebar.Loaded += ((u, v) => RightSidebar.Visibility = 
                 (Properties.Settings.Default.RightSidebarVisible) ? Visibility.Visible : Visibility.Collapsed);
             // Enables the left click delay
-            DisableActions(null, null);
-            actionDelayTimer.Elapsed += EnableActions;
-            Activated += EnableActionsWithDelay;
-            Deactivated += DisableActions;
+            //DisableActions(null, null);
+            //actionDelayTimer.Elapsed += EnableActions;
+            //Activated += EnableActionsWithDelay;
+            //Deactivated += DisableActions;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -139,9 +139,13 @@ namespace Comics
             Dispatcher.Invoke(() => Footer.Content = footer);
         }
 
-        public void NotifyLoading()
+        // Detects the display scaling and stores it in settings
+        public void UpdateDisplayScale()
         {
-            Footer.Content = "Loading...";
+            PresentationSource presentationSource = PresentationSource.FromVisual(this);
+            double scale = presentationSource.CompositionTarget.TransformToDevice.M11;
+            Properties.Settings.Default.DisplayScale = scale;
+            Properties.Settings.Default.Save();
         }
 
         // With the actual filtering done asynchronously, the filter imposed on the views are then quite simple.
@@ -175,20 +179,20 @@ namespace Comics
         // by default.
         private void DisableActions(object sender, EventArgs e)
         {
-            PreviewMouseLeftButtonDown += MouseEventHandled;
-            PreviewMouseLeftButtonUp += MouseEventHandled;
+            //PreviewMouseLeftButtonDown += MouseEventHandled;
+            //PreviewMouseLeftButtonUp += MouseEventHandled;
         }
 
         private void EnableActionsWithDelay(object sender, EventArgs e)
         {
-            actionDelayTimer.Start();
+            //actionDelayTimer.Start();
         }
 
         private void EnableActions(object sender, EventArgs e)
         {
-            PreviewMouseLeftButtonDown -= MouseEventHandled;
-            PreviewMouseLeftButtonUp -= MouseEventHandled;
-            actionDelayTimer.Stop();
+            //PreviewMouseLeftButtonDown -= MouseEventHandled;
+            //PreviewMouseLeftButtonUp -= MouseEventHandled;
+            //actionDelayTimer.Stop();
         }
 
         // Happens when the "toggle right sidebar" footer button is pressed
@@ -275,8 +279,8 @@ namespace Comics
         {
             // Delete existing ones first, but warn the user that it'll take a long time
             // Currently does basically nothing (unless you accidentally deleted something)
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be deleted and regenerated. This may take a long times.", "Warning", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Cancel)
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be deleted and regenerated. This may take a long times.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.Yes)
                 return;
 
             foreach (Comic comic in App.ViewModel.VisibleComics)

@@ -86,13 +86,16 @@
             <MenuItem Header="Dislike" Click="ContextMenu_Dislike" />
             <Separator />
             <MenuItem Header="Show in Explorer" Click="ContextMenu_ShowInExplorer" />
+            <!-- This option should ideally be in "Edit Info" -->
             <MenuItem Header="Redefine Thumbnail" Click="ContextMenu_RedefineThumbnail" />
+            <Separator />
+            <MenuItem Header="Delete Local Files" IsEnabled="False" />
         </ContextMenu>
         <ContextMenu x:Key="SettingsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
-            <MenuItem Header="Quick Toggles" IsEnabled="False">
+                <!--<MenuItem Header="Quick Toggles" IsEnabled="False">
                 <MenuItem />
-            </MenuItem>
+                </MenuItem>-->
             <Separator />
             <MenuItem Header="Reload Comics" Click="ContextMenu_ReloadComics" />
             <MenuItem Header="Reload Thumbnails" Click="ContextMenu_ReloadThumbnails" />

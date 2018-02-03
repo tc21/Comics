@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -29,11 +30,15 @@ namespace UI
                 image.UriSource = new Uri(value.ToString());
                 image.EndInit();
                 return image;
-            } catch (FileNotFoundException) {
+            }
+            catch (FileNotFoundException)
+            {
                 return null;
             }
-
-
+            catch (NotSupportedException)
+            {
+                return null;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

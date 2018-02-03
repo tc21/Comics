@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -64,35 +65,11 @@ namespace Comics
         static Defaults()
         {
             if (!LoadProfile(Properties.Settings.Default.CurrentProfile))
-            {
-                string automaticallyGeneratedProfileName = "New Profile (Automatically Generated)";
-                Profile = new UserDefaults()
-                {
-                    ProfileName = automaticallyGeneratedProfileName,
-                    ImageHeight = defaultImageHeight,
-                    ImageWidth = defaultWidth,
-                    TitleFontSize = defaultTitleFontSize,
-                    SubtitleFontSize = defaultSubtitleFontSize,
-                    ApplicationFontFamily = defaultFontFamily,
-                    TileMargin = defaultMargin,
-                    ReactionTime = defaultReactionTime,
-                    RootPaths = new List<CategorizedPath>()
-                    {
-                        new CategorizedPath() {Category="Pictures", Path=Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)}
-                    },
-                    Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
-                    IgnoredPrefixes = new List<string>() { "~", "(" },
-                    WorkTraversalDepth = defaultWorkTraversalDepth,
-                    TreatSubdirectoriesAsSeparateWorks = true
-                };
-                Properties.Settings.Default.CurrentProfile = automaticallyGeneratedProfileName;
-                Properties.Settings.Default.Save();
-                SaveProfile();
-            }
+                CreateNewProfile(null);
         }
 
         public static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
-
+        private const string defaultProfileName = "New Profile (Automatically Generated)";
         private const int defaultImageHeight = 254;
         private const int defaultTitleFontSize = 12;
         private const int defaultSubtitleFontSize = 10;
@@ -158,15 +135,9 @@ namespace Comics
         }
 
         // Only one thumbnail is generated, which needs to account for display scaling
-        public static int ThumbnailWidthForVisual(Visual visual)
+        public static int ThumbnailWidthForVisual()
         {
-            double scale = 1;
-            if (visual != null)
-                scale *= PresentationSource.FromVisual(visual).CompositionTarget.TransformToDevice.M11;
-            // This else clause ideally shouldn't need to be here, but since we can't set the scale manually,
-            // and I use a hidpi display...
-            else
-                scale *= 2;
+            double scale = Properties.Settings.Default.DisplayScale;
             return (int)Math.Ceiling(scale * MaximumDynamicWidth);
         }
         
@@ -308,6 +279,114 @@ namespace Comics
             if (Directory.Exists(directory))
                 return Path.GetFullPath(directory);
             return null;
+        }
+
+        public static bool NameIsValidNameForNewProfile(string name)
+        {
+            string path = Path.Combine(UserProfileFolder, name + ".xmlprofile");
+            return !File.Exists(path);
+        }
+
+        public static string GenerateValidNameForNewProfile(string suggestedName)
+        {
+            if (NameIsValidNameForNewProfile(suggestedName))
+                return suggestedName;
+            for (int i = 1; i <= 65536; i++)
+            {
+                string name = suggestedName + " (" + i.ToString() + ")";
+                if (NameIsValidNameForNewProfile(name))
+                    return name;
+            }
+            throw new Exception("Could not generate new name for a profile: all names in use");
+        }
+
+        public static void RenameCurrentProfile(string newname)
+        {
+            if (Profile.ProfileName == newname)
+                return;
+
+            string previousName = Profile.ProfileName;
+            Profile.ProfileName = newname;
+            SaveProfile();
+            if (File.Exists(Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmlprofile")))
+                File.Delete(Path.Combine(UserProfileFolder, previousName + ".xmlprofile"));
+
+            Properties.Settings.Default.CurrentProfile = newname;
+        }
+
+        public static bool IsValidFileName(string name)
+        {
+            Debug.Print("> IsValidFileName");
+            foreach (char invalid in Path.GetInvalidFileNameChars())
+            {
+                if (name.Contains(invalid))
+                    return false;
+            }
+            Debug.Print("< IsValidFileName");
+            return true;
+        }
+
+        public static void DeleteCurrentProfile()
+        {
+            File.Delete(Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmlprofile"));
+        }
+
+        public static void CreateNewProfile(string name)
+        {
+            // Used internally for generating a temp profile
+            if (name == null)
+            {
+                Profile = new UserDefaults()
+                {
+                    ProfileName = defaultProfileName,
+                    ImageHeight = defaultImageHeight,
+                    ImageWidth = defaultWidth,
+                    TitleFontSize = defaultTitleFontSize,
+                    SubtitleFontSize = defaultSubtitleFontSize,
+                    ApplicationFontFamily = defaultFontFamily,
+                    TileMargin = defaultMargin,
+                    ReactionTime = defaultReactionTime,
+                    RootPaths = new List<CategorizedPath>(),
+                    Extensions = new List<string>(),
+                    IgnoredPrefixes = new List<string>(),
+                    WorkTraversalDepth = defaultWorkTraversalDepth,
+                    TreatSubdirectoriesAsSeparateWorks = true
+                };
+                return;
+            }
+
+            // Display scaling thing
+            if (name == defaultProfileName)
+                App.ComicsWindow.UpdateDisplayScale();
+            
+            if (Profile != null)
+            {
+                Profile.ProfileName = name;
+                Properties.Settings.Default.CurrentProfile = name;
+                SaveProfile();
+            }
+            else
+            {
+                Profile = new UserDefaults()
+                {
+                    ProfileName = name,
+                    ImageHeight = defaultImageHeight,
+                    ImageWidth = defaultWidth,
+                    TitleFontSize = defaultTitleFontSize,
+                    SubtitleFontSize = defaultSubtitleFontSize,
+                    ApplicationFontFamily = defaultFontFamily,
+                    TileMargin = defaultMargin,
+                    ReactionTime = defaultReactionTime,
+                    RootPaths = new List<CategorizedPath>()
+                    {
+                        new CategorizedPath() {Category="Pictures", Path=Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)}
+                    },
+                    Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
+                    IgnoredPrefixes = new List<string>() { "~", "(" },
+                    WorkTraversalDepth = defaultWorkTraversalDepth,
+                    TreatSubdirectoriesAsSeparateWorks = true
+                };
+            }
         }
     }
 }

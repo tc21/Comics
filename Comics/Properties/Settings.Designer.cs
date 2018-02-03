@@ -130,5 +130,17 @@ namespace Comics.Properties {
                 this["MainWindowWidth"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public double DisplayScale {
+            get {
+                return ((double)(this["DisplayScale"]));
+            }
+            set {
+                this["DisplayScale"] = value;
+            }
+        }
     }
 }

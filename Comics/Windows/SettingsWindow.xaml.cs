@@ -27,6 +27,7 @@ namespace Comics
         // The UI will automatically update.
         // The list of profiles to switch between
         public const string ProfilesPropertyName = "Profiles";
+        public const string NewProfileName = "New Profile...";
         private ObservableCollection<string> profiles = new ObservableCollection<string>();
         public ObservableCollection<string> Profiles
         {
@@ -139,7 +140,7 @@ namespace Comics
             Defaults.Profile.IgnoredPrefixes = IgnoredPrefixes.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
             Defaults.Profile.RootPaths = Categories.Where(o => !String.IsNullOrEmpty(o.Category) && !String.IsNullOrEmpty(o.Path)).ToList();
             Defaults.SaveProfile();
-            App.ViewModel.UpdateUIAfterProfileChanged();
+            App.ViewModel.UpdateComicsAfterProfileChanged();
         }
         
         private void Button_Cancel(object sender, RoutedEventArgs e)
@@ -209,6 +210,85 @@ namespace Comics
         private void SettingsWindow_Closing(object sender, CancelEventArgs e)
         {
             App.SettingsWindow = null;
+        }
+
+        private void ProfileOptionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ProfileOptionsButton.ContextMenu.IsOpen)
+            {
+                e.Handled = true;
+
+                var mouseRightClickEvent = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right)
+                {
+                    RoutedEvent = Mouse.MouseUpEvent,
+                    Source = sender,
+                };
+                InputManager.Current.ProcessInput(mouseRightClickEvent);
+            }
+        }
+
+        private void ProfileMenu_Rename(object sender, RoutedEventArgs e)
+        {
+            ProfileNameEditor.Text = ProfileSelector.SelectedItem.ToString();
+            ProfileNameEditor.Visibility = Visibility.Visible;
+            Keyboard.Focus(ProfileNameEditor);
+            ProfileNameEditor.ScrollToEnd();
+            ProfileNameEditor.SelectAll();
+        }
+
+        private void ProfileMenu_Delete(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete this profile? This action cannot be undone.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.No)
+                return;
+            Defaults.DeleteCurrentProfile();
+
+            int index = ProfileSelector.SelectedIndex;
+            index += (index == 0) ? 1 : -1;
+
+            App.ViewModel.ReloadProfiles();
+            PopulateProfileSettings();
+
+            if (index < Profiles.Count)
+            {
+                App.ViewModel.SelectedProfile = index;
+                ProfileSelector.SelectedIndex = index;
+            }
+        }
+
+        private void ProfileMenu_New(object sender, RoutedEventArgs e)
+        {
+            string newname = Defaults.GenerateValidNameForNewProfile(Defaults.Profile.ProfileName);
+
+            Defaults.CreateNewProfile(newname);
+            App.ViewModel.ReloadProfiles();
+            PopulateProfileSettings();
+
+            int newindex = Profiles.IndexOf(newname);
+            App.ViewModel.SelectedProfile = newindex;
+            ProfileSelector.SelectedIndex = newindex;
+
+        }
+
+        private void ProfileNameEditor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ProfileNameEditor.Visibility = Visibility.Hidden;
+                string newname = ProfileNameEditor.Text.Trim();
+
+                if (String.IsNullOrEmpty(newname) || !Defaults.IsValidFileName(ProfileNameEditor.Text))
+                    return;
+
+                Defaults.RenameCurrentProfile(newname);
+
+                App.ViewModel.ReloadProfiles();
+                PopulateProfileSettings();
+
+                int newindex = Profiles.IndexOf(newname);
+                App.ViewModel.SelectedProfile = newindex;
+                ProfileSelector.SelectedIndex = newindex;
+            }
         }
     }
 }
