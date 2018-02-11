@@ -128,8 +128,5 @@
   <ItemGroup>
     <Resource Include="UI\VirtualizingWrapPanel\License.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Resource Include="LICENSE.txt" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -35,7 +35,8 @@ namespace Comics
             // Used for automatic naming naming, etc. Perhaps we'll eventually have better ways of doing it
             public int WorkTraversalDepth { get; set; }
             public bool TreatSubdirectoriesAsSeparateWorks { get; set; }
-            public string ExecutionString { get; set; }
+            public string DefaultApplication { get; set; }
+            public string ExecutionArguments { get; set; }
 
             // Margin applied to the right hand side of the collection area to prevent the user 
             // resizing faster than the application can resize tiles, which can cause the application to

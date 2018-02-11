@@ -113,6 +113,8 @@ namespace Comics
             Extensions = StringCollection(Defaults.Profile.Extensions);
             Categories = new ObservableCollection<Defaults.CategorizedPath>(Defaults.Profile.RootPaths);
             IgnoredPrefixes = StringCollection(Defaults.Profile.IgnoredPrefixes);
+            OpenApplicationTextBox.Text = Defaults.Profile.DefaultApplication;
+            OpenArgumentsTextBox.Text = Defaults.Profile.ExecutionArguments;
         }
 
         // Creates an observable collection of "String Objects" from a collectoin of strings
@@ -139,6 +141,14 @@ namespace Comics
             Defaults.Profile.Extensions = Extensions.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
             Defaults.Profile.IgnoredPrefixes = IgnoredPrefixes.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
             Defaults.Profile.RootPaths = Categories.Where(o => !String.IsNullOrEmpty(o.Category) && !String.IsNullOrEmpty(o.Path)).ToList();
+            if (File.Exists(OpenApplicationTextBox.Text))
+                Defaults.Profile.DefaultApplication = OpenApplicationTextBox.Text;
+            try
+            {
+                Comic.TestExecutionString(OpenArgumentsTextBox.Text);
+                Defaults.Profile.ExecutionArguments = OpenArgumentsTextBox.Text;
+            }
+            catch (Exception) { }
             Defaults.SaveProfile();
             App.ViewModel.UpdateComicsAfterProfileChanged();
         }
@@ -289,6 +299,30 @@ namespace Comics
                 App.ViewModel.SelectedProfile = newindex;
                 ProfileSelector.SelectedIndex = newindex;
             }
+        }
+
+        private void OpenArgumentsTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                string arguments = Comic.TestExecutionString(OpenArgumentsTextBox.Text);
+                CommandExampleLabel.Text = "\"" + OpenApplicationTextBox.Text + "\" " + arguments;
+            }
+            catch (Exception ex)
+            {
+                CommandExampleLabel.Text = "Error: " + ex.Message;
+                return;
+            }
+            ProfileChanged = true;
+        }
+
+        private void OpenApplicationTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string application = OpenApplicationTextBox.Text;
+            if (File.Exists(OpenApplicationTextBox.Text))
+                OpenArgumentsTextBox_TextChanged(sender, e);
+            else
+                CommandExampleLabel.Text = "Error: File not found";
         }
     }
 }

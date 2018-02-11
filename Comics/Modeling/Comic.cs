@@ -124,15 +124,20 @@ namespace Comics
         // Maybe I will eventually code a viewer into this program, but I already have an image viewer.
         public void Open()
         {
-            if (String.IsNullOrEmpty(Defaults.Profile.ExecutionString))
-                Process.Start(filePaths.First());
+            if (File.Exists(Defaults.Profile.DefaultApplication))
+                Process.Start(Defaults.Profile.DefaultApplication, ExecutionString.CreateExecutionString(Defaults.Profile.ExecutionArguments, this));
             else
-                Process.Start(ExecutionString.CreateExecutionString(Defaults.Profile.ExecutionString, this));
+                Process.Start(filePaths.First());
         }
 
         public void OpenContainingFolder()
         {
             Process.Start(path);
+        }
+
+        public static string TestExecutionString(string format)
+        {
+            return ExecutionString.CreateTestExecutionString(format);
         }
 
         static class ExecutionString
@@ -149,13 +154,18 @@ namespace Comics
             private const string TitleKey = "title";
             private const string AuthorKey = "author";
             private const string CategoryKey = "category";
-            
+
             public static string CreateExecutionString(string format, Comic comic)
             {
                 if (String.IsNullOrEmpty(format))
-                    return comic.FilePaths.First();
+                    return Quote(comic?.FilePaths.First() ?? "C:\\comic\\first.png");
                 string parsed = Regex.Replace(format, "\\\\(.)", m => UnescapeToken(m.Groups[1].Value));
-                return Regex.Replace(format, "{(\\w*)(:)?(.*)?}", m => ProcessToken(comic, m.Groups[1].Value, m.Groups[2].Success, m.Groups[3].Value));
+                return Regex.Replace(parsed, "{([^:}]*)(:)?([^}]*)?}", m => ProcessToken(comic, m.Groups[1].Value, m.Groups[2].Success, m.Groups[3].Value));
+            }
+
+            public static string CreateTestExecutionString(string format)
+            {
+                return CreateExecutionString(format, null);
             }
 
             private static string UnescapeToken(string token)
@@ -167,39 +177,58 @@ namespace Comics
                     case "}":
                         return token;
                     default:
-                        throw new Exception("Invalid escape sequence: \\" + token);
+                        throw new TokenFormatException("Invalid escape sequence: \\" + token);
                 }
             }
 
+            private static List<string> testfiles = new List<string>
+            {
+                "C:\\comic\\first.png",
+                "C:\\comic\\second.png",
+                "C:\\comic\\last.png"
+            };
+
+            public class TokenFormatException : Exception {
+                public TokenFormatException(string message) : base(message) { }
+            }
+
+            // pass in a null comic for a test result
             private static string ProcessToken(Comic comic, string key, bool argsGiven, string args)
             {
+                List<string> files = comic?.FilePaths ?? testfiles;
+
                 switch (key)
                 {
                     case FirstFileKey:
-                        return comic.FilePaths.First();
+                        return Quote(files.First());
                     case AllFilesKey:
                         {
                             string separator = argsGiven ? args : " ";
-                            return String.Join(separator, comic.FilePaths);
+                            return String.Join(separator, files.Select(p => Quote(p)));
                         }
                     case ContainingFolderKey:
-                        return comic.ContainingPath;
+                        return Quote(comic?.ContainingPath ?? "C:\\comic");
                     case FirstFilenameKey:
-                        return Path.GetFileName(comic.FilePaths.First());
+                        return Quote(Path.GetFileName(files.First()));
                     case AllFilenamesKey:
                         {
                             string separator = argsGiven ? args : " ";
-                            return String.Join(separator, comic.FilePaths.Select(p => Path.GetFileName(p)));
+                            return String.Join(separator, files.Select(p => Quote(Path.GetFileName(p))));
                         }
                     case TitleKey:
-                        return comic.Title.Display;
+                        return Quote(comic?.Title.Display ?? "TITLE");
                     case AuthorKey:
-                        return comic.Author.Display;
+                        return Quote(comic?.Author.Display ?? "AUTHOR");
                     case CategoryKey:
-                        return comic.Category.Display;
+                        return Quote(comic?.Category.Display ?? "CATEGORY");
                     default:
-                        throw new Exception("Invalid key: " + key);
+                        throw new TokenFormatException("Invalid key: " + key);
                 }
+            }
+
+            private static string Quote(string s)
+            {
+                return "\"" + s + "\"";
             }
         }
 

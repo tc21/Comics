@@ -214,6 +214,8 @@ namespace Comics
             Debug.Print("> lc");
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths)
             {
+                if (!Directory.Exists(categorizedPath.Path))
+                    continue;
                 DirectoryInfo rootDirectory = new DirectoryInfo(categorizedPath.Path);
                 DirectoryInfo[] authorDirectories = rootDirectory.GetDirectories();
 
