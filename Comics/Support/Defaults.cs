@@ -32,7 +32,7 @@ namespace Comics {
             // Used for automatic naming naming, etc. Perhaps we'll eventually have better ways of doing it
             public int WorkTraversalDepth { get; set; }
             public bool TreatSubdirectoriesAsSeparateWorks { get; set; }
-            public string DefaultApplication { get; set; }
+            public StartupApplication DefaultApplication { get; set; }
             public string ExecutionArguments { get; set; }
 
             // Margin applied to the right hand side of the collection area to prevent the user 
@@ -51,6 +51,54 @@ namespace Comics {
         public class CategorizedPath {
             public string Category { get; set; }
             public string Path { get; set; }
+        }
+
+        public class StartupApplication {
+            public enum Type {
+                Viewer, Custom
+            }
+
+            public const string ViewerIndicator = "{Viewer}";
+
+            private Type type;
+            private string path;
+
+            private StartupApplication(Type type, string path) {
+                this.type = type;
+                this.path = path;
+            }
+
+            private StartupApplication() : this(Type.Viewer, null) { }
+
+            public string Name => this.type == Type.Viewer ? ViewerIndicator : this.path;
+
+            public void StartWithArguments(IEnumerable<string> arguments) {
+                if (this.type == Type.Viewer) {
+                    var viewer = new Viewer.MainWindow(arguments.ToArray());
+                    viewer.Show();
+                } else {
+                    Process.Start(this.path, String.Join(" ", arguments));
+                }
+            }
+
+            public static StartupApplication Viewer() {
+                return new StartupApplication(Type.Viewer, null);
+            }
+
+            public static StartupApplication Custom(string path) {
+                if (!File.Exists(path)) {
+                    throw new FileNotFoundException("Not a valid file", path);
+                }
+                return new StartupApplication(Type.Custom, path);
+            }
+
+            public static StartupApplication Interpolate(string name) {
+                if (name == ViewerIndicator) {
+                    return Viewer();
+                } else {
+                    return Custom(name);
+                }
+            }
         }
 
         // Initialized a "default" defaults which is probably quickly replaced

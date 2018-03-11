@@ -68,6 +68,7 @@
     <Compile Include="Modeling\Comic.cs" />
     <Compile Include="Support\Defaults.cs" />
     <Compile Include="Modeling\MainViewModel.cs" />
+    <Compile Include="Support\Interop.cs" />
     <Compile Include="Support\Settings.cs" />
     <Compile Include="Support\Thumbnails.cs" />
     <Compile Include="UI\RemainingWidthConverter.cs" />
@@ -127,6 +128,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UI\VirtualizingWrapPanel\License.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Viewer\Viewer\Viewer.csproj">
+      <Project>{d4c1dce1-e4f6-45bb-a2ab-84b7c8de064b}</Project>
+      <Name>Viewer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

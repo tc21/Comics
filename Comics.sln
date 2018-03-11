@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Comics", "Comics\Comics.csproj", "{8A1DF869-32D9-4F6D-9375-F3901E7118E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Viewer", "..\Viewer\Viewer\Viewer.csproj", "{D4C1DCE1-E4F6-45BB-A2AB-84B7C8DE064B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8A1DF869-32D9-4F6D-9375-F3901E7118E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A1DF869-32D9-4F6D-9375-F3901E7118E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A1DF869-32D9-4F6D-9375-F3901E7118E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4C1DCE1-E4F6-45BB-A2AB-84B7C8DE064B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4C1DCE1-E4F6-45BB-A2AB-84B7C8DE064B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4C1DCE1-E4F6-45BB-A2AB-84B7C8DE064B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4C1DCE1-E4F6-45BB-A2AB-84B7C8DE064B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

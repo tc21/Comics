@@ -109,7 +109,7 @@ namespace Comics {
             this.Extensions = StringCollection(Defaults.Profile.Extensions);
             this.Categories = new ObservableCollection<Defaults.CategorizedPath>(Defaults.Profile.RootPaths);
             this.IgnoredPrefixes = StringCollection(Defaults.Profile.IgnoredPrefixes);
-            this.OpenApplicationTextBox.Text = Defaults.Profile.DefaultApplication;
+            this.OpenApplicationTextBox.Text = Defaults.Profile.DefaultApplication.Name;
             this.OpenArgumentsTextBox.Text = Defaults.Profile.ExecutionArguments;
         }
 
@@ -139,11 +139,9 @@ namespace Comics {
 
             Defaults.Profile.IgnoredPrefixes = this.IgnoredPrefixes.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
             Defaults.Profile.RootPaths = this.Categories.Where(o => !String.IsNullOrEmpty(o.Category) && !String.IsNullOrEmpty(o.Path)).ToList();
-            if (File.Exists(this.OpenApplicationTextBox.Text)) {
-                Defaults.Profile.DefaultApplication = this.OpenApplicationTextBox.Text;
-            }
 
             try {
+                Defaults.Profile.DefaultApplication = Defaults.StartupApplication.Interpolate(this.OpenApplicationTextBox.Text);
                 Comic.TestExecutionString(this.OpenArgumentsTextBox.Text);
                 Defaults.Profile.ExecutionArguments = this.OpenArgumentsTextBox.Text;
             } catch (Exception) { }

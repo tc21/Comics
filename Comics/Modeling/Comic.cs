@@ -75,11 +75,16 @@ namespace Comics {
         public void CreateThumbnail() {
             int width = Defaults.ThumbnailWidthForVisual();
             if (File.Exists(this.ImagePath) &&
-                Thumbnails.CreateThumbnailFromImage(this.ImagePath, width, this.ThumbnailPath)) { } else if (Thumbnails.CanCreateThumbnailFromAudio(this.ImagePath) &&
-                                                                                                        Thumbnails.CreateThumbnailFromAudio(this.ImagePath, width, this.ThumbnailPath)) { } else if (Thumbnails.CanCreateThumbnailFromVideo(this.ImagePath) &&
-                                                                                                                                                                                                Thumbnails.CreateThumbnailFromVideo(this.ImagePath, width, this.ThumbnailPath)) { } else if (Thumbnails.CanCreateThumbnailFromAudio(this.FilePaths.First()) &&
-                                                                                                                                                                                                                                                                                        Thumbnails.CreateThumbnailFromAudio(this.FilePaths.First(), width, this.ThumbnailPath)) { } else if (Thumbnails.CanCreateThumbnailFromVideo(this.FilePaths.First()) &&
-                                                                                                                                                                                                                                                                                                                                                                                        Thumbnails.CreateThumbnailFromVideo(this.FilePaths.First(), width, this.ThumbnailPath)) { } else {
+                Thumbnails.CreateThumbnailFromImage(this.ImagePath, width, this.ThumbnailPath)) {
+            } else if (Thumbnails.CanCreateThumbnailFromAudio(this.ImagePath) &&
+                       Thumbnails.CreateThumbnailFromAudio(this.ImagePath, width, this.ThumbnailPath)) {
+            } else if (Thumbnails.CanCreateThumbnailFromVideo(this.ImagePath) &&
+                       Thumbnails.CreateThumbnailFromVideo(this.ImagePath, width, this.ThumbnailPath)) {
+            } else if (Thumbnails.CanCreateThumbnailFromAudio(this.FilePaths.First()) &&
+                       Thumbnails.CreateThumbnailFromAudio(this.FilePaths.First(), width, this.ThumbnailPath)) {
+            } else if (Thumbnails.CanCreateThumbnailFromVideo(this.FilePaths.First()) &&
+                       Thumbnails.CreateThumbnailFromVideo(this.FilePaths.First(), width, this.ThumbnailPath)) {
+            } else {
                 return;
             }
 
@@ -114,8 +119,9 @@ namespace Comics {
 
         // Maybe I will eventually code a viewer into this program, but I already have an image viewer.
         public void Open() {
-            if (File.Exists(Defaults.Profile.DefaultApplication)) {
-                Process.Start(Defaults.Profile.DefaultApplication, ExecutionString.CreateExecutionString(Defaults.Profile.ExecutionArguments, this));
+            // Temporary handle for viewer
+            if (Defaults.Profile.DefaultApplication != null) {
+                Defaults.Profile.DefaultApplication.StartWithArguments(ExecutionString.CreateExecutionArguments(Defaults.Profile.ExecutionArguments, this));
             } else {
                 Process.Start(this.filePaths.First());
             }
@@ -126,7 +132,7 @@ namespace Comics {
         }
 
         public static string TestExecutionString(string format) {
-            return ExecutionString.CreateTestExecutionString(format);
+            return String.Join(" ", ExecutionString.CreateTestExecutionString(format));
         }
 
         static class ExecutionString {
@@ -143,24 +149,67 @@ namespace Comics {
             private const string AuthorKey = "author";
             private const string CategoryKey = "category";
 
-            public static string CreateExecutionString(string format, Comic comic) {
+            public static IEnumerable<string> CreateExecutionArguments(string format, Comic comic) {
+
                 if (String.IsNullOrEmpty(format)) {
-                    return Quote(comic?.FilePaths.First() ?? "C:\\comic\\first.png");
+                    return new List<string> { comic?.FilePaths.First() ?? "C:\\comic\\first.png" };
                 }
 
-                string parsed = Regex.Replace(format, "\\\\(.)", m => UnescapeToken(m.Groups[1].Value));
-                return Regex.Replace(parsed, "{([^:}]*)(:)?([^}]*)?}", m => ProcessToken(comic, m.Groups[1].Value, m.Groups[2].Success, m.Groups[3].Value));
+                return Tokenize(format, comic);
+            }
+            
+            private static IEnumerable<string> Tokenize(string format, Comic comic) {
+                // Custom parsing
+                var token = new List<char>();
+                foreach (var c in format) {
+                    if (token.Count == 0) {
+                        if (!Char.IsWhiteSpace(c)) {
+                            token.Add(c);
+                        }
+                    } else {
+                        if (token[token.Count - 1] == '\\') {
+                            token[token.Count - 1] = Unescape(c);
+                        } else if (token[0] == '{') {
+                            if (c == '{') {
+                                throw new TokenFormatException("Nested token (nested '{')");
+                            } else if (c == '}') {
+                                token.Add(c);
+                                var match = Regex.Match(new String(token.ToArray()), "{([^:}]*)(:)?([^}]*)?}");
+                                foreach (var str in ProcessToken(comic, match.Groups[1].Value, match.Groups[2].Success, match.Groups[3].Value)) {
+                                    yield return str;
+                                }
+                                token.Clear();
+                            } else {
+                                token.Add(c);
+                            }
+                        } else {
+                            if (Char.IsWhiteSpace(c)) {
+                                yield return new String(token.ToArray());
+                                token.Clear();
+                            } else {
+                                token.Add(c);
+                            }
+                        }
+                    }
+                }
+                if (token.Count > 0) {
+                    if (token[0] == '{') {
+                        throw new TokenFormatException("Unfinished token (unmatched '{')");
+                    }
+                    yield return new string(token.ToArray());
+                }
             }
 
-            public static string CreateTestExecutionString(string format) {
-                return CreateExecutionString(format, null);
+            public static IEnumerable<string> CreateTestExecutionString(string format) {
+                return CreateExecutionArguments(format, null);
             }
 
-            private static string UnescapeToken(string token) {
+            private static char Unescape(char token) {
                 switch (token) {
-                    case "\\":
-                    case "{":
-                    case "}":
+                    case '\\':
+                    case '{':
+                    case '}':
+                    case ' ':
                         return token;
                     default:
                         throw new TokenFormatException("Invalid escape sequence: \\" + token);
@@ -179,38 +228,59 @@ namespace Comics {
             }
 
             // pass in a null comic for a test result
-            private static string ProcessToken(Comic comic, string key, bool argsGiven, string args) {
+            private static IEnumerable<string> ProcessToken(Comic comic, string key, bool argsGiven, string args) {
                 List<string> files = comic?.FilePaths ?? testfiles;
 
                 switch (key) {
                     case FirstFileKey:
-                        return Quote(files.First());
+                        yield return files.First();
+                        yield break;
                     case AllFilesKey: {
-                            string separator = argsGiven ? args : " ";
-                            return String.Join(separator, files.Select(p => Quote(p)));
+                            if (!argsGiven || String.IsNullOrEmpty(args)) {
+                                foreach (var f in files) {
+                                    yield return f;
+                                }
+                                yield break;
+                            } else {
+                                yield return String.Join(args, files);
+                                yield break;
+                            }
                         }
                     case ContainingFolderKey:
-                        return Quote(comic?.ContainingPath ?? "C:\\comic");
+                        yield return comic?.ContainingPath ?? "C:\\comic";
+                        yield break;
                     case FirstFilenameKey:
-                        return Quote(Path.GetFileName(files.First()));
+                        yield return Path.GetFileName(files.First());
+                        yield break;
                     case AllFilenamesKey: {
-                            string separator = argsGiven ? args : " ";
-                            return String.Join(separator, files.Select(p => Quote(Path.GetFileName(p))));
+                            var filenames = files.Select(p => Path.GetFileName(p));
+                            if (!argsGiven || String.IsNullOrEmpty(args)) {
+                                foreach (var fn in filenames) {
+                                    yield return fn;
+                                }
+                                yield break;
+                            } else {
+                                yield return String.Join(args, filenames);
+                                yield break;
+                            }
                         }
                     case TitleKey:
-                        return Quote(comic?.Title.Display ?? "TITLE");
+                        yield return comic?.Title.Display ?? "TITLE";
+                        yield break;
                     case AuthorKey:
-                        return Quote(comic?.Author.Display ?? "AUTHOR");
+                        yield return comic?.Author.Display ?? "AUTHOR";
+                        yield break;
                     case CategoryKey:
-                        return Quote(comic?.Category.Display ?? "CATEGORY");
+                        yield return comic?.Category.Display ?? "CATEGORY";
+                        yield break;
                     default:
                         throw new TokenFormatException("Invalid key: " + key);
                 }
             }
 
-            private static string Quote(string s) {
-                return "\"" + s + "\"";
-            }
+            //private static string Quote(string s) {
+            //    return "\"" + s + "\"";
+            //}
         }
 
 
