@@ -121,7 +121,7 @@ namespace Comics {
         public void Open() {
             // Temporary handle for viewer
             if (Defaults.Profile.DefaultApplication != null) {
-                Defaults.Profile.DefaultApplication.StartWithArguments(ExecutionString.CreateExecutionArguments(Defaults.Profile.ExecutionArguments, this));
+                Defaults.Profile.DefaultApplication.StartComic(this);
             } else {
                 Process.Start(this.filePaths.First());
             }
@@ -135,7 +135,7 @@ namespace Comics {
             return String.Join(" ", ExecutionString.CreateTestExecutionString(format));
         }
 
-        static class ExecutionString {
+        public static class ExecutionString {
             // A special syntax for "opening" an item. The syntax defines 3 "special" characters:
             // { : used to start an expression; } : used to end an expression; \ : used to escape a special character
             // An expression uses the syntax {key:args}, where key and args are alphanumeric. 

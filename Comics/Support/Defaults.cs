@@ -72,9 +72,52 @@ namespace Comics {
 
             public string Name => this.type == Type.Viewer ? ViewerIndicator : this.path;
 
-            public void StartWithArguments(IEnumerable<string> arguments) {
+            public void StartComic(Comic comic) {
+                var arguments = Comic.ExecutionString.CreateExecutionArguments(Profile.ExecutionArguments, comic);
                 if (this.type == Type.Viewer) {
-                    var viewer = new Viewer.MainWindow(arguments.ToArray());
+
+                    var viewer = new Viewer.MainWindow(arguments.ToArray()) {
+                        Top = Properties.Settings.Default.ViewerTop,
+                        Left = Properties.Settings.Default.ViewerLeft,
+                        Height = Properties.Settings.Default.ViewerHeight,
+                        Width = Properties.Settings.Default.ViewerWidth
+                    };
+
+                    // This should be moved somewhere else, but I don't know where. (probably MainWindow, I'm thinking.)
+                    var contextMenu = viewer.ContextMenu;
+                    if (contextMenu is null) {
+                        // Note: As you can see, more primitive operations like delete, show in explorer, etc.
+                        // should be implemented by the viewer itself, and not us.
+                        contextMenu = new System.Windows.Controls.ContextMenu();
+                    } else {
+                        contextMenu.Items.Add(new System.Windows.Controls.Separator());
+                    }
+                    var loveItem = new System.Windows.Controls.MenuItem { Header = "Love" };
+                    loveItem.Click += ((o, e) => comic.Loved = !comic.Loved);
+                    var dislikeItem = new System.Windows.Controls.MenuItem() { Header = "Dislike" };
+                    dislikeItem.Click += ((o, e) => comic.Disliked = !comic.Disliked);
+                    var thumbnailItem = new System.Windows.Controls.MenuItem() { Header = "Set Thumbnail as Current Image" };
+                    thumbnailItem.Click += ((o, e) => {
+                        // This also needs to be more generic
+                        comic.Metadata.ThumbnailSource = viewer.CurrentImage;
+                        comic.SaveMetadata();
+
+                        File.Delete(comic.ThumbnailPath);
+                        comic.CreateThumbnail();
+                        App.ComicsWindow.RefreshComics();
+                    });
+                    contextMenu.Items.Add(loveItem);
+                    contextMenu.Items.Add(dislikeItem);
+                    contextMenu.Items.Add(thumbnailItem);
+                    viewer.ContextMenu = contextMenu;
+
+
+                    viewer.Closing += ((sender, e) => {
+                        Properties.Settings.Default.ViewerTop = viewer.Top;
+                        Properties.Settings.Default.ViewerLeft = viewer.Left;
+                        Properties.Settings.Default.ViewerHeight = viewer.ActualHeight;
+                        Properties.Settings.Default.ViewerWidth = viewer.ActualWidth;
+                    });
                     viewer.Show();
                 } else {
                     Process.Start(this.path, String.Join(" ", arguments));
@@ -412,6 +455,7 @@ namespace Comics {
                     Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
                     IgnoredPrefixes = new List<string>() { "~", "(" },
                     WorkTraversalDepth = defaultWorkTraversalDepth,
+                    DefaultApplication = StartupApplication.Viewer(),
                     TreatSubdirectoriesAsSeparateWorks = true
                 };
             }

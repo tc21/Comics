@@ -109,7 +109,7 @@ namespace Comics {
             this.Extensions = StringCollection(Defaults.Profile.Extensions);
             this.Categories = new ObservableCollection<Defaults.CategorizedPath>(Defaults.Profile.RootPaths);
             this.IgnoredPrefixes = StringCollection(Defaults.Profile.IgnoredPrefixes);
-            this.OpenApplicationTextBox.Text = Defaults.Profile.DefaultApplication.Name;
+            this.OpenApplicationTextBox.Text = Defaults.Profile.DefaultApplication?.Name ?? "";
             this.OpenArgumentsTextBox.Text = Defaults.Profile.ExecutionArguments;
         }
 
@@ -300,7 +300,7 @@ namespace Comics {
 
         private void OpenApplicationTextBox_TextChanged(object sender, TextChangedEventArgs e) {
             string application = this.OpenApplicationTextBox.Text;
-            if (File.Exists(this.OpenApplicationTextBox.Text)) {
+            if (application == Defaults.StartupApplication.ViewerIndicator || File.Exists(application)) {
                 OpenArgumentsTextBox_TextChanged(sender, e);
             } else {
                 this.CommandExampleLabel.Text = "Error: File not found";

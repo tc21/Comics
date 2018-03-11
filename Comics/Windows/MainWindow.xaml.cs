@@ -41,6 +41,8 @@ namespace Comics {
             // Sets the windows size to its saved state
             this.Height = Properties.Settings.Default.MainWindowHeight;
             this.Width = Properties.Settings.Default.MainWindowWidth;
+            this.Top = Properties.Settings.Default.MainWindowTop;
+            this.Left = Properties.Settings.Default.MainWindowLeft;
             // Sets the selected sort to its saved state
             this.SortOrderBox.SelectedIndex = Properties.Settings.Default.SelectedSortIndex;
             // Sets the right sidebar visibility to its saved state
@@ -351,6 +353,12 @@ namespace Comics {
         private void ShowDisliked_Unchecked(object sender, RoutedEventArgs e) {
             this.showDisliked = false;
             RefreshAll();
+        }
+
+        protected override void OnClosing(CancelEventArgs e) {
+            Properties.Settings.Default.MainWindowTop = this.Top;
+            Properties.Settings.Default.MainWindowLeft = this.Left;
+            base.OnClosing(e);
         }
     }
 }
