@@ -299,6 +299,27 @@ namespace Comics {
             File.Move(tempPath, path);
         }
 
+        public static void SaveLibrary(IEnumerable<Comic> library) {
+            List<StorageInfo> list = new List<StorageInfo>();
+            foreach (Comic comic in library) {
+                list.Add(comic.CreateInfo());
+            }
+
+            XmlSerializer writer = new XmlSerializer(typeof(List<StorageInfo>));
+            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
+            string tempPath = path + ".tmp";
+
+            using (FileStream tempFile = File.Create(tempPath)) {
+                writer.Serialize(tempFile, list);
+            }
+
+            if (File.Exists(path)) {
+                File.Delete(path);
+            }
+
+            File.Move(tempPath, path);
+        }
+
         public static bool LoadProfile(string name) {
             UserDefaults profile;
             XmlSerializer reader = new XmlSerializer(typeof(UserDefaults));
@@ -316,6 +337,28 @@ namespace Comics {
             Properties.Settings.Default.CurrentProfile = Defaults.Profile.ProfileName;
             Properties.Settings.Default.Save();
             return true;
+        }
+
+        public static IEnumerable<Comic> LoadLibrary() {
+            List<Comic> library = new List<Comic>();
+            List<StorageInfo> list;
+
+            XmlSerializer reader = new XmlSerializer(typeof(List<StorageInfo>));
+            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
+
+            if (!File.Exists(path)) {
+                return null;
+            }
+
+            using (StreamReader file = new StreamReader(path)) {
+                list = (List<StorageInfo>)reader.Deserialize(file);
+            }
+
+            foreach (StorageInfo info in list) {
+                library.Add(new Comic(info));
+            }
+            
+            return library;
         }
 
         public static string FormatExtension(string extension) {

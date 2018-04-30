@@ -18,6 +18,7 @@ namespace Comics {
         // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
         // All loaded comics
         public const string VisibleComicsPropertyName = "VisibleComics";
+        private ObservableCollection<Comic> preloadedVisibleComics = new ObservableCollection<Comic>();
         private ObservableCollection<Comic> visibleComics = new ObservableCollection<Comic>();
         public ObservableCollection<Comic> VisibleComics {
             get => this.visibleComics;
@@ -166,27 +167,74 @@ namespace Comics {
 
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
         public async void UpdateComicsAfterProfileChanged() {
+            Debug.Print("> ucapc");
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
+            await Task.Run(() => PreloadLibrary());
+            ClearPreloadedData();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            StorePreloadedData();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.SettingsWindow?.PopulateProfileSettings();
             App.ComicsWindow?.RefreshAll();
+            Debug.Print("< ucapc");
+        }
+
+        /// async
+        private void PreloadLibrary() {
+            var library = Defaults.LoadLibrary();
+            if (library != null) {
+                var vc = new ObservableCollection<Comic>(library);
+                App.Current.Dispatcher.Invoke(() => {
+                    this.VisibleComics = vc;
+                });
+            }
         }
 
         // Public interface to reload all comics
         public async Task ReloadComics() {
+            Debug.Print("> rc");
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
+            await Task.Run(() => PreloadLibrary());
+            ClearPreloadedData();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            StorePreloadedData();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.ComicsWindow?.RefreshComics();
+            Debug.Print("< rc");
+        }
+
+        private void ClearPreloadedData() {
+            this.preloadedVisibleComics.Clear();
+        }
+
+        private void StorePreloadedData() {
+            this.VisibleComics = this.preloadedVisibleComics;
+
+            var va = new ObservableCollection<SortedString>();
+            var vc = new ObservableCollection<SortedString>();
+
+            this.VisibleAuthors.Clear();
+            this.VisibleCategories.Clear();
+            foreach (Comic comic in this.VisibleComics) {
+                if (!va.Contains(comic.Author)) {
+                    va.Add(comic.Author);
+                }
+
+                if (!vc.Contains(comic.Category)) {
+                    vc.Add(comic.Category);
+                }
+            }
+
+            this.VisibleAuthors = va;
+            this.VisibleCategories = vc;
+
+            Defaults.SaveLibrary(this.VisibleComics);
         }
 
         // Public interface to reload (regenerate) all thumbnails
@@ -196,6 +244,7 @@ namespace Comics {
         }
 
         // Loads all comics based on the current profile
+        /// async
         private void LoadComics(/*CancellationToken cancellationToken*/) {
             Debug.Print("> lc");
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths) {
@@ -232,6 +281,7 @@ namespace Comics {
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
+        /// async
         private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts/*, CancellationToken cancellationToken*/) {
             depth -= 1;
             DirectoryInfo[] comicDirectories = directory.GetDirectories();
@@ -266,17 +316,11 @@ namespace Comics {
         }
 
         // Adds a comic to the visible comics list
+        /// async
         private void AddComicToVisibleComics(Comic comic/*, CancellationToken cancellationToken*/) {
             //cancellationToken.ThrowIfCancellationRequested();
             App.Current.Dispatcher.Invoke(() => {
-                this.VisibleComics.Add(comic);
-                if (!this.VisibleAuthors.Contains(comic.Author)) {
-                    this.VisibleAuthors.Add(comic.Author);
-                }
-
-                if (!this.VisibleCategories.Contains(comic.Category)) {
-                    this.VisibleCategories.Add(comic.Category);
-                }
+                this.preloadedVisibleComics.Add(comic);
             });
         }
 

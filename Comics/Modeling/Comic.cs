@@ -56,6 +56,17 @@ namespace Comics {
             }
         }
 
+        public Comic(StorageInfo info) : this(info.Title, info.Author, info.Category, info.Path) { }
+
+        public StorageInfo CreateInfo() {
+            return new StorageInfo {
+                Title = this.title,
+                Author = this.author,
+                Category = this.category,
+                Path = this.path
+            };
+        }
+ 
         public void AddDirectory(DirectoryInfo directory) {
             FileInfo[] files = directory.GetFiles("*.*");
 
@@ -358,6 +369,13 @@ namespace Comics {
         public bool Loved { get; set; }
         public bool Disliked { get; set; }
         public string ThumbnailSource { get; set; }
+    }
+
+    public class StorageInfo {
+        public string Title { get; set; }
+        public string Author { get; set; }
+        public string Category { get; set; }
+        public string Path { get; set; }
     }
 
     public class SortedString : IComparable {
