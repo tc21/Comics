@@ -355,7 +355,12 @@ namespace Comics {
             }
 
             foreach (StorageInfo info in list) {
-                library.Add(new Comic(info));
+                try {
+                    Comic comic = new Comic(info);
+                    library.Add(comic);
+                } catch (ComicLoadException) {
+                    Debug.Print(String.Format("An error occured during the loading of cached comic {0}", info.Title));
+                }
             }
             
             return library;

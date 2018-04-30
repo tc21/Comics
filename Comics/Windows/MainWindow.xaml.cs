@@ -56,11 +56,15 @@ namespace Comics {
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
+            // Actually loads the comics on startup
+            RefreshAll();
+            RefreshFilters();
+        }
+
+        public void RefreshFilters() {
             this.ComicsView.Filter = this.ComicFilter;
             this.AuthorSelectorView.Filter = this.AuthorSelectorFilter;
             this.CategorySelectorView.Filter = this.CategorySelectorFilter;
-            // Actually loads the comics on startup
-            RefreshAll();
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e) {
@@ -100,7 +104,7 @@ namespace Comics {
         }
 
         // This is the operation that was causing lag.
-        private void UpdateAvailableComics(string searchText) {
+        public void UpdateAvailableComics(string searchText) {
             this.availableCategories.Clear();
             this.availableAuthors.Clear();
             this.availableComics.Clear();
@@ -294,6 +298,8 @@ namespace Comics {
             foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
                 this.ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
             }
+
+            this.RefreshFilters();  // TODO: figure out why we need this here to make stuff work
         }
 
         // Ways for the user to open a comic
@@ -309,7 +315,7 @@ namespace Comics {
 
         // TODO: Ensures the collection is sorted when it is first loaded.
         // 30 April 2018: This never worked properly, so it now sets sort order to default to ensure consistency between ui and behavior
-        private async void Collection_Loaded(object sender, RoutedEventArgs e) {
+        private void Collection_Loaded(object sender, RoutedEventArgs e) {
             //IEnumerable<string> sortDescriptions = await App.ViewModel.SortDescriptionsForIndex(Properties.Settings.Default.SelectedSortIndex);
             //UpdateSortDescriptions(sortDescriptions);
             //Properties.Settings.Default.SelectedSortIndex = Comic.DefaultSortIndex;
