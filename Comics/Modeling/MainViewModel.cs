@@ -172,9 +172,11 @@ namespace Comics {
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
             await Task.Run(() => PreloadLibrary());
+            await UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
             ClearPreloadedData();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
             StorePreloadedData();
+            await UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.SettingsWindow?.PopulateProfileSettings();
@@ -200,9 +202,11 @@ namespace Comics {
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
             await Task.Run(() => PreloadLibrary());
+            await UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
             ClearPreloadedData();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
             StorePreloadedData();
+            await UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.ComicsWindow?.RefreshComics();
@@ -347,6 +351,26 @@ namespace Comics {
                 //    return;
             }
             Debug.Print("< gct");
+        }
+
+        // Retrieve sort descriptions for a sort index (see MainWindow) and set random values if necessary
+        public async Task SetSortIndex(int sortIndex) {
+            if (Properties.Settings.Default.SelectedSortIndex == sortIndex) {
+                return;
+            }
+            Properties.Settings.Default.SelectedSortIndex = sortIndex;
+            await UpdateSortIndex(sortIndex);
+        }
+
+        public async Task UpdateSortIndex(int sortIndex) {
+            if (sortIndex == Comic.RandomSortIndex) {
+                await Task.Run(() => App.ViewModel.RandomizeComics());
+            }
+            var sortDescriptionPropertyNames = Comic.SortDescriptionPropertyNamesForIndex(sortIndex);
+            App.Current.Dispatcher.Invoke(() => {
+                Debug.Print("updating sort descriptions");
+                App.ComicsWindow.UpdateSortDescriptions(sortDescriptionPropertyNames);
+            });
         }
 
         // Randomizes the .Random field for each comic

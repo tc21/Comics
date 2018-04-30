@@ -284,16 +284,11 @@ namespace Comics {
             if (this.ComicsView == null) {
                 return;
             }
-
-            if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex) {
-                await Task.Run(() => App.ViewModel.RandomizeComics());
-            }
-
-            UpdateSortDescriptions();
-            Properties.Settings.Default.SelectedSortIndex = this.SortOrderBox.SelectedIndex;
+            Debug.Print("sort changed");
+            await App.ViewModel.SetSortIndex(this.SortOrderBox.SelectedIndex);
         }
 
-        private void UpdateSortDescriptions() {
+        public void UpdateSortDescriptions(IEnumerable<string> sortDescriptionPropertyNames) {
             this.ComicsView.SortDescriptions.Clear();
 
             foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
@@ -312,9 +307,14 @@ namespace Comics {
             }
         }
 
-        // Ensures the collection is sorted when it is first loaded.
-        private void Collection_Loaded(object sender, RoutedEventArgs e) {
-            UpdateSortDescriptions();
+        // TODO: Ensures the collection is sorted when it is first loaded.
+        // 30 April 2018: This never worked properly, so it now sets sort order to default to ensure consistency between ui and behavior
+        private async void Collection_Loaded(object sender, RoutedEventArgs e) {
+            //IEnumerable<string> sortDescriptions = await App.ViewModel.SortDescriptionsForIndex(Properties.Settings.Default.SelectedSortIndex);
+            //UpdateSortDescriptions(sortDescriptions);
+            //Properties.Settings.Default.SelectedSortIndex = Comic.DefaultSortIndex;
+            //this.SortOrderBox.SelectedIndex = Comic.DefaultSortIndex;
+            //SortOrderBox_SelectionChanged(this, null);
         }
 
         // Handlers for when the user checks and unchecks sidebar options

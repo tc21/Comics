@@ -317,6 +317,7 @@ namespace Comics {
         }
 
         public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category", "Random" };
+        public static readonly int DefaultSortIndex = 0;
         public static readonly int RandomSortIndex = 3;
         public static List<string> SortDescriptionPropertyNamesForIndex(int index) {
             List<string> sortPropertyNames = new List<string>(SortPropertyNames);
