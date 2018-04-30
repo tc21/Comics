@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Comics.Support;
 
 namespace Comics {
     public class Comic : INotifyPropertyChanged {
@@ -57,7 +58,7 @@ namespace Comics {
         }
 
         public void AddDirectory(DirectoryInfo directory) {
-            FileInfo[] files = directory.GetFiles("*.*");
+            FileInfo[] files = directory.GetFilesInNaturalOrder("*.*");
 
             foreach (FileInfo file in files) {
                 string suffix = Path.GetExtension(file.Name).ToLowerInvariant();

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Comics.Support;
 
 namespace Comics {
     public class MainViewModel : INotifyPropertyChanged {
@@ -102,7 +103,7 @@ namespace Comics {
         }
 
         private void LoadProfiles() {
-            FileInfo[] files = new DirectoryInfo(Defaults.UserProfileFolder).GetFiles("*.xmlprofile");
+            FileInfo[] files = new DirectoryInfo(Defaults.UserProfileFolder).GetFilesInNaturalOrder("*.xmlprofile");
 
             int index = 0;
             for (int i = 0; i < files.Length; i++) {
@@ -204,7 +205,7 @@ namespace Comics {
                 }
 
                 DirectoryInfo rootDirectory = new DirectoryInfo(categorizedPath.Path);
-                DirectoryInfo[] authorDirectories = rootDirectory.GetDirectories();
+                DirectoryInfo[] authorDirectories = rootDirectory.GetDirectoriesInNaturalOrder();
 
                 foreach (DirectoryInfo authorDirectory in authorDirectories) {
                     if (Defaults.NameShouldBeIgnored(authorDirectory.Name)) {
@@ -214,7 +215,7 @@ namespace Comics {
                     //try
                     //{
                     LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null/*, cancellationToken*/);
-                    FileInfo[] rootFiles = authorDirectory.GetFiles();
+                    FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
                             AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
@@ -234,7 +235,7 @@ namespace Comics {
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
         private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts/*, CancellationToken cancellationToken*/) {
             depth -= 1;
-            DirectoryInfo[] comicDirectories = directory.GetDirectories();
+            DirectoryInfo[] comicDirectories = directory.GetDirectoriesInNaturalOrder();
 
             foreach (DirectoryInfo comicDirectory in comicDirectories) {
                 if (Defaults.NameShouldBeIgnored(comicDirectory.Name)) {
@@ -252,7 +253,7 @@ namespace Comics {
                     if (Defaults.Profile.TreatSubdirectoriesAsSeparateWorks) {
                         LoadComicsForAuthor(comicDirectory, author, category, depth, currentName/*, cancellationToken*/);
                     } else {
-                        DirectoryInfo[] subdirectories = comicDirectory.GetDirectories();
+                        DirectoryInfo[] subdirectories = comicDirectory.GetDirectoriesInNaturalOrder();
                         foreach (DirectoryInfo subdirectory in subdirectories) {
                             AddFolderToExistingComic(subdirectory, comic, depth);
                         }
@@ -285,7 +286,7 @@ namespace Comics {
             comic.AddDirectory(directory);
             depth -= 1;
             if (depth > 0) {
-                DirectoryInfo[] subdirectories = directory.GetDirectories();
+                DirectoryInfo[] subdirectories = directory.GetDirectoriesInNaturalOrder();
                 foreach (DirectoryInfo subdirectory in subdirectories) {
                     AddFolderToExistingComic(subdirectory, comic, depth);
                 }
