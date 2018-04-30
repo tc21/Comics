@@ -104,7 +104,10 @@ namespace Comics {
             this.availableCategories.Clear();
             this.availableAuthors.Clear();
             this.availableComics.Clear();
-            foreach (Comic comic in App.ViewModel.VisibleComics) {
+
+            var visibleComics = new ObservableCollection<Comic>(App.ViewModel.VisibleComics);
+
+            foreach (Comic comic in visibleComics) {
                 if ((this.onlyShowLoved && !comic.Loved) || (!this.showDisliked && comic.Disliked)) {
                     continue;
                 }

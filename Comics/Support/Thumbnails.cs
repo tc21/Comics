@@ -39,6 +39,10 @@ namespace Comics {
                 tagFile = TagLib.File.Create(path);
             } catch (TagLib.CorruptFileException) {
                 return false;
+            } catch (DirectoryNotFoundException e) {
+                return false;
+            } catch (FileNotFoundException e) {
+                return false;
             }
 
             if (tagFile.Tag.Pictures.Length == 0) {

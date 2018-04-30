@@ -54,28 +54,20 @@ namespace Comics {
         }
 
         public class StartupApplication {
-            public enum Type {
+            public enum Application {
                 Viewer, Custom
             }
 
             public const string ViewerIndicator = "{Viewer}";
 
-            private Type type;
-            private string path;
+            public Application Type;
+            public string Path;
 
-            private StartupApplication(Type type, string path) {
-                this.type = type;
-                this.path = path;
-            }
-
-            private StartupApplication() : this(Type.Viewer, null) { }
-
-            public string Name => this.type == Type.Viewer ? ViewerIndicator : this.path;
+            public string Name => this.Type == Application.Viewer ? ViewerIndicator : this.Path;
 
             public void StartComic(Comic comic) {
                 var arguments = Comic.ExecutionString.CreateExecutionArguments(Profile.ExecutionArguments, comic);
-                if (this.type == Type.Viewer) {
-
+                if (this.Type == Application.Viewer) {
                     var viewer = new Viewer.MainWindow(arguments.ToArray()) {
                         Top = Properties.Settings.Default.ViewerTop,
                         Left = Properties.Settings.Default.ViewerLeft,
@@ -120,19 +112,19 @@ namespace Comics {
                     });
                     viewer.Show();
                 } else {
-                    Process.Start(this.path, String.Join(" ", arguments));
+                    Process.Start(this.Path, String.Join(" ", arguments.Select(p => "\"" + p + "\"")));
                 }
             }
 
             public static StartupApplication Viewer() {
-                return new StartupApplication(Type.Viewer, null);
+                return new StartupApplication { Type = Application.Viewer };
             }
 
             public static StartupApplication Custom(string path) {
                 if (!File.Exists(path)) {
                     throw new FileNotFoundException("Not a valid file", path);
                 }
-                return new StartupApplication(Type.Custom, path);
+                return new StartupApplication { Type = Application.Custom, Path = path };
             }
 
             public static StartupApplication Interpolate(string name) {
@@ -455,7 +447,6 @@ namespace Comics {
                     Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
                     IgnoredPrefixes = new List<string>() { "~", "(" },
                     WorkTraversalDepth = defaultWorkTraversalDepth,
-                    DefaultApplication = StartupApplication.Viewer(),
                     TreatSubdirectoriesAsSeparateWorks = true
                 };
             }
