@@ -56,11 +56,15 @@ namespace Comics {
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-            this.ComicsView.Filter = this.ComicFilter;
             this.AuthorSelectorView.Filter = this.AuthorSelectorFilter;
             this.CategorySelectorView.Filter = this.CategorySelectorFilter;
             // Actually loads the comics on startup
             RefreshAll();
+        }
+
+        public void RefreshComicFilters() {
+            // this filter must be updated everytime the list of comics is reloaded
+            this.ComicsView.Filter = this.ComicFilter;
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e) {

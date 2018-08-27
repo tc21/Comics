@@ -188,6 +188,7 @@ namespace Comics {
             this.tempComics = new ObservableCollection<Comic>();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
             this.VisibleComics = this.tempComics;
+            App.ComicsWindow?.RefreshComicFilters();
             App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
