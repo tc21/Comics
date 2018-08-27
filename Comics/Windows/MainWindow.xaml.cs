@@ -280,21 +280,22 @@ namespace Comics {
 
         // When the user changes the sort order, we update the sort descriptions on the comics view.
         // When the user selects "random", we have to randomize a field inside the comic object.
-        private async void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (this.ComicsView == null) {
                 return;
             }
 
-            if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex) {
-                await Task.Run(() => App.ViewModel.RandomizeComics());
-            }
-
             UpdateSortDescriptions();
+
             Properties.Settings.Default.SelectedSortIndex = this.SortOrderBox.SelectedIndex;
         }
 
-        private void UpdateSortDescriptions() {
+        public void UpdateSortDescriptions() {
             this.ComicsView.SortDescriptions.Clear();
+
+            if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex) {
+                App.ViewModel.RandomizeComics();
+            }
 
             foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
                 this.ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));

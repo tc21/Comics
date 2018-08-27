@@ -169,29 +169,28 @@ namespace Comics {
 
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
         public async void UpdateComicsAfterProfileChanged() {
-            //cancellationTokenSource.Cancel();
-            //cancellationTokenSource = new CancellationTokenSource();
-            ProfileLoadStarted();
-            this.tempComics = new ObservableCollection<Comic>();
-            await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
-            this.VisibleComics = this.tempComics;
-            await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
-            ProfileLoadEnded();
+            await ReloadComicSteps();
             App.SettingsWindow?.PopulateProfileSettings();
             App.ComicsWindow?.RefreshAll();
         }
 
         // Public interface to reload all comics
         public async Task ReloadComics() {
+            await ReloadComicSteps();
+            App.ComicsWindow?.RefreshComics();
+        }
+
+        private async Task ReloadComicSteps() {
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
+            this.VisibleComics.Clear();
             this.tempComics = new ObservableCollection<Comic>();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
             this.VisibleComics = this.tempComics;
+            App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
-            App.ComicsWindow?.RefreshComics();
         }
 
         // Public interface to reload (regenerate) all thumbnails
