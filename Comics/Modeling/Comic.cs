@@ -11,7 +11,15 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace Comics {
+    public class ComicLoadException : Exception {
+        public ComicLoadException(string message) : base(message) {
+        }
+        public ComicLoadException() : base() {
+        }
+    }
+
     public class Comic : INotifyPropertyChanged {
+        private static Random randomizer = new Random();
         private readonly string title;
         private readonly string author;
         private readonly string category;
@@ -48,14 +56,52 @@ namespace Comics {
             } else if (File.Exists(path)) {
                 this.filePaths.Add(path);
             } else {
-                throw new Exception("Invalid path given to comic");
+                throw new ComicLoadException("Invalid path given to comic");
             }
 
             if (!LoadMetadata()) {
                 this.Metadata = new Metadata();
             }
+
+            this.Random = randomizer.Next();
         }
 
+        public Comic(StorageInfo info) : this(info.Title, info.Author, info.Category, info.Path) {
+            this.title = info.Title;
+            this.author = info.Author;
+            this.category = info.Category;
+            this.path = info.Path;
+
+            this.filePaths = info.FilePaths;
+            this.imagePath = info.ImagePath;
+
+            if (!LoadMetadata()) {
+                this.Metadata = new Metadata();
+            }
+
+            if (this.filePaths.Count == 0) {
+                throw new ComicLoadException("No files stored for cached comic");
+            }
+
+            this.Random = randomizer.Next();
+        }
+
+        public StorageInfo CreateInfo() {
+            return new StorageInfo {
+                Title = this.title,
+                Author = this.author,
+                Category = this.category,
+                Path = this.path,
+                FilePaths = this.filePaths,
+                ImagePath = this.imagePath
+            };
+        }
+
+        // Not meant to replace HashCode()
+        public int UniqueHashCode() {
+            return this.title.GetHashCode() ^ this.author.GetHashCode() ^ this.category.GetHashCode() ^ this.path.GetHashCode();
+        }
+ 
         public void AddDirectory(DirectoryInfo directory) {
             FileInfo[] files = directory.GetFiles("*.*");
 
@@ -306,6 +352,7 @@ namespace Comics {
         }
 
         public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category", "Random" };
+        public static readonly int DefaultSortIndex = 0;
         public static readonly int RandomSortIndex = 3;
         public static List<string> SortDescriptionPropertyNamesForIndex(int index) {
             List<string> sortPropertyNames = new List<string>(SortPropertyNames);
@@ -358,6 +405,16 @@ namespace Comics {
         public bool Loved { get; set; }
         public bool Disliked { get; set; }
         public string ThumbnailSource { get; set; }
+    }
+
+    public class StorageInfo {
+        public string Title { get; set; }
+        public string Author { get; set; }
+        public string Category { get; set; }
+        public string Path { get; set; }
+        public string ImagePath { get; set; }
+        public List<string> FilePaths { get; set; }
+
     }
 
     public class SortedString : IComparable {

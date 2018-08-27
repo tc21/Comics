@@ -18,6 +18,7 @@ namespace Comics {
         // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
         // All loaded comics
         public const string VisibleComicsPropertyName = "VisibleComics";
+        private ObservableCollection<Comic> preloadedVisibleComics = new ObservableCollection<Comic>();
         private ObservableCollection<Comic> visibleComics = new ObservableCollection<Comic>();
         public ObservableCollection<Comic> VisibleComics {
             get => this.visibleComics;
@@ -166,27 +167,116 @@ namespace Comics {
 
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
         public async void UpdateComicsAfterProfileChanged() {
+            Debug.Print("> ucapc");
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
+
+            // NOTE:
+            //     ProfileLoadStarted/Ended changes the UI to indicate to the user that a profile is being loaded
+            //     Clear/StorePreloadedData initializes a list for LoadComics and stores it into VisibleComics (suggestion: merge into LoadComics)
+            //     UpdateSortIndex is called after every programmatic change to VisibleComics to ensure the program accounts for new changes in sorting
+
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
+            await Task.Run(() => PreloadLibrary());
+            UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
+            ClearPreloadedData();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
+            StorePreloadedData();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.SettingsWindow?.PopulateProfileSettings();
             App.ComicsWindow?.RefreshAll();
+            Debug.Print("< ucapc");
+        }
+
+        /// async
+        private void PreloadLibrary() {
+            var library = Defaults.LoadLibrary();
+            if (library != null) {
+                var vc = new ObservableCollection<Comic>(library);
+                App.Current.Dispatcher.Invoke(() => {
+                    this.VisibleComics = vc;
+                });
+            }
         }
 
         // Public interface to reload all comics
         public async Task ReloadComics() {
+            Debug.Print("> rc");
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
+            await Task.Run(() => PreloadLibrary());
+            UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
+            ClearPreloadedData();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            UpdateSortIndex(Properties.Settings.Default.SelectedSortIndex);
+            StorePreloadedData();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.ComicsWindow?.RefreshComics();
+            Debug.Print("< rc");
+        }
+
+        private void ClearPreloadedData() {
+            this.preloadedVisibleComics.Clear();
+        }
+
+        // Stores preloadedVisibleComics into VisibleComics, without removing and adding any redundant data
+        private void StorePreloadedData() {
+            var preloadedHashes = new HashSet<int>();
+            var existingHashes = new HashSet<int>();
+            var additions = new List<Comic>();
+            var deletions = new List<Comic>();
+
+            foreach (Comic comic in this.preloadedVisibleComics) {
+                preloadedHashes.Add(comic.UniqueHashCode());
+            }
+
+            foreach (Comic comic in this.VisibleComics) {
+                int hash = comic.UniqueHashCode();
+                existingHashes.Add(hash);
+                if (!preloadedHashes.Contains(hash)) {
+                    deletions.Add(comic);
+                }
+            }
+
+            foreach (Comic comic in this.preloadedVisibleComics) {
+                int hash = comic.UniqueHashCode();
+                if (!existingHashes.Contains(hash)) {
+                    additions.Add(comic);
+                }
+            }
+
+
+            foreach (Comic deletion in deletions) {
+                this.VisibleComics.Remove(deletion);
+            }
+
+            foreach (Comic addition in additions) {
+                this.VisibleComics.Add(addition);
+            }
+
+            var va = new ObservableCollection<SortedString>();
+            var vc = new ObservableCollection<SortedString>();
+
+            this.VisibleAuthors.Clear();
+            this.VisibleCategories.Clear();
+            foreach (Comic comic in this.VisibleComics) {
+                if (!va.Contains(comic.Author)) {
+                    va.Add(comic.Author);
+                }
+
+                if (!vc.Contains(comic.Category)) {
+                    vc.Add(comic.Category);
+                }
+            }
+
+            this.VisibleAuthors = va;
+            this.VisibleCategories = vc;
+
+            Defaults.SaveLibrary(this.VisibleComics);
         }
 
         // Public interface to reload (regenerate) all thumbnails
@@ -196,6 +286,7 @@ namespace Comics {
         }
 
         // Loads all comics based on the current profile
+        /// async
         private void LoadComics(/*CancellationToken cancellationToken*/) {
             Debug.Print("> lc");
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths) {
@@ -217,7 +308,12 @@ namespace Comics {
                     FileInfo[] rootFiles = authorDirectory.GetFiles();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
-                            AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
+                            try {
+                                Comic comic = new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName);
+                                AddComicToVisibleComics(comic/*, cancellationToken*/);
+                            } catch (ComicLoadException) {
+                                Debug.Print(String.Format("An error occured during the loading of stored comic {0}", file.Name));
+                            }
                         }
                     }
                     //}
@@ -232,6 +328,7 @@ namespace Comics {
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
+        /// async
         private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts/*, CancellationToken cancellationToken*/) {
             depth -= 1;
             DirectoryInfo[] comicDirectories = directory.GetDirectories();
@@ -246,7 +343,13 @@ namespace Comics {
                     currentName = previousParts + " - " + currentName;
                 }
 
-                Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
+                Comic comic;
+                try {
+                    comic = new Comic(currentName, author, category, comicDirectory.FullName);
+                } catch (ComicLoadException) {
+                    Debug.Print(String.Format("An error occured during the loading of stored comic {0}", currentName));
+                    return;
+                }
 
                 if (depth > 0) {
                     if (Defaults.Profile.TreatSubdirectoriesAsSeparateWorks) {
@@ -266,17 +369,11 @@ namespace Comics {
         }
 
         // Adds a comic to the visible comics list
+        /// async
         private void AddComicToVisibleComics(Comic comic/*, CancellationToken cancellationToken*/) {
             //cancellationToken.ThrowIfCancellationRequested();
             App.Current.Dispatcher.Invoke(() => {
-                this.VisibleComics.Add(comic);
-                if (!this.VisibleAuthors.Contains(comic.Author)) {
-                    this.VisibleAuthors.Add(comic.Author);
-                }
-
-                if (!this.VisibleCategories.Contains(comic.Category)) {
-                    this.VisibleCategories.Add(comic.Category);
-                }
+                this.preloadedVisibleComics.Add(comic);
             });
         }
 
@@ -305,8 +402,29 @@ namespace Comics {
             Debug.Print("< gct");
         }
 
-        // Randomizes the .Random field for each comic
-        public void RandomizeComics() {
+        // Retrieve sort descriptions for a sort index (see MainWindow) and set random values if necessary
+        public async Task SetSortIndex(int sortIndex) {
+            if (Properties.Settings.Default.SelectedSortIndex == sortIndex) {
+                return;
+            }
+            Properties.Settings.Default.SelectedSortIndex = sortIndex;
+            if (sortIndex == Comic.RandomSortIndex) {
+                await Task.Run(() => App.ViewModel.RerandomizeComics());
+            }
+            UpdateSortIndex(sortIndex);
+        }
+
+        public void UpdateSortIndex(int sortIndex) {
+            var sortDescriptionPropertyNames = Comic.SortDescriptionPropertyNamesForIndex(sortIndex);
+            App.Current.Dispatcher.Invoke(() => {
+                Debug.Print("updating sort descriptions");
+                App.ComicsWindow.UpdateSortDescriptions(sortDescriptionPropertyNames);
+            });
+        }
+
+        // Randomizes the .Random field for each comic: use only when the dropdown value is changed, and not
+        // when automatically loading comics
+        public void RerandomizeComics() {
             Random random = new Random();
             foreach (Comic comic in this.VisibleComics) {
                 comic.Random = random.Next();
