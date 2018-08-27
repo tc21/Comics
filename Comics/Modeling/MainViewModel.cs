@@ -32,6 +32,8 @@ namespace Comics {
             }
         }
 
+        private ObservableCollection<Comic> tempComics = new ObservableCollection<Comic>();
+
         // All loaded authors
         public const string VisibleAuthorsPropertyName = "VisibleAuthors";
         public ObservableCollection<SortedString> visibleAuthors = new ObservableCollection<SortedString>();
@@ -170,8 +172,9 @@ namespace Comics {
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
+            this.tempComics = new ObservableCollection<Comic>();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            this.VisibleComics = this.tempComics;
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.SettingsWindow?.PopulateProfileSettings();
@@ -183,8 +186,9 @@ namespace Comics {
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
+            this.tempComics = new ObservableCollection<Comic>();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
+            this.VisibleComics = this.tempComics;
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
             App.ComicsWindow?.RefreshComics();
@@ -218,7 +222,7 @@ namespace Comics {
                     FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
-                            AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
+                            AddComicToTempComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
                         }
                     }
                     //}
@@ -261,7 +265,7 @@ namespace Comics {
                 }
 
                 if (comic.FilePaths.Count > 0) {
-                    AddComicToVisibleComics(comic/*, cancellationToken*/);
+                    AddComicToTempComics(comic/*, cancellationToken*/);
                 }
             }
         }
@@ -271,6 +275,19 @@ namespace Comics {
             //cancellationToken.ThrowIfCancellationRequested();
             App.Current.Dispatcher.Invoke(() => {
                 this.VisibleComics.Add(comic);
+                if (!this.VisibleAuthors.Contains(comic.Author)) {
+                    this.VisibleAuthors.Add(comic.Author);
+                }
+
+                if (!this.VisibleCategories.Contains(comic.Category)) {
+                    this.VisibleCategories.Add(comic.Category);
+                }
+            });
+        }
+
+        private void AddComicToTempComics(Comic comic) {
+            App.Current.Dispatcher.Invoke(() => {
+                this.tempComics.Add(comic);
                 if (!this.VisibleAuthors.Contains(comic.Author)) {
                     this.VisibleAuthors.Add(comic.Author);
                 }
