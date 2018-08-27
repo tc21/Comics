@@ -68,6 +68,7 @@
     <Compile Include="Modeling\Comic.cs" />
     <Compile Include="Support\Defaults.cs" />
     <Compile Include="Modeling\MainViewModel.cs" />
+    <Compile Include="Support\Files.cs" />
     <Compile Include="Support\Interop.cs" />
     <Compile Include="Support\Settings.cs" />
     <Compile Include="Support\Thumbnails.cs" />

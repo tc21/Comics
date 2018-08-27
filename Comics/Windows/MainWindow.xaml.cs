@@ -56,15 +56,15 @@ namespace Comics {
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-            // Actually loads the comics on startup
-            RefreshAll();
-            RefreshFilters();
-        }
-
-        public void RefreshFilters() {
-            this.ComicsView.Filter = this.ComicFilter;
             this.AuthorSelectorView.Filter = this.AuthorSelectorFilter;
             this.CategorySelectorView.Filter = this.CategorySelectorFilter;
+            // Actually loads the comics on startup
+            RefreshAll();
+        }
+
+        public void RefreshComicFilters() {
+            // this filter must be updated everytime the list of comics is reloaded
+            this.ComicsView.Filter = this.ComicFilter;
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e) {
@@ -104,7 +104,7 @@ namespace Comics {
         }
 
         // This is the operation that was causing lag.
-        public void UpdateAvailableComics(string searchText) {
+        private void UpdateAvailableComics(string searchText) {
             this.availableCategories.Clear();
             this.availableAuthors.Clear();
             this.availableComics.Clear();
@@ -284,22 +284,26 @@ namespace Comics {
 
         // When the user changes the sort order, we update the sort descriptions on the comics view.
         // When the user selects "random", we have to randomize a field inside the comic object.
-        private async void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (this.ComicsView == null) {
                 return;
             }
-            Debug.Print("sort changed");
-            await App.ViewModel.SetSortIndex(this.SortOrderBox.SelectedIndex);
+
+            UpdateSortDescriptions();
+
+            Properties.Settings.Default.SelectedSortIndex = this.SortOrderBox.SelectedIndex;
         }
 
-        public void UpdateSortDescriptions(IEnumerable<string> sortDescriptionPropertyNames) {
+        public void UpdateSortDescriptions() {
             this.ComicsView.SortDescriptions.Clear();
+
+            if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex) {
+                App.ViewModel.RandomizeComics();
+            }
 
             foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
                 this.ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
             }
-
-            this.RefreshFilters();  // TODO: figure out why we need this here to make stuff work
         }
 
         // Ways for the user to open a comic
@@ -313,14 +317,9 @@ namespace Comics {
             }
         }
 
-        // TODO: Ensures the collection is sorted when it is first loaded.
-        // 30 April 2018: This never worked properly, so it now sets sort order to default to ensure consistency between ui and behavior
+        // Ensures the collection is sorted when it is first loaded.
         private void Collection_Loaded(object sender, RoutedEventArgs e) {
-            //IEnumerable<string> sortDescriptions = await App.ViewModel.SortDescriptionsForIndex(Properties.Settings.Default.SelectedSortIndex);
-            //UpdateSortDescriptions(sortDescriptions);
-            //Properties.Settings.Default.SelectedSortIndex = Comic.DefaultSortIndex;
-            //this.SortOrderBox.SelectedIndex = Comic.DefaultSortIndex;
-            //SortOrderBox_SelectionChanged(this, null);
+            UpdateSortDescriptions();
         }
 
         // Handlers for when the user checks and unchecks sidebar options
