@@ -79,6 +79,11 @@
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
+        <CollectionViewSource x:Key="VisibleNewCategories" Source="{Binding Path=VisibleNewCategories}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="Sort" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
@@ -181,7 +186,31 @@
                 <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2">
                     <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2" Checked="ShowLoved_Checked" Unchecked="ShowLoved_Unchecked"/>
                     <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Checked" Unchecked="ShowDisliked_Unchecked"/>
+
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Categories"></Label>
+                    <ItemsControl x:Name="NewCategoriesSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
+                        <ItemsControl.ItemTemplate>
+                            <HierarchicalDataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{Binding Description}" />
+                                    <ComboBox Grid.Column="1" SelectionChanged="NewCategories_SelectionChanged" ItemsSource="{Binding Selections}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </Grid>
+
+                            </HierarchicalDataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Label DockPanel.Dock="Top" FontSize="14" Content="Category"></Label>
                     <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource VisibleCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
@@ -189,6 +218,7 @@
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Authors"></Label>
                     <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource VisibleAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>

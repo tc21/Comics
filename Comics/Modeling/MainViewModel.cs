@@ -64,6 +64,35 @@ namespace Comics {
             }
         }
 
+        // All loaded categories
+        public const string VisibleNewCategoriesPropertyName = "VisibleNewCategories";
+        public ObservableCollection<CategorySelector> visibleNewCategories = new ObservableCollection<CategorySelector>();
+        public ObservableCollection<CategorySelector> VisibleNewCategories {
+            //get => this.visibleNewCategories;
+            get => new ObservableCollection<CategorySelector> {
+                new CategorySelector(new SortedString("Category"), new List<SortedString> {new SortedString("Value")})
+            };
+            set {
+                if (this.visibleNewCategories == value) {
+                    return;
+                }
+
+                this.visibleNewCategories = value;
+                NotifyPropertyChanged(VisibleNewCategoriesPropertyName);
+            }
+        }
+
+        public class CategorySelector {
+            public string Description => this.Key.Display + ": ";
+            public IEnumerable<SortedString> Selections => new List<SortedString> { new SortedString("") }.Concat(this.Value);
+            public SortedString Key { get; set; }
+            public List<SortedString> Value { get; set; }
+            public CategorySelector(SortedString key, List<SortedString> values) {
+                this.Key = key;
+                this.Value = values;
+            }
+        }
+
         // The currently selected profile. Changing this updates internal settings and the UI
         public const string SelectedProfileCategoryName = "SelectedProfile";
         private int selectedProfile;

@@ -154,6 +154,11 @@ namespace Comics {
             set { this.Metadata.Category = value; SaveMetadata(); NotifyPropertyChanged("Category"); }
         }
 
+        //public Dictionary<SortedString, SortedString> Categories {
+        //    get => this.Metadata.Categories ?? new Dictionary<SortedString, SortedString>();
+        //    set { this.Metadata.Categories = value; SaveMetadata(); NotifyPropertyChanged("Categories"); }
+        //}
+
         public bool Loved {
             get => this.Metadata.Loved;
             set { this.Metadata.Loved = value; SaveMetadata(); NotifyPropertyChanged("Loved"); }
@@ -403,11 +408,13 @@ namespace Comics {
         public SortedString Title { get; set; }
         public SortedString Author { get; set; }
         public SortedString Category { get; set; }
+        //public Dictionary<SortedString, SortedString> Categories { get; set; }
         public bool Loved { get; set; }
         public bool Disliked { get; set; }
         public string ThumbnailSource { get; set; }
     }
 
+    /* For saving and loading libraries. Currently not used */
     public class StorageInfo {
         public string Title { get; set; }
         public string Author { get; set; }

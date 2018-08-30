@@ -306,6 +306,11 @@ namespace Comics {
             }
         }
 
+        // todo new categories
+        private void NewCategories_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            Debug.Print("Selection changed");
+        }
+
         // Ways for the user to open a comic
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
             (this.Collection.SelectedItem as Comic)?.Open();

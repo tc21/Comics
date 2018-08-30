@@ -299,6 +299,7 @@ namespace Comics {
             File.Move(tempPath, path);
         }
 
+        /* Currently not used */
         public static void SaveLibrary(IEnumerable<Comic> library) {
             List<StorageInfo> list = new List<StorageInfo>();
             foreach (Comic comic in library) {
@@ -339,6 +340,7 @@ namespace Comics {
             return true;
         }
 
+        /* Currently not used */
         public static IEnumerable<Comic> LoadLibrary() {
             List<Comic> library = new List<Comic>();
             List<StorageInfo> list;
