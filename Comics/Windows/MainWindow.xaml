@@ -87,7 +87,7 @@
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
-            <MenuItem Header="Edit Info" IsEnabled="False" />
+            <MenuItem Header="Edit Info" Click="ContextMenu_EditInfo" />
             <Separator />
             <MenuItem Header="Love" Click="ContextMenu_Love" />
             <MenuItem Header="Dislike" Click="ContextMenu_Dislike" />

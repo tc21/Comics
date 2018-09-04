@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -215,25 +216,56 @@ namespace Comics {
             OpenSelectedComics();
         }
 
+        private void ContextMenu_EditInfo(object sender, RoutedEventArgs e) {
+            if (this.Collection.SelectedItems.Count != 1) {
+                // todo: implement the ability to edit multiple items
+                return;
+            }
+
+            if (App.InfoWindow != null) {
+                App.InfoWindow.EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList();
+                App.InfoWindow.Activate();
+                return;
+            }
+            
+            Window info = new InfoWindow {
+                Owner = this,
+                EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList()
+            };
+
+            info.Show();
+        }
+
         private void ContextMenu_Love(object sender, RoutedEventArgs e) {
-            Comic comic = (this.Collection.SelectedItem as Comic);
-            if (comic != null) {
-                comic.Loved = !comic.Loved;
+            foreach (var c in this.Collection.SelectedItems) {
+                Comic comic = (c as Comic);
+                if (comic != null) {
+                    comic.Loved = !comic.Loved;
+                }
             }
         }
 
         private void ContextMenu_Dislike(object sender, RoutedEventArgs e) {
-            Comic comic = (this.Collection.SelectedItem as Comic);
-            if (comic != null) {
-                comic.Disliked = !comic.Disliked;
+            foreach (var c in this.Collection.SelectedItems) {
+                Comic comic = (c as Comic);
+                if (comic != null) {
+                    comic.Disliked = !comic.Disliked;
+                }
             }
         }
 
         private void ContextMenu_ShowInExplorer(object sender, RoutedEventArgs e) {
-            (this.Collection.SelectedItem as Comic)?.OpenContainingFolder();
+            foreach (var comic in this.Collection.SelectedItems) {
+                (comic as Comic)?.OpenContainingFolder();
+            }
         }
 
         private void ContextMenu_RedefineThumbnail(object sender, RoutedEventArgs e) {
+            if (this.Collection.SelectedItems.Count != 1) {
+                // todo: we should disable the option
+                return;
+            }
+
             Comic comic = (this.Collection.SelectedItem as Comic);
             if (comic == null) {
                 return;

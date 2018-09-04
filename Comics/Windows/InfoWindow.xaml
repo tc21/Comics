@@ -1,4 +1,4 @@
-﻿<Window x:Class="Comics.Windows.InfoWindow"
+﻿<Window x:Class="Comics.InfoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,6 +8,7 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
         Title="Edit Comics"
+        Closing="InfoWindow_Closing"
         Height="400" Width="400">
 
     <Window.Resources>
@@ -24,7 +25,7 @@
             <DockPanel DockPanel.Dock="Bottom">
                 <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
                 <Button DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
+                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply"  Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
             <TabControl Background="{StaticResource OverlayBackgroundColor}">
@@ -33,21 +34,21 @@
                         <DockPanel>
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                                 <Label DockPanel.Dock="Left" Content="Title" Width="120" />
-                                <TextBox />
+                                <TextBox Text="{Binding DisplayTitle}" />
                             </DockPanel>
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                                 <Label DockPanel.Dock="Left" Content="Sort Title" Width="120" />
-                                <TextBox />
+                                <TextBox Text="{Binding SortTitle}" />
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                                 <Label DockPanel.Dock="Left" Content="Author" Width="120" />
-                                <TextBox />
+                                <TextBox Text="{Binding DisplayAuthor}" />
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                                 <Label DockPanel.Dock="Left" Content="Sort Author" Width="120" />
-                                <TextBox />
+                                <TextBox Text="{Binding SortAuthor}" />
                             </DockPanel>
 
                             <Label DockPanel.Dock="Top" FontSize="14" Content="Categories" />
@@ -72,7 +73,7 @@
                             </ItemsControl>
                             
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Button DockPanel.Dock="Left" Content="Edit Categories" Click="Button_EditCategories" Margin="2" Padding="4,2,4,2"/>
+                                <Button IsEnabled="False" DockPanel.Dock="Left" Content="Edit Categories" Click="Button_EditCategories" Margin="2" Padding="4,2,4,2"/>
                                 <Rectangle />
                             </DockPanel>
 

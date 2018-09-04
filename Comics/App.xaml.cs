@@ -32,6 +32,7 @@ namespace Comics {
     public partial class App : Application {
         public static MainWindow ComicsWindow = null;
         public static SettingsWindow SettingsWindow = null;
+        public static InfoWindow InfoWindow = null;
         private static MainViewModel viewModel = null;
         public static MainViewModel ViewModel {
             get {
