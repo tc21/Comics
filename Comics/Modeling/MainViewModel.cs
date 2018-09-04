@@ -65,31 +65,28 @@ namespace Comics {
         }
 
         // All loaded categories
-        public const string VisibleNewCategoriesPropertyName = "VisibleNewCategories";
-        public ObservableCollection<CategorySelector> visibleNewCategories = new ObservableCollection<CategorySelector>();
-        public ObservableCollection<CategorySelector> VisibleNewCategories {
-            //get => this.visibleNewCategories;
-            get => new ObservableCollection<CategorySelector> {
-                new CategorySelector(new SortedString("Category"), new List<SortedString> {new SortedString("Value")})
-            };
+        public const string VisibleTagsPropertyName = "VisibleTags";
+        public ObservableCollection<TagSelector> visibleTags = new ObservableCollection<TagSelector>();
+        public ObservableCollection<TagSelector> VisibleTags {
+            get => this.visibleTags;
             set {
-                if (this.visibleNewCategories == value) {
+                if (this.visibleTags == value) {
                     return;
                 }
 
-                this.visibleNewCategories = value;
-                NotifyPropertyChanged(VisibleNewCategoriesPropertyName);
+                this.visibleTags = value;
+                NotifyPropertyChanged(VisibleTagsPropertyName);
             }
         }
 
-        public class CategorySelector {
-            public string Description => this.Key.Display + ": ";
-            public IEnumerable<SortedString> Selections => new List<SortedString> { new SortedString("") }.Concat(this.Value);
-            public SortedString Key { get; set; }
-            public List<SortedString> Value { get; set; }
-            public CategorySelector(SortedString key, List<SortedString> values) {
+        public class TagSelector {
+            public string Description => this.Key + ": ";
+            public IEnumerable<string> Selections => new List<string> { "(unassigned)" }.Concat(this.Values);
+            public string Key { get; set; }
+            public List<string> Values { get; set; }
+            public TagSelector(string key, List<string> values) {
                 this.Key = key;
-                this.Value = values;
+                this.Values = values;
             }
         }
 
@@ -165,6 +162,12 @@ namespace Comics {
             }
 
             if (Defaults.LoadProfile(profile)) {
+                this.VisibleTags.Clear();
+
+                foreach (var tag in Defaults.Profile.Tags) {
+                    this.VisibleTags.Add(new TagSelector(tag.Key, tag.Value));
+                }
+
                 UpdateComicsAfterProfileChanged();
             }
         }

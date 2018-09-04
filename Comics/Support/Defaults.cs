@@ -34,6 +34,7 @@ namespace Comics {
             public bool TreatSubdirectoriesAsSeparateWorks { get; set; }
             public StartupApplication DefaultApplication { get; set; }
             public string ExecutionArguments { get; set; }
+            public List<KeyValuePair<string, List<string>>> Tags { get; set; }
 
             // Margin applied to the right hand side of the collection area to prevent the user 
             // resizing faster than the application can resize tiles, which can cause the application to
@@ -140,6 +141,22 @@ namespace Comics {
         static Defaults() {
             if (!LoadProfile(Properties.Settings.Default.CurrentProfile)) {
                 CreateNewProfile(null);
+            }
+        }
+
+        private static Dictionary<string, List<string>> tags;
+        public static Dictionary<string, List<string>> Tags {
+            get {
+                if (tags == null) {
+                    tags = Profile.Tags.ToDictionary(pair => pair.Key, pair => pair.Value);
+                }
+
+                return tags;
+            }
+            set {
+                tags = value;
+                Profile.Tags = tags.ToList();
+                SaveProfile();
             }
         }
 
@@ -300,26 +317,26 @@ namespace Comics {
         }
 
         /* Currently not used */
-        public static void SaveLibrary(IEnumerable<Comic> library) {
-            List<StorageInfo> list = new List<StorageInfo>();
-            foreach (Comic comic in library) {
-                list.Add(comic.CreateInfo());
-            }
+        //public static void SaveLibrary(IEnumerable<Comic> library) {
+        //    List<StorageInfo> list = new List<StorageInfo>();
+        //    foreach (Comic comic in library) {
+        //        list.Add(comic.CreateInfo());
+        //    }
 
-            XmlSerializer writer = new XmlSerializer(typeof(List<StorageInfo>));
-            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
-            string tempPath = path + ".tmp";
+        //    XmlSerializer writer = new XmlSerializer(typeof(List<StorageInfo>));
+        //    string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
+        //    string tempPath = path + ".tmp";
 
-            using (FileStream tempFile = File.Create(tempPath)) {
-                writer.Serialize(tempFile, list);
-            }
+        //    using (FileStream tempFile = File.Create(tempPath)) {
+        //        writer.Serialize(tempFile, list);
+        //    }
 
-            if (File.Exists(path)) {
-                File.Delete(path);
-            }
+        //    if (File.Exists(path)) {
+        //        File.Delete(path);
+        //    }
 
-            File.Move(tempPath, path);
-        }
+        //    File.Move(tempPath, path);
+        //}
 
         public static bool LoadProfile(string name) {
             UserDefaults profile;
@@ -332,41 +349,42 @@ namespace Comics {
 
             using (StreamReader file = new StreamReader(path)) {
                 profile = (UserDefaults)reader.Deserialize(file);
+                tags = null;  // temporary - ensure tags is reloaded on profile load
             }
 
-            Defaults.Profile = profile;
+            Profile = profile;
             Properties.Settings.Default.CurrentProfile = Defaults.Profile.ProfileName;
             Properties.Settings.Default.Save();
             return true;
         }
 
         /* Currently not used */
-        public static IEnumerable<Comic> LoadLibrary() {
-            List<Comic> library = new List<Comic>();
-            List<StorageInfo> list;
+        //public static IEnumerable<Comic> LoadLibrary() {
+        //    List<Comic> library = new List<Comic>();
+        //    List<StorageInfo> list;
 
-            XmlSerializer reader = new XmlSerializer(typeof(List<StorageInfo>));
-            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
+        //    XmlSerializer reader = new XmlSerializer(typeof(List<StorageInfo>));
+        //    string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
 
-            if (!File.Exists(path)) {
-                return null;
-            }
+        //    if (!File.Exists(path)) {
+        //        return null;
+        //    }
 
-            using (StreamReader file = new StreamReader(path)) {
-                list = (List<StorageInfo>)reader.Deserialize(file);
-            }
+        //    using (StreamReader file = new StreamReader(path)) {
+        //        list = (List<StorageInfo>)reader.Deserialize(file);
+        //    }
 
-            foreach (StorageInfo info in list) {
-                try {
-                    Comic comic = new Comic(info);
-                    library.Add(comic);
-                } catch (ComicLoadException) {
-                    Debug.Print(String.Format("An error occured during the loading of cached comic {0}", info.Title));
-                }
-            }
+        //    foreach (StorageInfo info in list) {
+        //        try {
+        //            Comic comic = new Comic(info);
+        //            library.Add(comic);
+        //        } catch (ComicLoadException) {
+        //            Debug.Print(String.Format("An error occured during the loading of cached comic {0}", info.Title));
+        //        }
+        //    }
             
-            return library;
-        }
+        //    return library;
+        //}
 
         public static string FormatExtension(string extension) {
             if (String.IsNullOrWhiteSpace(extension)) {
@@ -466,7 +484,8 @@ namespace Comics {
                     Extensions = new List<string>(),
                     IgnoredPrefixes = new List<string>(),
                     WorkTraversalDepth = defaultWorkTraversalDepth,
-                    TreatSubdirectoriesAsSeparateWorks = true
+                    TreatSubdirectoriesAsSeparateWorks = true,
+                    Tags = new List<KeyValuePair<string, List<string>>>()
                 };
                 return;
             }

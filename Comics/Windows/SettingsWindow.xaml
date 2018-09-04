@@ -77,9 +77,9 @@
                                 </DockPanel>
                                 <DockPanel Grid.Row="1">
                                     <Label Content="Folders" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="CategoryList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Categories}" CellEditEnding="CellEditEnding">
+                                    <DataGrid x:Name="FolderList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Folders}" CellEditEnding="CellEditEnding">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Category" Width="100" Binding="{Binding Category}" />
+                                            <DataGridTextColumn Header="Type" Width="100" Binding="{Binding Type}" />
                                             <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" />
                                         </DataGrid.Columns>
                                     </DataGrid>

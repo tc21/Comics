@@ -67,36 +67,36 @@ namespace Comics {
             this.Random = randomizer.Next();
         }
 
-        public Comic(StorageInfo info) : this(info.Title, info.Author, info.Category, info.Path) {
-            this.title = info.Title;
-            this.author = info.Author;
-            this.category = info.Category;
-            this.path = info.Path;
+        //public Comic(StorageInfo info) : this(info.Title, info.Author, info.Category, info.Path) {
+        //    this.title = info.Title;
+        //    this.author = info.Author;
+        //    this.category = info.Category;
+        //    this.path = info.Path;
 
-            this.filePaths = info.FilePaths;
-            this.imagePath = info.ImagePath;
+        //    this.filePaths = info.FilePaths;
+        //    this.imagePath = info.ImagePath;
 
-            if (!LoadMetadata()) {
-                this.Metadata = new Metadata();
-            }
+        //    if (!LoadMetadata()) {
+        //        this.Metadata = new Metadata();
+        //    }
 
-            if (this.filePaths.Count == 0) {
-                throw new ComicLoadException("No files stored for cached comic");
-            }
+        //    if (this.filePaths.Count == 0) {
+        //        throw new ComicLoadException("No files stored for cached comic");
+        //    }
 
-            this.Random = randomizer.Next();
-        }
+        //    this.Random = randomizer.Next();
+        //}
 
-        public StorageInfo CreateInfo() {
-            return new StorageInfo {
-                Title = this.title,
-                Author = this.author,
-                Category = this.category,
-                Path = this.path,
-                FilePaths = this.filePaths,
-                ImagePath = this.imagePath
-            };
-        }
+        //public StorageInfo CreateInfo() {
+        //    return new StorageInfo {
+        //        Title = this.title,
+        //        Author = this.author,
+        //        Category = this.category,
+        //        Path = this.path,
+        //        FilePaths = this.filePaths,
+        //        ImagePath = this.imagePath
+        //    };
+        //}
 
         // Not meant to replace HashCode()
         public int UniqueHashCode() {
@@ -154,10 +154,21 @@ namespace Comics {
             set { this.Metadata.Category = value; SaveMetadata(); NotifyPropertyChanged("Category"); }
         }
 
-        //public Dictionary<SortedString, SortedString> Categories {
-        //    get => this.Metadata.Categories ?? new Dictionary<SortedString, SortedString>();
-        //    set { this.Metadata.Categories = value; SaveMetadata(); NotifyPropertyChanged("Categories"); }
-        //}
+        private Dictionary<string, string> tags = null;
+
+        public Dictionary<string, string> Tags {
+            get {
+                if (this.tags == null) {
+                    this.tags = this.Metadata.Tags.ToDictionary(pair => pair.Key, pair => pair.Value);
+                }
+                return this.tags;
+            }
+            set {
+                this.Metadata.Tags = this.tags.ToList();
+                SaveMetadata();
+                NotifyPropertyChanged("Categories");
+            }
+        }
 
         public bool Loved {
             get => this.Metadata.Loved;
@@ -408,22 +419,21 @@ namespace Comics {
         public SortedString Title { get; set; }
         public SortedString Author { get; set; }
         public SortedString Category { get; set; }
-        //public Dictionary<SortedString, SortedString> Categories { get; set; }
+        public List<KeyValuePair<string, string>> Tags { get; set; }
         public bool Loved { get; set; }
         public bool Disliked { get; set; }
         public string ThumbnailSource { get; set; }
     }
 
     /* For saving and loading libraries. Currently not used */
-    public class StorageInfo {
-        public string Title { get; set; }
-        public string Author { get; set; }
-        public string Category { get; set; }
-        public string Path { get; set; }
-        public string ImagePath { get; set; }
-        public List<string> FilePaths { get; set; }
-
-    }
+    //public class StorageInfo {
+    //    public string Title { get; set; }
+    //    public string Author { get; set; }
+    //    public string Category { get; set; }
+    //    public string Path { get; set; }
+    //    public string ImagePath { get; set; }
+    //    public List<string> FilePaths { get; set; }
+    //}
 
     public class SortedString : IComparable {
         public string Display { get; set; }

@@ -1,0 +1,94 @@
+﻿<Window x:Class="Comics.Windows.InfoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Comics"
+        xmlns:ui="clr-namespace:UI"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        mc:Ignorable="d"
+        Title="Edit Comics"
+        Height="400" Width="400">
+
+    <Window.Resources>
+        <CollectionViewSource x:Key="VisibleNewCategories" Source="{Binding Path=VisibleNewCategories}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="Sort" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+    </Window.Resources>
+    
+    <Border Background="{StaticResource OverlayBackgroundColor}">
+
+        <DockPanel Margin="4">
+            <DockPanel DockPanel.Dock="Bottom">
+                <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
+                <Button DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
+                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
+                <Rectangle />
+            </DockPanel>
+            <TabControl Background="{StaticResource OverlayBackgroundColor}">
+                <TabItem Header="Metadata">
+                    <ScrollViewer>
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                                <Label DockPanel.Dock="Left" Content="Title" Width="120" />
+                                <TextBox />
+                            </DockPanel>
+                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                                <Label DockPanel.Dock="Left" Content="Sort Title" Width="120" />
+                                <TextBox />
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                                <Label DockPanel.Dock="Left" Content="Author" Width="120" />
+                                <TextBox />
+                            </DockPanel>
+
+                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                                <Label DockPanel.Dock="Left" Content="Sort Author" Width="120" />
+                                <TextBox />
+                            </DockPanel>
+
+                            <Label DockPanel.Dock="Top" FontSize="14" Content="Categories" />
+                            
+                            <ItemsControl x:Name="NewCategoriesSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
+                                <ItemsControl.ItemTemplate>
+                                    <HierarchicalDataTemplate>
+                                        <DockPanel>
+                                            <Label DockPanel.Dock="Top" FontSize="12" Content="{Binding Description}"></Label>
+                                            <!-- use dropdown select instead -->
+                                            <ItemsControl x:Name="NewCategorySelector" ItemsSource="{Binding Selections}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <HierarchicalDataTemplate>
+                                                        <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
+                                                    </HierarchicalDataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </DockPanel>
+
+                                    </HierarchicalDataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                                <Button DockPanel.Dock="Left" Content="Edit Categories" Click="Button_EditCategories" Margin="2" Padding="4,2,4,2"/>
+                                <Rectangle />
+                            </DockPanel>
+
+                            <Rectangle />
+                        </DockPanel>
+                    </ScrollViewer>
+                </TabItem>
+                
+                <TabItem Header="Info">
+                    <ScrollViewer>
+                        <DockPanel>
+
+                        </DockPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Border>
+</Window>

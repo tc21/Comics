@@ -190,6 +190,13 @@ namespace Comics {
             Properties.Settings.Default.RightSidebarVisible = !Properties.Settings.Default.RightSidebarVisible;
         }
 
+        // Opens currently selected comic
+        private void OpenSelectedComics() {
+            foreach (var comic in this.Collection.SelectedItems) {
+                (comic as Comic)?.Open();
+            }
+        }
+
         // Happens when the "settings" footer button is pressed
         private void ShowSettingsContextMenu(object sender, RoutedEventArgs e) {
             if (!this.SettingsButton.ContextMenu.IsOpen) {
@@ -205,7 +212,7 @@ namespace Comics {
 
         // Handlers for context menu items. This includes the right click and settings menus
         private void ContextMenu_Open(object sender, RoutedEventArgs e) {
-            (this.Collection.SelectedItem as Comic)?.Open();
+            OpenSelectedComics();
         }
 
         private void ContextMenu_Love(object sender, RoutedEventArgs e) {
@@ -307,18 +314,23 @@ namespace Comics {
         }
 
         // todo new categories
-        private void NewCategories_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            Debug.Print("Selection changed");
+        private void Tag_Checked(object sender, RoutedEventArgs e) {
+            Debug.Print("Selection checked");
+        }
+
+        // todo new categories
+        private void Tag_Unchecked(object sender, RoutedEventArgs e) {
+            Debug.Print("Selection unchecked");
         }
 
         // Ways for the user to open a comic
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-            (this.Collection.SelectedItem as Comic)?.Open();
+            OpenSelectedComics();
         }
 
         private void Collection_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
-                (this.Collection.SelectedItem as Comic)?.Open();
+                OpenSelectedComics();
             }
         }
 

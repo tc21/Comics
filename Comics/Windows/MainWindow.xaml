@@ -191,20 +191,16 @@
                     <ItemsControl x:Name="NewCategoriesSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Label Grid.Column="0" Content="{Binding Description}" />
-                                    <ComboBox Grid.Column="1" SelectionChanged="NewCategories_SelectionChanged" ItemsSource="{Binding Selections}">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </Grid>
+                                <DockPanel>
+                                    <Label DockPanel.Dock="Top" FontSize="12" Content="{Binding Description}"></Label>
+                                    <ItemsControl x:Name="NewCategorySelector" ItemsSource="{Binding Selections}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                                        <ItemsControl.ItemTemplate>
+                                            <HierarchicalDataTemplate>
+                                                <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
+                                            </HierarchicalDataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
 
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -260,6 +256,7 @@
                     MouseDoubleClick="Collection_MouseDoubleClick"
                     KeyDown="Collection_KeyDown"
                     Loaded="Collection_Loaded"
+                    SelectionMode="Extended"
                     >
                 </ListBox>
             </DockPanel>

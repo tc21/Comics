@@ -73,12 +73,19 @@
     <Compile Include="Support\Settings.cs" />
     <Compile Include="Support\Thumbnails.cs" />
     <Compile Include="UI\RemainingWidthConverter.cs" />
+    <Compile Include="Windows\InfoWindow.xaml.cs">
+      <DependentUpon>InfoWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\VirtualizingWrapPanel\VirtualizingWrapPanel.cs" />
     <Compile Include="Support\VisualHelper.cs" />
     <Page Include="ApplicationResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\InfoWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
