@@ -19,11 +19,13 @@ namespace Comics {
         // or within a set time (200ms by default) of gaining focus.
         //private Timer actionDelayTimer = new Timer(Defaults.Profile.ReactionTime);
         // These two sets are in sync with the user's checked items in the sidebar
-        private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedAuthors = new HashSet<string>();
+        private HashSet<string> selectedCategories = new HashSet<string>();
+        private HashSet<string> selectedTags = new HashSet<string>();
         // These three sets are in sync with all the visible items in the window
         private HashSet<string> availableAuthors = new HashSet<string>();
         private HashSet<string> availableCategories = new HashSet<string>();
+        private HashSet<string> availableTags = new HashSet<string>();
         private HashSet<string> availableComics = new HashSet<string>();
         // The two sidebar options
         private bool onlyShowLoved = false;
@@ -35,6 +37,7 @@ namespace Comics {
         private ICollectionView ComicsView => CollectionViewSource.GetDefaultView(this.Collection?.ItemsSource);
         private ICollectionView AuthorSelectorView => CollectionViewSource.GetDefaultView(this.AuthorSelector?.ItemsSource);
         private ICollectionView CategorySelectorView => CollectionViewSource.GetDefaultView(this.CategorySelector?.ItemsSource);
+        private ICollectionView TagSelectorView => CollectionViewSource.GetDefaultView(this.TagSelector?.ItemsSource);
 
         public MainWindow() {
             InitializeComponent();
@@ -60,6 +63,7 @@ namespace Comics {
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             this.AuthorSelectorView.Filter = this.AuthorSelectorFilter;
             this.CategorySelectorView.Filter = this.CategorySelectorFilter;
+            this.TagSelectorView.Filter = this.TagSelectorFilter;
             // Actually loads the comics on startup
             RefreshAll();
         }
@@ -95,6 +99,7 @@ namespace Comics {
             this.ComicsView.Refresh();
             this.AuthorSelectorView.Refresh();
             this.CategorySelectorView.Refresh();
+            this.TagSelectorView.Refresh();
         }
 
         // A change in search actually requires looping through all comics, since the sidebar's author
@@ -110,6 +115,7 @@ namespace Comics {
             this.availableCategories.Clear();
             this.availableAuthors.Clear();
             this.availableComics.Clear();
+            this.availableTags.Clear();
 
             var visibleComics = new ObservableCollection<Comic>(App.ViewModel.VisibleComics);
 
@@ -121,7 +127,10 @@ namespace Comics {
                 if (comic.MatchesSearchText(searchText)) {
                     this.availableAuthors.Add(comic.Author.Display);
                     this.availableCategories.Add(comic.Category.Display);
-                    if (comic.MatchesCategories(this.selectedCategories) && comic.MatchesAuthors(this.selectedAuthors)) {
+                    this.availableTags.UnionWith(comic.Tags);
+                    if (comic.MatchesCategories(this.selectedCategories) 
+                            && comic.MatchesAuthors(this.selectedAuthors)
+                            && comic.MatchesTags(this.selectedTags)) {
                         this.availableComics.Add(comic.UniqueIdentifier);
                     }
                 }
@@ -142,7 +151,11 @@ namespace Comics {
         // With the actual filtering done asynchronously, the filter imposed on the views are then quite simple.
         private bool ComicFilter(object item) {
             Comic comic = (Comic)item;
-            return this.availableComics.Contains(comic.UniqueIdentifier);
+
+            return comic.MatchesSearchText(this.searchText)
+                && comic.MatchesAuthors(this.selectedAuthors)
+                && comic.MatchesCategories(this.selectedCategories)
+                && comic.MatchesTags(this.selectedTags);
         }
 
         private bool AuthorSelectorFilter(object item) {
@@ -153,6 +166,10 @@ namespace Comics {
         private bool CategorySelectorFilter(object item) {
             SortedString category = (SortedString)item;
             return this.availableCategories.Contains(category.Display);
+        }
+
+        private bool TagSelectorFilter(object item) {
+            return this.availableTags.Contains((string)item);
         }
 
         // Handles a mouse event. By adding this handler to PreviewMouse..., 
@@ -346,16 +363,6 @@ namespace Comics {
             }
         }
 
-        // todo new categories
-        private void Tag_Checked(object sender, RoutedEventArgs e) {
-            Debug.Print("Selection checked");
-        }
-
-        // todo new categories
-        private void Tag_Unchecked(object sender, RoutedEventArgs e) {
-            Debug.Print("Selection unchecked");
-        }
-
         // Ways for the user to open a comic
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
             OpenSelectedComics();
@@ -387,6 +394,17 @@ namespace Comics {
             this.selectedAuthors.Add(((CheckBox)sender).Content.ToString());
             RefreshComics();
         }
+        
+        private void Tag_Checked(object sender, RoutedEventArgs e) {
+            this.selectedTags.Add(((CheckBox)sender).Content.ToString());
+            RefreshComics();
+        }
+        
+        private void Tag_Unchecked(object sender, RoutedEventArgs e) {
+            this.selectedTags.Remove(((CheckBox)sender).Content.ToString());
+            RefreshComics();
+        }
+
 
         private void Author_Unchecked(object sender, RoutedEventArgs e) {
             this.selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
@@ -434,7 +452,7 @@ namespace Comics {
                 source = VisualTreeHelper.GetParent(source);
             }
 
-            var item = source as ListBoxItem;
+            ListBoxItem item = source as ListBoxItem;
 
             if (item != null) {
                 this.dragStart = e.GetPosition(null);

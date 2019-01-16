@@ -34,9 +34,7 @@ namespace Comics {
 
         public InfoWindow() {
             InitializeComponent();
-
             App.InfoWindow = this;
-            
             PopulateInitialInfo();
         }
 
@@ -72,15 +70,14 @@ namespace Comics {
 
                 this.comicTitle = value;
                 NotifyPropertyChanged(DisplayTitlePropertyName);
-                NotifyPropertyChanged(DisplayTitlePropertyName);
             }
 
         }
 
         public string DisplayTitle {
-            get => this.comicTitle.Display;
+            get => this.comicTitle?.Display ?? "";
             set {
-                if (this.comicTitle.Display == value) {
+                if (this.comicTitle == null || this.comicTitle.Display == value) {
                     return;
                 }
 
@@ -90,9 +87,9 @@ namespace Comics {
         }
 
         public string SortTitle {
-            get => this.comicTitle.Sort;
+            get => this.comicTitle?.Sort ?? "";
             set {
-                if (this.comicTitle.Sort == value) {
+                if (this.comicTitle == null || this.comicTitle.Sort == value) {
                     return;
                 }
 
@@ -119,9 +116,9 @@ namespace Comics {
         }
 
         public string DisplayAuthor {
-            get => this.comicAuthor.Display;
+            get => this.comicAuthor?.Display ?? "";
             set {
-                if (this.comicAuthor.Display == value) {
+                if (this.comicAuthor == null || this.comicAuthor.Display == value) {
                     return;
                 }
 
@@ -131,9 +128,9 @@ namespace Comics {
         }
 
         public string SortAuthor {
-            get => this.comicAuthor.Sort;
+            get => this.comicAuthor?.Sort ?? "";
             set {
-                if (this.comicAuthor.Sort == value) {
+                if (this.comicAuthor == null || this.comicAuthor.Sort == value) {
                     return;
                 }
 

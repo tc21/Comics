@@ -79,7 +79,7 @@
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        <CollectionViewSource x:Key="VisibleNewCategories" Source="{Binding Path=VisibleNewCategories}">
+        <CollectionViewSource x:Key="VisibleTags" Source="{Binding Path=VisibleTags}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
@@ -198,19 +198,10 @@
 
 
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← not impleimented"></Label>
-                    <ItemsControl x:Name="TagsSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
+                    <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource VisibleTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <DockPanel>
-                                    <Label DockPanel.Dock="Top" FontSize="12" Content="{Binding Description}"></Label>
-                                    <ItemsControl x:Name="TagsSelector" ItemsSource="{Binding Selections}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
-                                        <ItemsControl.ItemTemplate>
-                                            <HierarchicalDataTemplate>
-                                                <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
-                                            </HierarchicalDataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </DockPanel>
+                                <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

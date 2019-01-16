@@ -66,8 +66,8 @@ namespace Comics {
 
         // All loaded categories
         public const string VisibleTagsPropertyName = "VisibleTags";
-        public ObservableCollection<TagSelector> visibleTags = new ObservableCollection<TagSelector>();
-        public ObservableCollection<TagSelector> VisibleTags {
+        public ObservableCollection<string> visibleTags = new ObservableCollection<string>();
+        public ObservableCollection<string> VisibleTags {
             get => this.visibleTags;
             set {
                 if (this.visibleTags == value) {
@@ -76,17 +76,6 @@ namespace Comics {
 
                 this.visibleTags = value;
                 NotifyPropertyChanged(VisibleTagsPropertyName);
-            }
-        }
-
-        public class TagSelector {
-            public string Description => this.Key + ": ";
-            public IEnumerable<string> Selections => new List<string> { "(unassigned)" }.Concat(this.Values);
-            public string Key { get; set; }
-            public List<string> Values { get; set; }
-            public TagSelector(string key, List<string> values) {
-                this.Key = key;
-                this.Values = values;
             }
         }
 
@@ -162,12 +151,6 @@ namespace Comics {
             }
 
             if (Defaults.LoadProfile(profile)) {
-                this.VisibleTags.Clear();
-
-                foreach (var tag in Defaults.Profile.Tags) {
-                    this.VisibleTags.Add(new TagSelector(tag.Key, tag.Value));
-                }
-
                 UpdateComicsAfterProfileChanged();
             }
         }
@@ -303,19 +286,19 @@ namespace Comics {
         }
 
         // Adds a comic to the visible comics list
-        private void AddComicToVisibleComics(Comic comic/*, CancellationToken cancellationToken*/) {
-            //cancellationToken.ThrowIfCancellationRequested();
-            App.Current.Dispatcher.Invoke(() => {
-                this.VisibleComics.Add(comic);
-                if (!this.VisibleAuthors.Contains(comic.Author)) {
-                    this.VisibleAuthors.Add(comic.Author);
-                }
-
-                if (!this.VisibleCategories.Contains(comic.Category)) {
-                    this.VisibleCategories.Add(comic.Category);
-                }
-            });
-        }
+        //private void AddComicToVisibleComics(Comic comic/*, CancellationToken cancellationToken*/) {
+        //    //cancellationToken.ThrowIfCancellationRequested();
+        //    App.Current.Dispatcher.Invoke(() => {
+        //        this.VisibleComics.Add(comic);
+        //        if (!this.VisibleAuthors.Contains(comic.Author)) {
+        //            this.VisibleAuthors.Add(comic.Author);
+        //        }
+        //
+        //        if (!this.VisibleCategories.Contains(comic.Category)) {
+        //            this.VisibleCategories.Add(comic.Category);
+        //        }
+        //    });
+        //}
 
         private void AddComicToTempComics(Comic comic) {
             App.Current.Dispatcher.Invoke(() => {
@@ -326,6 +309,12 @@ namespace Comics {
 
                 if (!this.VisibleCategories.Contains(comic.Category)) {
                     this.VisibleCategories.Add(comic.Category);
+                }
+
+                foreach (var tag in comic.Tags) {
+                    if (!this.VisibleTags.Contains(tag)) {
+                        this.VisibleTags.Add(tag);
+                    }
                 }
             });
         }
