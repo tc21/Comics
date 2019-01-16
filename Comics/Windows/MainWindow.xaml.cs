@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Comics {
     public partial class MainWindow : Window {
@@ -416,6 +417,66 @@ namespace Comics {
             Properties.Settings.Default.MainWindowTop = this.Top;
             Properties.Settings.Default.MainWindowLeft = this.Left;
             base.OnClosing(e);
+        }
+
+        private Point dragStart;
+        private List<Comic> selectedComics = null;
+
+        private void Collection_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+
+            var source = e.OriginalSource as DependencyObject;
+
+            while (source is ContentElement) {
+                source = LogicalTreeHelper.GetParent(source);
+            }
+
+            while (source != null && !(source is ListBoxItem)) {
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            var item = source as ListBoxItem;
+
+            if (item != null) {
+                this.dragStart = e.GetPosition(null);
+                if (this.Collection.SelectedItems.Count > 1) {
+                    this.selectedComics = new List<Comic>(this.Collection.SelectedItems.Cast<Comic>());
+                } else {
+                    this.selectedComics = null;
+                }
+            }
+        }
+
+        private void Collection_MouseMove(object sender, MouseEventArgs e) {
+            Point mouse = e.GetPosition(null);
+            Vector difference = this.dragStart - mouse;
+            
+            if (e.LeftButton == MouseButtonState.Pressed &&
+                Math.Abs(difference.X) > SystemParameters.MinimumHorizontalDragDistance &&
+                Math.Abs(difference.Y) > SystemParameters.MinimumVerticalDragDistance) {
+
+                if (this.Collection.SelectedItems.Count == 0) {
+                    return;
+                }
+
+                if (this.selectedComics != null) {
+                    foreach (var comic in this.selectedComics) {
+                        if (!this.Collection.SelectedItems.Contains(comic)) {
+                            this.Collection.SelectedItems.Add(comic);
+                        }
+                    }
+                    this.selectedComics = null;
+                }
+
+                string dataFormat = DataFormats.FileDrop;
+                string[] files = new string[this.Collection.SelectedItems.Count];
+
+                for (int i = 0; i < this.Collection.SelectedItems.Count; i++) {
+                    files[i] = (this.Collection.SelectedItems[i] as Comic).ContainingPath;
+                }
+
+                DataObject dataObject = new DataObject(dataFormat, files);
+                DragDrop.DoDragDrop(this.Collection, dataObject, DragDropEffects.Copy);
+            }
         }
     }
 }

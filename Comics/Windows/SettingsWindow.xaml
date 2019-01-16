@@ -97,6 +97,11 @@
                         </DockPanel>
                     </ScrollViewer>
                 </TabItem>
+
+                <TabItem Header="Tags">
+                    Hello! This feature is not implemented yet.
+                </TabItem>
+
                 <TabItem Header="Behavior">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">

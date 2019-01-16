@@ -36,8 +36,7 @@ namespace Comics {
             InitializeComponent();
 
             App.InfoWindow = this;
-
-            this.DataContext = this;
+            
             PopulateInitialInfo();
         }
 
@@ -165,7 +164,7 @@ namespace Comics {
 
         }
 
-        private void Button_EditCategories(object sender, RoutedEventArgs e) {
+        private void Button_EditTags(object sender, RoutedEventArgs e) {
 
         }
 

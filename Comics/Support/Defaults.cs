@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 namespace Comics {
     public class Defaults {
         // The default settings currently being used
-        public static UserDefaults Profile;
+        public static UserDefaults Profile { get; set; }
 
         // Default settings for each instance
         public class UserDefaults {
@@ -113,7 +113,12 @@ namespace Comics {
                     });
                     viewer.Show();
                 } else {
-                    Process.Start(this.Path, String.Join(" ", arguments.Select(p => "\"" + p + "\"")));
+                    if (!File.Exists(this.Path)) {
+                        MessageBox.Show("Startup application doesn't exist!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    Process.Start(this.Path, string.Join(" ", arguments.Select(p => "\"" + p + "\"")));
                 }
             }
 
@@ -355,6 +360,7 @@ namespace Comics {
             Profile = profile;
             Properties.Settings.Default.CurrentProfile = Defaults.Profile.ProfileName;
             Properties.Settings.Default.Save();
+
             return true;
         }
 

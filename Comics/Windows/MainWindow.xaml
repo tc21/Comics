@@ -187,25 +187,6 @@
                     <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2" Checked="ShowLoved_Checked" Unchecked="ShowLoved_Unchecked"/>
                     <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Checked" Unchecked="ShowDisliked_Unchecked"/>
 
-                    <Label DockPanel.Dock="Top" FontSize="14" Content="Categories"></Label>
-                    <ItemsControl x:Name="NewCategoriesSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
-                        <ItemsControl.ItemTemplate>
-                            <HierarchicalDataTemplate>
-                                <DockPanel>
-                                    <Label DockPanel.Dock="Top" FontSize="12" Content="{Binding Description}"></Label>
-                                    <ItemsControl x:Name="NewCategorySelector" ItemsSource="{Binding Selections}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
-                                        <ItemsControl.ItemTemplate>
-                                            <HierarchicalDataTemplate>
-                                                <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
-                                            </HierarchicalDataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </DockPanel>
-
-                            </HierarchicalDataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Category"></Label>
                     <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource VisibleCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
@@ -214,7 +195,26 @@
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    
+
+
+                    <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← not impleimented"></Label>
+                    <ItemsControl x:Name="TagsSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
+                        <ItemsControl.ItemTemplate>
+                            <HierarchicalDataTemplate>
+                                <DockPanel>
+                                    <Label DockPanel.Dock="Top" FontSize="12" Content="{Binding Description}"></Label>
+                                    <ItemsControl x:Name="TagsSelector" ItemsSource="{Binding Selections}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                                        <ItemsControl.ItemTemplate>
+                                            <HierarchicalDataTemplate>
+                                                <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
+                                            </HierarchicalDataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
+                            </HierarchicalDataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Authors"></Label>
                     <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource VisibleAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
@@ -257,6 +257,8 @@
                     KeyDown="Collection_KeyDown"
                     Loaded="Collection_Loaded"
                     SelectionMode="Extended"
+                    PreviewMouseLeftButtonDown="Collection_PreviewMouseLeftButtonDown"
+                    MouseMove="Collection_MouseMove"
                     >
                 </ListBox>
             </DockPanel>
