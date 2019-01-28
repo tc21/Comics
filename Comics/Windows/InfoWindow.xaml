@@ -13,7 +13,7 @@
         Height="400" Width="400">
 
     <Window.Resources>
-        <CollectionViewSource x:Key="VisibleNewCategories" Source="{Binding Path=VisibleNewCategories}">
+        <CollectionViewSource x:Key="VisibleTags" Source="{Binding Path=VisibleTags}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
@@ -34,49 +34,37 @@
                     <ScrollViewer>
                         <DockPanel>
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Label DockPanel.Dock="Left" Content="Title" Width="120" />
-                                <TextBox Text="{Binding DisplayTitle}" />
+                                <Label DockPanel.Dock="Left" Content="Title" Width="72" />
+                                <Label DockPanel.Dock="Left" Content="(Edited)" Width="52" FontStyle="Italic" Opacity="0.6" Visibility="Hidden"/>
+                                <TextBox Text="{Binding DisplayTitle}" TextChanged="TextBox_TextChanged"/>
                             </DockPanel>
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Label DockPanel.Dock="Left" Content="Sort Title" Width="120" />
+                                <Label DockPanel.Dock="Left" Content="Sort Title" Width="72" />
+                                <Label DockPanel.Dock="Left" Content="(Edited)" Width="52" Visibility="Hidden" />
                                 <TextBox Text="{Binding SortTitle}" />
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Label DockPanel.Dock="Left" Content="Author" Width="120" />
+                                <Label DockPanel.Dock="Left" Content="Author" Width="72" />
+                                <Label DockPanel.Dock="Left" Content="(Edited)" Width="52" Visibility="Hidden" />
                                 <TextBox Text="{Binding DisplayAuthor}" />
                             </DockPanel>
 
                             <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Label DockPanel.Dock="Left" Content="Sort Author" Width="120" />
+                                <Label DockPanel.Dock="Left" Content="Sort Author" Width="72" />
+                                <Label DockPanel.Dock="Left" Content="(Edited)" Width="52" Visibility="Hidden" />
                                 <TextBox Text="{Binding SortAuthor}" />
                             </DockPanel>
 
-                            <Label DockPanel.Dock="Top" FontSize="14" Content="Tags" />
-                            
-                            <ItemsControl x:Name="NewCategoriesSelector" ItemsSource="{Binding Source={StaticResource VisibleNewCategories}}" DockPanel.Dock="Top">
+                            <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← coming soon!" />
+
+                            <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource VisibleTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                                 <ItemsControl.ItemTemplate>
                                     <HierarchicalDataTemplate>
-                                        <DockPanel>
-                                            <Label DockPanel.Dock="Top" FontSize="12" Content="{Binding Description}"></Label>
-                                            <!-- use dropdown select instead -->
-                                            <ItemsControl x:Name="NewCategorySelector" ItemsSource="{Binding Selections}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <HierarchicalDataTemplate>
-                                                        <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
-                                                    </HierarchicalDataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </DockPanel>
-
+                                        <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
                                     </HierarchicalDataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            
-                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Button IsEnabled="False" DockPanel.Dock="Left" Content="Edit Tags" Click="Button_EditTags" Margin="2" Padding="4,2,4,2"/>
-                                <Rectangle />
-                            </DockPanel>
 
                             <Rectangle />
                         </DockPanel>

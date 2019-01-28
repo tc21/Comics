@@ -32,6 +32,8 @@ namespace Comics {
             }
         }
 
+        public List<string> Tags { get; set; }
+
         public InfoWindow() {
             InitializeComponent();
             App.InfoWindow = this;
@@ -56,6 +58,13 @@ namespace Comics {
                     this.ComicAuthor = new SortedString("Various");
                 }
             }
+
+            /* 1. this.Tags is null, because PopulateInitialInfo is called multiple times at random: it's the way it's supposed to work
+             * 2. you should pass in the default list of tags, it should be showed as a list of checkboxes
+             * 3. there should be an add tag button
+             * 4. you still have to implement multiple editing.
+             */
+            //this.VisibleTags = new ObservableCollection<string>(this.Tags);
         }
 
         public const string DisplayTitlePropertyName = "DisplayTitle";
@@ -139,6 +148,20 @@ namespace Comics {
             }
         }
 
+        public const string VisibleTagsPropertyName = "VisibleTags";
+        public ObservableCollection<string> visibleTags = new ObservableCollection<string>();
+        public ObservableCollection<string> VisibleTags {
+            get => this.visibleTags;
+            set {
+                if (this.visibleTags == value) {
+                    return;
+                }
+
+                this.visibleTags = value;
+                NotifyPropertyChanged(VisibleTagsPropertyName);
+            }
+        }
+
         // Implementation of INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(string propertyName) {
@@ -179,6 +202,7 @@ namespace Comics {
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e) {
+            var debug = (sender as TextBox).Parent;
             // todo: this doesn't do anything at the moment, but eventually we should be able to detect and only save
             // fields to which the user changed stuff, and then we will be able to edit multiple items.
         }

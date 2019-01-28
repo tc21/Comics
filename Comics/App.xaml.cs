@@ -17,13 +17,20 @@ using System.Windows;
  *        comics, and you want then to show up in the same library. But they have to be opened differently. The
  *        current program only allows you to have one way to open stuff, which will have to be changed.
  *    or folders as subitems in a work
- * 3. Create the ViewerWindow API to have different kinds of viewers with consistent behavior
- *       Note: for example, when there are multiple built-in viewers, they should all be abstracted at a level
- *       where the program doesn't care about what type of viewer it is. Currently, the program adds a context
- *       menu to viewer, and the viewer is able to report which page it currently is on (and which file that is).
- *       We will create an Interface so that this behavior can be generalized
- * 4. Implement library files so you don't have to index everything from disk everytime you startup the program
- * 5. Add keyboard shortcuts and controls since basically everything only works from the mouse right now
+ * 3. Implement library files so you don't have to index everything from disk everytime you startup the program
+ * 4. Add keyboard shortcuts and controls since basically everything only works from the mouse right now
+ * 5. Implement tags (work in progress)
+ * 6. Add the ability to have custom actions: for example, you may be able to assign an action
+ *        type: right click menu item
+ *        name: upsample comic using waifu2x
+ *        action: {
+ *            subprocess.call(['waifu2x-cui', '-w', '2160', '-o', '{folder}/temp', '-i', '{folder}'])
+ *            for f in os.listdir('{folder}/temp'):
+ *                os.remove('{folder}/' + f)
+ *                os.rename('{folder}/temp/' + f, '{folder}/' + f)
+ *            os.rmdir('{folder}/temp')
+ *        }
+ *    which is saved per profile.
  * 
  * Last modified Tianyi Cao, 2018-03-11.
  */

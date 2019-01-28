@@ -85,7 +85,7 @@
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
         <!-- Context menus -->
-        <ContextMenu x:Key="ComicsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
+        <ContextMenu x:Key="ComicsContextMenu">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
             <MenuItem Header="Edit Info" Click="ContextMenu_EditInfo" />
             <Separator />
@@ -98,7 +98,7 @@
             <Separator />
             <MenuItem Header="Delete Local Files" IsEnabled="False" />
         </ContextMenu>
-        <ContextMenu x:Key="SettingsContextMenu" Opened="DisableActions" Closed="EnableActionsWithDelay">
+        <ContextMenu x:Key="SettingsContextMenu">
             <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
                 <!--<MenuItem Header="Quick Toggles" IsEnabled="False">
                 <MenuItem />
@@ -197,7 +197,7 @@
                     </ItemsControl>
 
 
-                    <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← not impleimented"></Label>
+                    <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← not implemented"></Label>
                     <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource VisibleTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>

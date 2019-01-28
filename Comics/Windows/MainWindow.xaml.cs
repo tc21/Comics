@@ -15,29 +15,19 @@ using System.Windows.Media;
 
 namespace Comics {
     public partial class MainWindow : Window {
-        // Used to disable left click actions when the application is out of focus
-        // or within a set time (200ms by default) of gaining focus.
-        //private Timer actionDelayTimer = new Timer(Defaults.Profile.ReactionTime);
-        // These two sets are in sync with the user's checked items in the sidebar
+        // These sets are in sync with the user's checked items in the sidebar
+        // They are stored in a hashset for easy filtering
         private HashSet<string> selectedAuthors = new HashSet<string>();
         private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedTags = new HashSet<string>();
-        // These three sets are in sync with all the visible items in the window
-        private HashSet<string> availableAuthors = new HashSet<string>();
-        private HashSet<string> availableCategories = new HashSet<string>();
-        private HashSet<string> availableTags = new HashSet<string>();
-        private HashSet<string> availableComics = new HashSet<string>();
         // The two sidebar options
         private bool onlyShowLoved = false;
         private bool showDisliked = false;
         // The text currently inside the search bar
         private string searchText = null;
 
-        // These three private properties return the view containing objects so the view can be updated 
+        // This property returns the view containing objects so the view can be updated 
         private ICollectionView ComicsView => CollectionViewSource.GetDefaultView(this.Collection?.ItemsSource);
-        private ICollectionView AuthorSelectorView => CollectionViewSource.GetDefaultView(this.AuthorSelector?.ItemsSource);
-        private ICollectionView CategorySelectorView => CollectionViewSource.GetDefaultView(this.CategorySelector?.ItemsSource);
-        private ICollectionView TagSelectorView => CollectionViewSource.GetDefaultView(this.TagSelector?.ItemsSource);
 
         public MainWindow() {
             InitializeComponent();
@@ -53,23 +43,10 @@ namespace Comics {
             // Sets the right sidebar visibility to its saved state
             this.RightSidebar.Loaded += ((u, v) => this.RightSidebar.Visibility =
                 (Properties.Settings.Default.RightSidebarVisible) ? Visibility.Visible : Visibility.Collapsed);
-            // Enables the left click delay
-            //DisableActions(null, null);
-            //actionDelayTimer.Elapsed += EnableActions;
-            //Activated += EnableActionsWithDelay;
-            //Deactivated += DisableActions;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-            this.AuthorSelectorView.Filter = this.AuthorSelectorFilter;
-            this.CategorySelectorView.Filter = this.CategorySelectorFilter;
-            this.TagSelectorView.Filter = this.TagSelectorFilter;
-            // Actually loads the comics on startup
-            RefreshAll();
-        }
-
-        public void RefreshComicFilters() {
-            // this filter must be updated everytime the list of comics is reloaded
+            RefreshComics();
             this.ComicsView.Filter = this.ComicFilter;
         }
 
@@ -87,19 +64,8 @@ namespace Comics {
 
         // Asynchronously updates comics and refreshes the main view. 
         // Used when a category or author selection changes
-        public async void RefreshComics() {
-            await Task.Run(() => UpdateAvailableComics(this.searchText));
+        public void RefreshComics() {
             this.ComicsView.Refresh();
-        }
-
-        // Asynchronously updates comics and refreshes all views
-        // Used when a general selection / search term changes
-        public async void RefreshAll() {
-            await Task.Run(() => UpdateAvailableComics(this.searchText));
-            this.ComicsView.Refresh();
-            this.AuthorSelectorView.Refresh();
-            this.CategorySelectorView.Refresh();
-            this.TagSelectorView.Refresh();
         }
 
         // A change in search actually requires looping through all comics, since the sidebar's author
@@ -107,39 +73,9 @@ namespace Comics {
         // lag when run on the UI thread., meaning we had to make this operation asynchronous. 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             this.searchText = this.SearchBox.Text;
-            RefreshAll();
+            RefreshComics();
         }
-
-        // This is the operation that was causing lag.
-        private void UpdateAvailableComics(string searchText) {
-            this.availableCategories.Clear();
-            this.availableAuthors.Clear();
-            this.availableComics.Clear();
-            this.availableTags.Clear();
-
-            var visibleComics = new ObservableCollection<Comic>(App.ViewModel.VisibleComics);
-
-            foreach (Comic comic in visibleComics) {
-                if ((this.onlyShowLoved && !comic.Loved) || (!this.showDisliked && comic.Disliked)) {
-                    continue;
-                }
-
-                if (comic.MatchesSearchText(searchText)) {
-                    this.availableAuthors.Add(comic.Author.Display);
-                    this.availableCategories.Add(comic.Category.Display);
-                    this.availableTags.UnionWith(comic.Tags);
-                    if (comic.MatchesCategories(this.selectedCategories) 
-                            && comic.MatchesAuthors(this.selectedAuthors)
-                            && comic.MatchesTags(this.selectedTags)) {
-                        this.availableComics.Add(comic.UniqueIdentifier);
-                    }
-                }
-            }
-
-            string footer = this.availableComics.Count.ToString() + " Item" + (this.availableComics.Count == 1 ? "" : "s");
-            this.Dispatcher.Invoke(() => this.Footer.Content = footer);
-        }
-
+        
         // Detects the display scaling and stores it in settings
         public void UpdateDisplayScale() {
             PresentationSource presentationSource = PresentationSource.FromVisual(this);
@@ -156,46 +92,9 @@ namespace Comics {
                 && comic.MatchesAuthors(this.selectedAuthors)
                 && comic.MatchesCategories(this.selectedCategories)
                 && comic.MatchesTags(this.selectedTags);
+            //todo loved/disliked
         }
-
-        private bool AuthorSelectorFilter(object item) {
-            SortedString author = (SortedString)item;
-            return this.availableAuthors.Contains(author.Display);
-        }
-
-        private bool CategorySelectorFilter(object item) {
-            SortedString category = (SortedString)item;
-            return this.availableCategories.Contains(category.Display);
-        }
-
-        private bool TagSelectorFilter(object item) {
-            return this.availableTags.Contains((string)item);
-        }
-
-        // Handles a mouse event. By adding this handler to PreviewMouse..., 
-        // the event is effectively disabled.
-        private void MouseEventHandled(object sender, MouseButtonEventArgs e) {
-            e.Handled = true;
-        }
-
-        // These functions enable the "left click delay". Since nothing that happens in the 
-        // program actually only requires 1 left click anymore, I'm considering disabling it
-        // by default.
-        private void DisableActions(object sender, EventArgs e) {
-            //PreviewMouseLeftButtonDown += MouseEventHandled;
-            //PreviewMouseLeftButtonUp += MouseEventHandled;
-        }
-
-        private void EnableActionsWithDelay(object sender, EventArgs e) {
-            //actionDelayTimer.Start();
-        }
-
-        private void EnableActions(object sender, EventArgs e) {
-            //PreviewMouseLeftButtonDown -= MouseEventHandled;
-            //PreviewMouseLeftButtonUp -= MouseEventHandled;
-            //actionDelayTimer.Stop();
-        }
-
+        
         // Happens when the "toggle right sidebar" footer button is pressed
         private void ToggleRightSidebar(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
@@ -242,14 +141,16 @@ namespace Comics {
 
             if (App.InfoWindow != null) {
                 App.InfoWindow.EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList();
+                //App.InfoWindow.Tags = this.availableTags.ToList();
                 App.InfoWindow.Activate();
                 return;
             }
             
             Window info = new InfoWindow {
                 Owner = this,
-                EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList()
-            };
+                EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList(),
+                //Tags = this.availableTags.ToList()
+        };
 
             info.Show();
         }
@@ -413,22 +314,22 @@ namespace Comics {
 
         private void ShowLoved_Checked(object sender, RoutedEventArgs e) {
             this.onlyShowLoved = true;
-            RefreshAll();
+            RefreshComics();
         }
 
         private void ShowLoved_Unchecked(object sender, RoutedEventArgs e) {
             this.onlyShowLoved = false;
-            RefreshAll();
+            RefreshComics();
         }
 
         private void ShowDisliked_Checked(object sender, RoutedEventArgs e) {
             this.showDisliked = true;
-            RefreshAll();
+            RefreshComics();
         }
 
         private void ShowDisliked_Unchecked(object sender, RoutedEventArgs e) {
             this.showDisliked = false;
-            RefreshAll();
+            RefreshComics();
         }
 
         protected override void OnClosing(CancelEventArgs e) {
@@ -437,6 +338,7 @@ namespace Comics {
             base.OnClosing(e);
         }
 
+        // the following two functions allow for items to be dragged out of the program
         private Point dragStart;
         private List<Comic> selectedComics = null;
 

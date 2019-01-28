@@ -32,8 +32,6 @@ namespace Comics {
             }
         }
 
-        private ObservableCollection<Comic> tempComics = new ObservableCollection<Comic>();
-
         // All loaded authors
         public const string VisibleAuthorsPropertyName = "VisibleAuthors";
         public ObservableCollection<SortedString> visibleAuthors = new ObservableCollection<SortedString>();
@@ -51,7 +49,7 @@ namespace Comics {
 
         // All loaded categories
         public const string VisibleCategoriesPropertyName = "VisibleCategories";
-        public ObservableCollection<SortedString> visibleCategories = new ObservableCollection<SortedString>();
+        private ObservableCollection<SortedString> visibleCategories = new ObservableCollection<SortedString>();
         public ObservableCollection<SortedString> VisibleCategories {
             get => this.visibleCategories;
             set {
@@ -66,7 +64,7 @@ namespace Comics {
 
         // All loaded categories
         public const string VisibleTagsPropertyName = "VisibleTags";
-        public ObservableCollection<string> visibleTags = new ObservableCollection<string>();
+        private ObservableCollection<string> visibleTags = new ObservableCollection<string>();
         public ObservableCollection<string> VisibleTags {
             get => this.visibleTags;
             set {
@@ -97,7 +95,7 @@ namespace Comics {
 
         // List of profiles
         public const string ProfilesPropertyName = "Profiles";
-        public ObservableCollection<string> profiles = new ObservableCollection<string>();
+        private ObservableCollection<string> profiles = new ObservableCollection<string>();
         public ObservableCollection<string> Profiles {
             get => this.profiles;
             set {
@@ -158,7 +156,7 @@ namespace Comics {
         // The loading of comics in a profile is done asynchronously. This is done to improve
         // the fluidity of the program. Loading thumbnails is also done asynchronously, because 
         // it takes a long time and the user still should be able to use the program. If we load
-        // a now profile before any of this is done, we modify the collection of comics while the 
+        // a new profile before any of this is done, we modify the collection of comics while the 
         // async operations are still looping over it. We can cancel the operations, ensure these
         // two operations are themselves happening synchronously, or do this.
         private void ProfileLoadStarted() {
@@ -174,6 +172,8 @@ namespace Comics {
 
         private void ProfileLoadEnded() {
             if (App.ComicsWindow != null) {
+                var count = VisibleComics.Count;
+                App.ComicsWindow.Footer.Content = count.ToString() + " Item" + (count == 1 ? "" : "s");
                 App.ComicsWindow.ProfileSelector.IsEnabled = true;
                 App.ComicsWindow.SettingsButton.IsEnabled = true;
             }
@@ -186,7 +186,7 @@ namespace Comics {
         public async void UpdateComicsAfterProfileChanged() {
             await ReloadComicSteps();
             App.SettingsWindow?.PopulateProfileSettings();
-            App.ComicsWindow?.RefreshAll();
+            App.ComicsWindow?.RefreshComics();
         }
 
         // Public interface to reload all comics
@@ -195,15 +195,16 @@ namespace Comics {
             App.ComicsWindow?.RefreshComics();
         }
 
+        // function that actually reloads comics
         private async Task ReloadComicSteps() {
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
             this.VisibleComics.Clear();
-            this.tempComics = new ObservableCollection<Comic>();
+            this.VisibleAuthors.Clear();
+            this.VisibleCategories.Clear();
+            this.VisibleTags.Clear();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
-            this.VisibleComics = this.tempComics;
-            App.ComicsWindow?.RefreshComicFilters();
             App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
             ProfileLoadEnded();
@@ -237,7 +238,7 @@ namespace Comics {
                     FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
-                            AddComicToTempComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
+                            AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
                         }
                     }
                     //}
@@ -280,29 +281,14 @@ namespace Comics {
                 }
 
                 if (comic.FilePaths.Count > 0) {
-                    AddComicToTempComics(comic/*, cancellationToken*/);
+                    AddComicToVisibleComics(comic/*, cancellationToken*/);
                 }
             }
         }
 
-        // Adds a comic to the visible comics list
-        //private void AddComicToVisibleComics(Comic comic/*, CancellationToken cancellationToken*/) {
-        //    //cancellationToken.ThrowIfCancellationRequested();
-        //    App.Current.Dispatcher.Invoke(() => {
-        //        this.VisibleComics.Add(comic);
-        //        if (!this.VisibleAuthors.Contains(comic.Author)) {
-        //            this.VisibleAuthors.Add(comic.Author);
-        //        }
-        //
-        //        if (!this.VisibleCategories.Contains(comic.Category)) {
-        //            this.VisibleCategories.Add(comic.Category);
-        //        }
-        //    });
-        //}
-
-        private void AddComicToTempComics(Comic comic) {
+        private void AddComicToVisibleComics(Comic comic) {
             App.Current.Dispatcher.Invoke(() => {
-                this.tempComics.Add(comic);
+                this.VisibleComics.Add(comic);
                 if (!this.VisibleAuthors.Contains(comic.Author)) {
                     this.VisibleAuthors.Add(comic.Author);
                 }
