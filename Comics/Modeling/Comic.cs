@@ -438,6 +438,8 @@ namespace Comics {
 
         public SortedString(string display) : this(display, display) { }
 
+        public SortedString(SortedString ss) : this(ss.Display, ss.Sort) { }
+
         public override string ToString() {
             return this.Display.ToString();
         }

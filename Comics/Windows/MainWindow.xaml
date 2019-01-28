@@ -206,11 +206,17 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Label DockPanel.Dock="Top" FontSize="14" Content="Authors"></Label>
+                    <DockPanel DockPanel.Dock="Top">
+                        <Label DockPanel.Dock="Left" FontSize="14" Content="Authors"></Label>
+                        <TextBlock x:Name="RemoveSelectedAuthorsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6">
+                            <Hyperlink Foreground="#FF7F7F7F" FontSize="11" Click="RemoveSelectedAuthorsLink_Click">remove selections</Hyperlink>
+                        </TextBlock>
+                        <Rectangle />
+                    </DockPanel>
                     <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource AvailableAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" Checked="Author_Checked" Unchecked="Author_Unchecked"/>
+                                <CheckBox Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Author_Checked" Unchecked="Author_Unchecked"/>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

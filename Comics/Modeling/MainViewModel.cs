@@ -32,10 +32,28 @@ namespace Comics {
             }
         }
 
-        // All loaded authors
+        // there has to be a better way than this, which is why I'm inlining this solution for now
+        public class CheckBoxSortedString : SortedString, INotifyPropertyChanged {
+            private bool isChecked = false;
+            public bool IsChecked {
+                get => isChecked;
+                set {
+                    isChecked = value;
+                    NotifyPropertyChanged("IsChecked");
+                }
+            }
+
+            public CheckBoxSortedString(SortedString ss) : base(ss) { }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            private void NotifyPropertyChanged(string propertyName) {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
         public const string AvailableAuthorsPropertyName = "AvailableAuthors";
-        public ObservableCollection<SortedString> availableAuthors = new ObservableCollection<SortedString>();
-        public ObservableCollection<SortedString> AvailableAuthors {
+        public ObservableCollection<CheckBoxSortedString> availableAuthors = new ObservableCollection<CheckBoxSortedString>();
+        public ObservableCollection<CheckBoxSortedString> AvailableAuthors {
             get => this.availableAuthors;
             set {
                 if (this.availableAuthors == value) {
@@ -192,6 +210,7 @@ namespace Comics {
         // Public interface to reload all comics
         public async Task ReloadComics() {
             await ReloadComicSteps();
+            App.ComicsWindow?.ClearSelections();
             App.ComicsWindow?.RefreshComics();
         }
 
@@ -290,7 +309,7 @@ namespace Comics {
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics.Add(comic);
                 if (!this.AvailableAuthors.Contains(comic.Author)) {
-                    this.AvailableAuthors.Add(comic.Author);
+                    this.AvailableAuthors.Add(new CheckBoxSortedString(comic.Author));
                 }
 
                 if (!this.AvailableCategories.Contains(comic.Category)) {

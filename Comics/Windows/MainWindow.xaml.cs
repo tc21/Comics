@@ -17,6 +17,7 @@ namespace Comics {
     public partial class MainWindow : Window {
         // These sets are in sync with the user's checked items in the sidebar
         // They are stored in a hashset for easy filtering
+        // todo: take a look at ObservableHashSet
         private HashSet<string> selectedAuthors = new HashSet<string>();
         private HashSet<string> selectedCategories = new HashSet<string>();
         private HashSet<string> selectedTags = new HashSet<string>();
@@ -291,9 +292,20 @@ namespace Comics {
 
         private void Author_Checked(object sender, RoutedEventArgs e) {
             this.selectedAuthors.Add(((CheckBox)sender).Content.ToString());
+            if (this.selectedAuthors.Count == 1) {
+                this.RemoveSelectedAuthorsLink.Visibility = Visibility.Visible;
+            }
             RefreshComics();
         }
         
+        private void Author_Unchecked(object sender, RoutedEventArgs e) {
+            this.selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
+            if (this.selectedAuthors.Count == 0) {
+                this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
+            }
+            RefreshComics();
+        }
+
         private void Tag_Checked(object sender, RoutedEventArgs e) {
             this.selectedTags.Add(((CheckBox)sender).Content.ToString());
             RefreshComics();
@@ -301,12 +313,6 @@ namespace Comics {
         
         private void Tag_Unchecked(object sender, RoutedEventArgs e) {
             this.selectedTags.Remove(((CheckBox)sender).Content.ToString());
-            RefreshComics();
-        }
-
-
-        private void Author_Unchecked(object sender, RoutedEventArgs e) {
-            this.selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
             RefreshComics();
         }
 
@@ -395,6 +401,25 @@ namespace Comics {
                 DataObject dataObject = new DataObject(dataFormat, files);
                 DragDrop.DoDragDrop(this.Collection, dataObject, DragDropEffects.Copy);
             }
+        }
+
+        public void ClearSelections() {
+            this.RemoveSelectedAuthors();
+            this.selectedCategories.Clear();
+            this.selectedTags.Clear();
+        }
+
+        private void RemoveSelectedAuthors() {
+            this.selectedAuthors.Clear();
+            this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
+        }
+
+        private void RemoveSelectedAuthorsLink_Click(object sender, RoutedEventArgs e) {
+            RemoveSelectedAuthors();
+            foreach (var item in App.ViewModel.AvailableAuthors) {
+                item.IsChecked = false;
+            }
+            RefreshComics();
         }
     }
 }
