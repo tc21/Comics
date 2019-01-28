@@ -18,62 +18,62 @@ namespace Comics {
 
         // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
         // All loaded comics
-        public const string VisibleComicsPropertyName = "VisibleComics";
-        private ObservableCollection<Comic> visibleComics = new ObservableCollection<Comic>();
-        public ObservableCollection<Comic> VisibleComics {
-            get => this.visibleComics;
+        public const string AvailableComicsPropertyName = "AvailableComics";
+        private ObservableCollection<Comic> availableComics = new ObservableCollection<Comic>();
+        public ObservableCollection<Comic> AvailableComics {
+            get => this.availableComics;
             set {
-                if (this.visibleComics == value) {
+                if (this.availableComics == value) {
                     return;
                 }
 
-                this.visibleComics = value;
-                NotifyPropertyChanged(VisibleComicsPropertyName);
+                this.availableComics = value;
+                NotifyPropertyChanged(AvailableComicsPropertyName);
             }
         }
 
         // All loaded authors
-        public const string VisibleAuthorsPropertyName = "VisibleAuthors";
-        public ObservableCollection<SortedString> visibleAuthors = new ObservableCollection<SortedString>();
-        public ObservableCollection<SortedString> VisibleAuthors {
-            get => this.visibleAuthors;
+        public const string AvailableAuthorsPropertyName = "AvailableAuthors";
+        public ObservableCollection<SortedString> availableAuthors = new ObservableCollection<SortedString>();
+        public ObservableCollection<SortedString> AvailableAuthors {
+            get => this.availableAuthors;
             set {
-                if (this.visibleAuthors == value) {
+                if (this.availableAuthors == value) {
                     return;
                 }
 
-                this.visibleAuthors = value;
-                NotifyPropertyChanged(VisibleAuthorsPropertyName);
+                this.availableAuthors = value;
+                NotifyPropertyChanged(AvailableAuthorsPropertyName);
             }
         }
 
         // All loaded categories
-        public const string VisibleCategoriesPropertyName = "VisibleCategories";
-        private ObservableCollection<SortedString> visibleCategories = new ObservableCollection<SortedString>();
-        public ObservableCollection<SortedString> VisibleCategories {
-            get => this.visibleCategories;
+        public const string AvailableCategoriesPropertyName = "AvailableCategories";
+        private ObservableCollection<SortedString> availableCategories = new ObservableCollection<SortedString>();
+        public ObservableCollection<SortedString> AvailableCategories {
+            get => this.availableCategories;
             set {
-                if (this.visibleCategories == value) {
+                if (this.availableCategories == value) {
                     return;
                 }
 
-                this.visibleCategories = value;
-                NotifyPropertyChanged(VisibleCategoriesPropertyName);
+                this.availableCategories = value;
+                NotifyPropertyChanged(AvailableCategoriesPropertyName);
             }
         }
 
         // All loaded categories
-        public const string VisibleTagsPropertyName = "VisibleTags";
-        private ObservableCollection<string> visibleTags = new ObservableCollection<string>();
-        public ObservableCollection<string> VisibleTags {
-            get => this.visibleTags;
+        public const string AvailableTagsPropertyName = "AvailableTags";
+        private ObservableCollection<string> availableTags = new ObservableCollection<string>();
+        public ObservableCollection<string> AvailableTags {
+            get => this.availableTags;
             set {
-                if (this.visibleTags == value) {
+                if (this.availableTags == value) {
                     return;
                 }
 
-                this.visibleTags = value;
-                NotifyPropertyChanged(VisibleTagsPropertyName);
+                this.availableTags = value;
+                NotifyPropertyChanged(AvailableTagsPropertyName);
             }
         }
 
@@ -172,7 +172,7 @@ namespace Comics {
 
         private void ProfileLoadEnded() {
             if (App.ComicsWindow != null) {
-                var count = VisibleComics.Count;
+                var count = AvailableComics.Count;
                 App.ComicsWindow.Footer.Content = count.ToString() + " Item" + (count == 1 ? "" : "s");
                 App.ComicsWindow.ProfileSelector.IsEnabled = true;
                 App.ComicsWindow.SettingsButton.IsEnabled = true;
@@ -200,10 +200,10 @@ namespace Comics {
             //cancellationTokenSource.Cancel();
             //cancellationTokenSource = new CancellationTokenSource();
             ProfileLoadStarted();
-            this.VisibleComics.Clear();
-            this.VisibleAuthors.Clear();
-            this.VisibleCategories.Clear();
-            this.VisibleTags.Clear();
+            this.AvailableComics.Clear();
+            this.AvailableAuthors.Clear();
+            this.AvailableCategories.Clear();
+            this.AvailableTags.Clear();
             await Task.Run(() => LoadComics(/*cancellationTokenSource.Token*/));
             App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails(/*cancellationTokenSource.Token*/));
@@ -238,7 +238,7 @@ namespace Comics {
                     FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
-                            AddComicToVisibleComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
+                            AddComicToAvailableComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName)/*, cancellationToken*/);
                         }
                     }
                     //}
@@ -281,25 +281,25 @@ namespace Comics {
                 }
 
                 if (comic.FilePaths.Count > 0) {
-                    AddComicToVisibleComics(comic/*, cancellationToken*/);
+                    AddComicToAvailableComics(comic/*, cancellationToken*/);
                 }
             }
         }
 
-        private void AddComicToVisibleComics(Comic comic) {
+        private void AddComicToAvailableComics(Comic comic) {
             App.Current.Dispatcher.Invoke(() => {
-                this.VisibleComics.Add(comic);
-                if (!this.VisibleAuthors.Contains(comic.Author)) {
-                    this.VisibleAuthors.Add(comic.Author);
+                this.AvailableComics.Add(comic);
+                if (!this.AvailableAuthors.Contains(comic.Author)) {
+                    this.AvailableAuthors.Add(comic.Author);
                 }
 
-                if (!this.VisibleCategories.Contains(comic.Category)) {
-                    this.VisibleCategories.Add(comic.Category);
+                if (!this.AvailableCategories.Contains(comic.Category)) {
+                    this.AvailableCategories.Add(comic.Category);
                 }
 
                 foreach (var tag in comic.Tags) {
-                    if (!this.VisibleTags.Contains(tag)) {
-                        this.VisibleTags.Add(tag);
+                    if (!this.AvailableTags.Contains(tag)) {
+                        this.AvailableTags.Add(tag);
                     }
                 }
             });
@@ -320,7 +320,7 @@ namespace Comics {
         // Generates thumbnails for comics
         private void GenerateComicThumbnails(/*CancellationToken cancellationToken*/) {
             Debug.Print("> gct");
-            foreach (Comic comic in this.VisibleComics) {
+            foreach (Comic comic in this.AvailableComics) {
                 if (!(File.Exists(comic.ThumbnailPath))) {
                     comic.CreateThumbnail();
                 }
@@ -333,7 +333,7 @@ namespace Comics {
         // Randomizes the .Random field for each comic
         public void RandomizeComics() {
             Random random = new Random();
-            foreach (Comic comic in this.VisibleComics) {
+            foreach (Comic comic in this.AvailableComics) {
                 comic.Random = random.Next();
             }
         }

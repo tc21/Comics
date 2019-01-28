@@ -68,18 +68,18 @@
             </Setter>
         </Style>
         <!-- Main library source -->
-        <CollectionViewSource x:Key="VisibleComicsSource" Source="{Binding Path=VisibleComics}" />
-        <CollectionViewSource x:Key="VisibleAuthors" Source="{Binding Path=VisibleAuthors}">
+        <CollectionViewSource x:Key="AvailableComicsSource" Source="{Binding Path=AvailableComics}" />
+        <CollectionViewSource x:Key="AvailableAuthors" Source="{Binding Path=AvailableAuthors}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        <CollectionViewSource x:Key="VisibleCategories" Source="{Binding Path=VisibleCategories}">
+        <CollectionViewSource x:Key="AvailableCategories" Source="{Binding Path=AvailableCategories}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        <CollectionViewSource x:Key="VisibleTags" Source="{Binding Path=VisibleTags}">
+        <CollectionViewSource x:Key="AvailableTags" Source="{Binding Path=AvailableTags}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
@@ -188,7 +188,7 @@
                     <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Checked" Unchecked="ShowDisliked_Unchecked"/>
 
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Category"></Label>
-                    <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource VisibleCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                    <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource AvailableCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
                                 <CheckBox Content="{Binding .}" Checked="Category_Checked" Unchecked="Category_Unchecked"></CheckBox>
@@ -198,7 +198,7 @@
 
 
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← not implemented"></Label>
-                    <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource VisibleTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                    <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
                                 <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
@@ -207,7 +207,7 @@
                     </ItemsControl>
 
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Authors"></Label>
-                    <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource VisibleAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                    <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource AvailableAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
                                 <CheckBox Content="{Binding .}" Checked="Author_Checked" Unchecked="Author_Unchecked"/>
@@ -242,7 +242,7 @@
                 <ListBox 
                     x:Name="Collection"
                     Style="{StaticResource CollectionListBoxStyle}"
-                    ItemsSource="{Binding Source={StaticResource VisibleComicsSource}}"
+                    ItemsSource="{Binding Source={StaticResource AvailableComicsSource}}"
                     ContextMenu="{StaticResource ComicsContextMenu}"
                     MouseDoubleClick="Collection_MouseDoubleClick"
                     KeyDown="Collection_KeyDown"

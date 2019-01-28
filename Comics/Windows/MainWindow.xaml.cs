@@ -67,10 +67,7 @@ namespace Comics {
         public void RefreshComics() {
             this.ComicsView.Refresh();
         }
-
-        // A change in search actually requires looping through all comics, since the sidebar's author
-        // list is generated dynamically from the visible comics. My library of ~700 comics already causes
-        // lag when run on the UI thread., meaning we had to make this operation asynchronous. 
+        
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             this.searchText = this.SearchBox.Text;
             RefreshComics();
@@ -91,8 +88,9 @@ namespace Comics {
             return comic.MatchesSearchText(this.searchText)
                 && comic.MatchesAuthors(this.selectedAuthors)
                 && comic.MatchesCategories(this.selectedCategories)
-                && comic.MatchesTags(this.selectedTags);
-            //todo loved/disliked
+                && comic.MatchesTags(this.selectedTags)
+                && (!onlyShowLoved || comic.Loved)
+                && (showDisliked || !comic.Disliked);
         }
         
         // Happens when the "toggle right sidebar" footer button is pressed
@@ -217,7 +215,7 @@ namespace Comics {
                 return;
             }
 
-            foreach (Comic comic in App.ViewModel.VisibleComics) {
+            foreach (Comic comic in App.ViewModel.AvailableComics) {
                 if (File.Exists(comic.ThumbnailPath)) {
                     File.Delete(comic.ThumbnailPath);
                 }

@@ -13,7 +13,7 @@
         Height="400" Width="400">
 
     <Window.Resources>
-        <CollectionViewSource x:Key="VisibleTags" Source="{Binding Path=VisibleTags}">
+        <CollectionViewSource x:Key="AvailableTags" Source="{Binding Path=AvailableTags}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
@@ -58,7 +58,7 @@
 
                             <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← coming soon!" />
 
-                            <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource VisibleTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                            <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                                 <ItemsControl.ItemTemplate>
                                     <HierarchicalDataTemplate>
                                         <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>

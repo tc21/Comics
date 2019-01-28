@@ -64,7 +64,7 @@ namespace Comics {
              * 3. there should be an add tag button
              * 4. you still have to implement multiple editing.
              */
-            //this.VisibleTags = new ObservableCollection<string>(this.Tags);
+            //this.AvailableTags = new ObservableCollection<string>(this.Tags);
         }
 
         public const string DisplayTitlePropertyName = "DisplayTitle";
@@ -148,17 +148,17 @@ namespace Comics {
             }
         }
 
-        public const string VisibleTagsPropertyName = "VisibleTags";
-        public ObservableCollection<string> visibleTags = new ObservableCollection<string>();
-        public ObservableCollection<string> VisibleTags {
-            get => this.visibleTags;
+        public const string AvailableTagsPropertyName = "AvailableTags";
+        public ObservableCollection<string> availableTags = new ObservableCollection<string>();
+        public ObservableCollection<string> AvailableTags {
+            get => this.availableTags;
             set {
-                if (this.visibleTags == value) {
+                if (this.availableTags == value) {
                     return;
                 }
 
-                this.visibleTags = value;
-                NotifyPropertyChanged(VisibleTagsPropertyName);
+                this.availableTags = value;
+                NotifyPropertyChanged(AvailableTagsPropertyName);
             }
         }
 
