@@ -191,7 +191,9 @@ namespace Comics {
         private void ProfileLoadEnded() {
             if (App.ComicsWindow != null) {
                 var count = AvailableComics.Count;
-                App.ComicsWindow.Footer.Content = count.ToString() + " Item" + (count == 1 ? "" : "s");
+                if (App.ComicsWindow.Footer.Content.Equals("Loading...")) {
+                    App.ComicsWindow.Footer.Content = "Finished loading.";
+                }
                 App.ComicsWindow.ProfileSelector.IsEnabled = true;
                 App.ComicsWindow.SettingsButton.IsEnabled = true;
             }

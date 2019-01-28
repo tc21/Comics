@@ -67,6 +67,8 @@ namespace Comics {
         // Used when a category or author selection changes
         public void RefreshComics() {
             this.ComicsView.Refresh();
+            var count = this.Collection.Items.Count;
+            this.Footer.Content = count.ToString() + " Item" + (count == 1 ? "" : "s");
         }
         
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
