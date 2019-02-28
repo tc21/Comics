@@ -38,48 +38,12 @@ namespace Comics.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ProfilePath {
-            get {
-                return ((string)(this["ProfilePath"]));
-            }
-            set {
-                this["ProfilePath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string CurrentProfile {
             get {
                 return ((string)(this["CurrentProfile"]));
             }
             set {
                 this["CurrentProfile"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ThumbnailsPath {
-            get {
-                return ((string)(this["ThumbnailsPath"]));
-            }
-            set {
-                this["ThumbnailsPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string MetadataPath {
-            get {
-                return ((string)(this["MetadataPath"]));
-            }
-            set {
-                this["MetadataPath"] = value;
             }
         }
         
@@ -212,18 +176,6 @@ namespace Comics.Properties {
             }
             set {
                 this["ViewerWidth"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string DatabasePath {
-            get {
-                return ((string)(this["DatabasePath"]));
-            }
-            set {
-                this["DatabasePath"] = value;
             }
         }
     }

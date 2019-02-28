@@ -1,11 +1,23 @@
 ﻿CREATE TABLE comics (
     -- rowid INTEGER PRIMARY KEY AUTOINCREMENT,
     folder TEXT NOT NULL,
-    display_name TEXT NOT NULL,
-    thumbnail_file TEXT,
-    category TEXT,
+
+    unique_name TEXT UNIQUE NOT NULL,
+
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    category TEXT NOT NULL,
+
+    display_title TEXT,
+    display_author TEXT,
+    display_category TEXT,
+
+    thumbnail_path TEXT,
+
     loved INTEGER CHECK (loved IN (0, 1)),
-    disliked INTEGER CHECK (loved IN (0, 1))
+    disliked INTEGER CHECK (loved IN (0, 1)),
+
+    active INTEGER DEFAULT 1 CHECK (active IN (0, 1))
 );
 
 CREATE TABLE tags (

@@ -246,7 +246,7 @@ namespace Comics {
             }
 
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog {
-                InitialDirectory = comic.ContainingPath
+                InitialDirectory = comic.path
             };
             if (openFileDialog.ShowDialog() != true) {
                 return;
@@ -459,7 +459,7 @@ namespace Comics {
                 string[] files = new string[this.Collection.SelectedItems.Count];
 
                 for (int i = 0; i < this.Collection.SelectedItems.Count; i++) {
-                    files[i] = (this.Collection.SelectedItems[i] as Comic).ContainingPath;
+                    files[i] = (this.Collection.SelectedItems[i] as Comic).path;
                 }
 
                 DataObject dataObject = new DataObject(dataFormat, files);

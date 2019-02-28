@@ -14,39 +14,67 @@ namespace Comics {
         // The default settings currently being used
         public static UserDefaults Profile { get; set; }
 
+        // some default values
+        public static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
+        private const string defaultProfileName = "New Profile (Automatically Generated)";
+        private const int defaultImageHeight = 254;
+        private const int defaultTitleFontSize = 12;
+        private const int defaultSubtitleFontSize = 10;
+        private const string defaultFontFamily = "Segoe UI";
+        private const int defaultWidth = 180;  // Using the "recommended" value of height / sqrt(2)
+        private const int defaultMargin = 3;
+        private const int defaultReactionTime = 140;
+        private const int defaultWorkTraversalDepth = 1;  // starts at 1
+
+        // may be able to customize in the future
+        public static int TitleFontSize => defaultTitleFontSize;
+        public static int SubtitleFontSize => defaultSubtitleFontSize;
+        public static int TileMargin => defaultMargin;
+        public static string ApplicationFontFamily => defaultFontFamily;
+
+        // Margin applied to the right hand side of the collection area to prevent the user 
+        // resizing faster than the application can resize tiles, which can cause the application to
+        // quickly alternate between the right number of columns and one less.
+        public static int SafetyMargin => 2;
+
+        // The height of the title and subtitle, combined
+        public static int LabelHeight => LineHeightForFontWithSize(TitleFontSize) + LineHeightForFontWithSize(SubtitleFontSize);
+
+
+
+        public enum SubdirectoryAction {
+            COMBINE,  // combine all files into one comic
+            SEPARATE  // treat subdirectories as separate comics
+        }
+
+        public enum IgnoredPrefixAction {
+            IGNORE,  // pretend the folder doesn't exist
+            INVISIBLE,  // pretend everything in the folder is in the parent folder
+            EXTEND_AUTHOR  // pretend the folder name is part of its child folder's names
+        }
+
         // Default settings for each instance
         public class UserDefaults {
             public string ProfileName { get; set; }
             public int ImageHeight { get; set; }
             public int ImageWidth { get; set; }
-            public int TitleFontSize { get; set; }
-            public int SubtitleFontSize { get; set; }
-            public int TileMargin { get; set; }
-            // The all-important time between application is activated and application starts accepting left clicks
-            public int ReactionTime { get; set; }
-            // This user-specified font family will fall back to default (probably Segoe UI) if it doesn't exist
-            public string ApplicationFontFamily { get; set; }
             public List<CategorizedPath> RootPaths { get; set; }
             public List<string> Extensions { get; set; }
             public List<string> IgnoredPrefixes { get; set; }
+
             // Used for automatic naming naming, etc. Perhaps we'll eventually have better ways of doing it
             public int WorkTraversalDepth { get; set; }
-            public bool TreatSubdirectoriesAsSeparateWorks { get; set; }
+            
+            public SubdirectoryAction SubdirectoryAction { get; set; }
+            public IgnoredPrefixAction IgnoredPrefixAction { get; set; }
+
             public StartupApplication DefaultApplication { get; set; }
             public string ExecutionArguments { get; set; }
-            public List<KeyValuePair<string, List<string>>> Tags { get; set; }
 
-            // Margin applied to the right hand side of the collection area to prevent the user 
-            // resizing faster than the application can resize tiles, which can cause the application to
-            // quickly alternate between the right number of columns and one less.
-            public int SafetyMargin => 2;
 
-            // The height of the title and subtitle, combined
-            public int LabelHeight => LineHeightForFontWithSize(this.TitleFontSize) + LineHeightForFontWithSize(this.SubtitleFontSize);
 
-            public int ItemHeight => this.ImageHeight + this.LabelHeight + 2 * this.TileMargin;
-            public int ItemWidth => this.ImageWidth + 2 * this.TileMargin;
-
+            public int ItemHeight => ImageHeight + LabelHeight + 2 * TileMargin;
+            public int ItemWidth => ImageWidth + 2 * TileMargin;
             public string DatabaseFile => Path.Combine(UserDatabaseFolder, Profile.ProfileName + ".library.db");
         }
 
@@ -151,32 +179,6 @@ namespace Comics {
             }
         }
 
-        private static Dictionary<string, List<string>> tags;
-        public static Dictionary<string, List<string>> Tags {
-            get {
-                if (tags == null) {
-                    tags = Profile.Tags.ToDictionary(pair => pair.Key, pair => pair.Value);
-                }
-
-                return tags;
-            }
-            set {
-                tags = value;
-                Profile.Tags = tags.ToList();
-                SaveProfile();
-            }
-        }
-
-        public static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" };
-        private const string defaultProfileName = "New Profile (Automatically Generated)";
-        private const int defaultImageHeight = 254;
-        private const int defaultTitleFontSize = 12;
-        private const int defaultSubtitleFontSize = 10;
-        private const string defaultFontFamily = "Segoe UI";
-        private const int defaultWidth = 180;  // Using the "recommended" value of height / sqrt(2)
-        private const int defaultMargin = 3;
-        private const int defaultReactionTime = 140;
-        private const int defaultWorkTraversalDepth = 1;
 
         // Calculates the height of a label containing a font with this size. 
         public static int LineHeightForFontWithSize(int fontsize) {
@@ -202,13 +204,12 @@ namespace Comics {
                 return new Size(Profile.ItemWidth, Profile.ItemHeight);
             }
 
-            viewPortWidth -= Profile.SafetyMargin;
+            viewPortWidth -= SafetyMargin;
             int numberOfColumns = EstimateNumberOfColumns(viewPortWidth / Profile.ItemWidth);
             int dynamicWidth = (int)(viewPortWidth / numberOfColumns);
-            int dynamicImageWidth = dynamicWidth - 2 * Profile.TileMargin;
+            int dynamicImageWidth = dynamicWidth - 2 * TileMargin;
             int dynamicImageHeight = (int)Math.Round((double)Profile.ImageHeight * dynamicImageWidth / Profile.ItemWidth);
-            return new Size(dynamicImageWidth + 2 * Profile.TileMargin,
-                dynamicImageHeight + Profile.LabelHeight + 2 * Profile.TileMargin);
+            return new Size(dynamicImageWidth + 2 * TileMargin, dynamicImageHeight + LabelHeight + 2 * TileMargin);
         }
 
         // Some weird formula
@@ -256,77 +257,25 @@ namespace Comics {
             }
         }
 
-        public static string UserProfileFolder {
-            get {
-                string userProfileFolder = Properties.Settings.Default.ProfilePath;
-                if (!Path.IsPathRooted(userProfileFolder)) {
-                    userProfileFolder = Path.Combine(UserDataFolder, "profiles");
-                    Properties.Settings.Default.ProfilePath = userProfileFolder;
-                    Properties.Settings.Default.Save();
-                }
 
-                if (!Directory.Exists(userProfileFolder)) {
-                    Directory.CreateDirectory(userProfileFolder);
-                }
+        private static string UserFolderFor(string name) {
+            var userProfileFolder = Path.Combine(UserDataFolder, name);
 
-                return userProfileFolder;
+            if (!Directory.Exists(userProfileFolder)) {
+                Directory.CreateDirectory(userProfileFolder);
             }
+
+            return userProfileFolder;
         }
 
-        public static string UserThumbnailsFolder {
-            get {
-                string userThumbnailsFolder = Properties.Settings.Default.ThumbnailsPath;
-                if (!Path.IsPathRooted(userThumbnailsFolder)) {
-                    userThumbnailsFolder = Path.Combine(UserDataFolder, "thumbnails");
-                    Properties.Settings.Default.ThumbnailsPath = userThumbnailsFolder;
-                    Properties.Settings.Default.Save();
-                }
-
-                if (!Directory.Exists(userThumbnailsFolder)) {
-                    Directory.CreateDirectory(userThumbnailsFolder);
-                }
-
-                return userThumbnailsFolder;
-            }
-        }
-
-        public static string UserMetadataFolder {
-            get {
-                string userMetadataFolder = Properties.Settings.Default.MetadataPath;
-                if (!Path.IsPathRooted(userMetadataFolder)) {
-                    userMetadataFolder = Path.Combine(UserDataFolder, "metadata");
-                    Properties.Settings.Default.MetadataPath = userMetadataFolder;
-                    Properties.Settings.Default.Save();
-                }
-
-                if (!Directory.Exists(userMetadataFolder)) {
-                    Directory.CreateDirectory(userMetadataFolder);
-                }
-
-                return userMetadataFolder;
-            }
-        }
-
-        public static string UserDatabaseFolder {
-            get {
-                string userDatabaseFolder = Properties.Settings.Default.DatabasePath;
-                if (!Path.IsPathRooted(userDatabaseFolder)) {
-                    userDatabaseFolder = Path.Combine(UserDataFolder, "database");
-                    Properties.Settings.Default.MetadataPath = userDatabaseFolder;
-                    Properties.Settings.Default.Save();
-                }
-
-                if (!Directory.Exists(userDatabaseFolder)) {
-                    Directory.CreateDirectory(userDatabaseFolder);
-                }
-
-                return userDatabaseFolder;
-            }
-        }
+        public static string UserProfileFolder => UserFolderFor("profiles");
+        public static string UserThumbnailsFolder => UserFolderFor("thumbnails");
+        public static string UserMetadataFolder => UserFolderFor("metadata");
+        public static string UserDatabaseFolder => UserFolderFor("database");
 
         public static void SaveProfile() {
             XmlSerializer writer = new XmlSerializer(typeof(UserDefaults));
-            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmlprofile");
+            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".profile.xml");
             string tempPath = path + ".tmp";
 
             using (FileStream tempFile = File.Create(tempPath)) {
@@ -340,32 +289,10 @@ namespace Comics {
             File.Move(tempPath, path);
         }
 
-        /* Currently not used */
-        //public static void SaveLibrary(IEnumerable<Comic> library) {
-        //    List<StorageInfo> list = new List<StorageInfo>();
-        //    foreach (Comic comic in library) {
-        //        list.Add(comic.CreateInfo());
-        //    }
-
-        //    XmlSerializer writer = new XmlSerializer(typeof(List<StorageInfo>));
-        //    string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
-        //    string tempPath = path + ".tmp";
-
-        //    using (FileStream tempFile = File.Create(tempPath)) {
-        //        writer.Serialize(tempFile, list);
-        //    }
-
-        //    if (File.Exists(path)) {
-        //        File.Delete(path);
-        //    }
-
-        //    File.Move(tempPath, path);
-        //}
-
         public static bool LoadProfile(string name) {
             UserDefaults profile;
             XmlSerializer reader = new XmlSerializer(typeof(UserDefaults));
-            string path = Path.Combine(UserProfileFolder, name + ".xmlprofile");
+            string path = Path.Combine(UserProfileFolder, name + ".profile.xml");
 
             if (!File.Exists(path)) {
                 return false;
@@ -373,7 +300,6 @@ namespace Comics {
 
             using (StreamReader file = new StreamReader(path)) {
                 profile = (UserDefaults)reader.Deserialize(file);
-                tags = null;  // temporary - ensure tags is reloaded on profile load
             }
 
             Profile = profile;
@@ -383,41 +309,13 @@ namespace Comics {
             return true;
         }
 
-        /* Currently not used */
-        //public static IEnumerable<Comic> LoadLibrary() {
-        //    List<Comic> library = new List<Comic>();
-        //    List<StorageInfo> list;
-
-        //    XmlSerializer reader = new XmlSerializer(typeof(List<StorageInfo>));
-        //    string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmllibrary");
-
-        //    if (!File.Exists(path)) {
-        //        return null;
-        //    }
-
-        //    using (StreamReader file = new StreamReader(path)) {
-        //        list = (List<StorageInfo>)reader.Deserialize(file);
-        //    }
-
-        //    foreach (StorageInfo info in list) {
-        //        try {
-        //            Comic comic = new Comic(info);
-        //            library.Add(comic);
-        //        } catch (ComicLoadException) {
-        //            Debug.Print(String.Format("An error occured during the loading of cached comic {0}", info.Title));
-        //        }
-        //    }
-            
-        //    return library;
-        //}
-
         public static string FormatExtension(string extension) {
-            if (String.IsNullOrWhiteSpace(extension)) {
+            if (string.IsNullOrWhiteSpace(extension)) {
                 return null;
             }
 
             extension = extension.Trim();
-            if (extension.Any(Char.IsWhiteSpace) || extension.Substring(1).Contains('.')) {
+            if (extension.Any(char.IsWhiteSpace) || extension.Substring(1).Contains('.')) {
                 return null;
             }
 
@@ -429,7 +327,7 @@ namespace Comics {
         }
 
         public static string FormatText(string prefix) {
-            if (String.IsNullOrWhiteSpace(prefix)) {
+            if (string.IsNullOrWhiteSpace(prefix)) {
                 return prefix;
             }
 
@@ -445,7 +343,7 @@ namespace Comics {
         }
 
         public static bool NameIsValidNameForNewProfile(string name) {
-            string path = Path.Combine(UserProfileFolder, name + ".xmlprofile");
+            string path = Path.Combine(UserProfileFolder, name + ".profle.xml");
             return !File.Exists(path);
         }
 
@@ -471,26 +369,24 @@ namespace Comics {
             string previousName = Profile.ProfileName;
             Profile.ProfileName = newname;
             SaveProfile();
-            if (File.Exists(Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmlprofile"))) {
-                File.Delete(Path.Combine(UserProfileFolder, previousName + ".xmlprofile"));
+            if (File.Exists(Path.Combine(UserProfileFolder, Profile.ProfileName + ".profle.xml"))) {
+                File.Delete(Path.Combine(UserProfileFolder, previousName + ".profle.xml"));
             }
 
             Properties.Settings.Default.CurrentProfile = newname;
         }
 
         public static bool IsValidFileName(string name) {
-            Debug.Print("> IsValidFileName");
             foreach (char invalid in Path.GetInvalidFileNameChars()) {
                 if (name.Contains(invalid)) {
                     return false;
                 }
             }
-            Debug.Print("< IsValidFileName");
             return true;
         }
 
         public static void DeleteCurrentProfile() {
-            File.Delete(Path.Combine(UserProfileFolder, Profile.ProfileName + ".xmlprofile"));
+            File.Delete(Path.Combine(UserProfileFolder, Profile.ProfileName + ".profle.xml"));
         }
 
         public static void CreateNewProfile(string name) {
@@ -500,17 +396,12 @@ namespace Comics {
                     ProfileName = defaultProfileName,
                     ImageHeight = defaultImageHeight,
                     ImageWidth = defaultWidth,
-                    TitleFontSize = defaultTitleFontSize,
-                    SubtitleFontSize = defaultSubtitleFontSize,
-                    ApplicationFontFamily = defaultFontFamily,
-                    TileMargin = defaultMargin,
-                    ReactionTime = defaultReactionTime,
                     RootPaths = new List<CategorizedPath>(),
                     Extensions = new List<string>(),
                     IgnoredPrefixes = new List<string>(),
                     WorkTraversalDepth = defaultWorkTraversalDepth,
-                    TreatSubdirectoriesAsSeparateWorks = true,
-                    Tags = new List<KeyValuePair<string, List<string>>>()
+                    SubdirectoryAction = SubdirectoryAction.SEPARATE,
+                    IgnoredPrefixAction = IgnoredPrefixAction.IGNORE
                 };
                 return;
             }
@@ -529,11 +420,6 @@ namespace Comics {
                     ProfileName = name,
                     ImageHeight = defaultImageHeight,
                     ImageWidth = defaultWidth,
-                    TitleFontSize = defaultTitleFontSize,
-                    SubtitleFontSize = defaultSubtitleFontSize,
-                    ApplicationFontFamily = defaultFontFamily,
-                    TileMargin = defaultMargin,
-                    ReactionTime = defaultReactionTime,
                     RootPaths = new List<CategorizedPath>()
                     {
                         new CategorizedPath() {Category="Pictures", Path=Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)}
@@ -541,7 +427,8 @@ namespace Comics {
                     Extensions = new List<string>() { ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".gif" },
                     IgnoredPrefixes = new List<string>() { "~", "(" },
                     WorkTraversalDepth = defaultWorkTraversalDepth,
-                    TreatSubdirectoriesAsSeparateWorks = true
+                    SubdirectoryAction = SubdirectoryAction.SEPARATE,
+                    IgnoredPrefixAction = IgnoredPrefixAction.IGNORE
                 };
             }
         }

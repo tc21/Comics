@@ -22,9 +22,9 @@ namespace Comics {
             get => this.editingComics;
             set {
                 this.editingComics = value;
-                this.Title = String.Format("Editing {0}", value[0].Title.Display);
+                this.Title = string.Format("Editing {0}", value[0].Title);
                 if (value.Count > 1) {
-                    this.Title += String.Format(" and {0} other", value.Count - 1);
+                    this.Title += string.Format(" and {0} other", value.Count - 1);
                     throw new Exception("This should not happen. You are trying to edit mulpitle items, when it should not be possible.");
                 }
                 this.Title += "...";
@@ -49,13 +49,13 @@ namespace Comics {
                 if (this.ComicTitle == null) {
                     this.ComicTitle = comic.Title;
                 } else if (this.ComicTitle != comic.Title) {
-                    this.ComicTitle = new SortedString("Various"); // todo not actually implemented: currently we just disallow multiple edits
+                    this.ComicTitle = "Various"; // todo not actually implemented: currently we just disallow multiple edits
                 }
 
                 if (this.ComicAuthor == null) {
                     this.ComicAuthor = comic.Author;
                 } else if (this.ComicAuthor != comic.Author) {
-                    this.ComicAuthor = new SortedString("Various");
+                    this.ComicAuthor = "Various";
                 }
             }
 
@@ -69,8 +69,8 @@ namespace Comics {
 
         public const string DisplayTitlePropertyName = "DisplayTitle";
         public const string SortTitlePropertyName = "SortTitle";
-        private SortedString comicTitle = null;
-        public SortedString ComicTitle {
+        private string comicTitle = null;
+        public string ComicTitle {
             get => this.comicTitle;
             set {
                 if (this.comicTitle == value) {
@@ -83,34 +83,10 @@ namespace Comics {
 
         }
 
-        public string DisplayTitle {
-            get => this.comicTitle?.Display ?? "";
-            set {
-                if (this.comicTitle == null || this.comicTitle.Display == value) {
-                    return;
-                }
-
-                this.comicTitle.Display = value;
-                NotifyPropertyChanged(DisplayTitlePropertyName);
-            }
-        }
-
-        public string SortTitle {
-            get => this.comicTitle?.Sort ?? "";
-            set {
-                if (this.comicTitle == null || this.comicTitle.Sort == value) {
-                    return;
-                }
-
-                this.comicTitle.Sort = value;
-                NotifyPropertyChanged(SortTitlePropertyName);
-            }
-        }
-
         public const string DisplayAuthorPropertyName = "DisplayAuthor";
         public const string SortAuthorPropertyName = "SortAuthor";
-        private SortedString comicAuthor = null;
-        public SortedString ComicAuthor {
+        private string comicAuthor = null;
+        public string ComicAuthor {
             get => this.comicAuthor;
             set {
                 if (this.comicAuthor == value) {
@@ -119,32 +95,6 @@ namespace Comics {
 
                 this.comicAuthor = value;
                 NotifyPropertyChanged(DisplayAuthorPropertyName);
-                NotifyPropertyChanged(DisplayAuthorPropertyName);
-            }
-
-        }
-
-        public string DisplayAuthor {
-            get => this.comicAuthor?.Display ?? "";
-            set {
-                if (this.comicAuthor == null || this.comicAuthor.Display == value) {
-                    return;
-                }
-
-                this.comicAuthor.Display = value;
-                NotifyPropertyChanged(DisplayAuthorPropertyName);
-            }
-        }
-
-        public string SortAuthor {
-            get => this.comicAuthor?.Sort ?? "";
-            set {
-                if (this.comicAuthor == null || this.comicAuthor.Sort == value) {
-                    return;
-                }
-
-                this.comicAuthor.Sort = value;
-                NotifyPropertyChanged(SortAuthorPropertyName);
             }
         }
 
@@ -177,7 +127,7 @@ namespace Comics {
         }
 
         private void Tag_Checked(object sender, RoutedEventArgs e) {
-
+            // todo
         }
 
         private void Tag_Unchecked(object sender, RoutedEventArgs e) {

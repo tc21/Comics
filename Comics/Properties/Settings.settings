@@ -5,16 +5,7 @@
     <Setting Name="StorageFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="ProfilePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="CurrentProfile" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="ThumbnailsPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="MetadataPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="SelectedSortIndex" Type="System.Int32" Scope="User">
@@ -49,9 +40,6 @@
     </Setting>
     <Setting Name="ViewerWidth" Type="System.Double" Scope="User">
       <Value Profile="(Default)">600</Value>
-    </Setting>
-    <Setting Name="DatabasePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>
