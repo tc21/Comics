@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -178,28 +180,13 @@ namespace Comics {
         // async operations are still looping over it. We can cancel the operations, ensure these
         // two operations are themselves happening synchronously, or do this.
         private void ProfileLoadStarted() {
-            if (App.ComicsWindow != null) {
-                App.ComicsWindow.Footer.Content = "Loading...";
-                App.ComicsWindow.ProfileSelector.IsEnabled = false;
-                App.ComicsWindow.SettingsButton.IsEnabled = false;
-            }
-            if (App.SettingsWindow != null) {
-                App.SettingsWindow.ProfileSelector.IsEnabled = false;
-            }
+            App.ComicsWindow?.PushFooter("LoadingIndicator", "Loading...");
+            App.ComicsWindow?.DisableInteractions();
         }
 
         private void ProfileLoadEnded() {
-            if (App.ComicsWindow != null) {
-                var count = AvailableComics.Count;
-                if (App.ComicsWindow.Footer.Content.Equals("Loading...")) {
-                    App.ComicsWindow.Footer.Content = "Finished loading.";
-                }
-                App.ComicsWindow.ProfileSelector.IsEnabled = true;
-                App.ComicsWindow.SettingsButton.IsEnabled = true;
-            }
-            if (App.SettingsWindow != null) {
-                App.SettingsWindow.ProfileSelector.IsEnabled = true;
-            }
+            App.ComicsWindow?.PopFooter("LoadingIndicator");
+            App.ComicsWindow?.EnableInteractions();
         }
 
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
@@ -363,6 +350,15 @@ namespace Comics {
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(string propertyName) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        // Currently only generates a database from scratch
+        public void UpdateDatabase() {
+            var connection = SQL.Database.DatabaseConnection.ForCurrentProfile(true);
+            
+            foreach (var comic in this.AvailableComics) {
+                connection.AddComic(comic);
+            }
         }
     }
 }

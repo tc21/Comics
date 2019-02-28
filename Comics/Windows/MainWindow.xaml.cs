@@ -27,6 +27,11 @@ namespace Comics {
         // The text currently inside the search bar
         private string searchText = null;
 
+
+        // Allow a queue of strings to be pushed to thefooter
+        private List<string> footerKeys = new List<string>();
+        private Dictionary<string, string> footerStrings = new Dictionary<string, string>();
+
         // This property returns the view containing objects so the view can be updated 
         private ICollectionView ComicsView => CollectionViewSource.GetDefaultView(this.Collection?.ItemsSource);
 
@@ -68,7 +73,56 @@ namespace Comics {
         public void RefreshComics() {
             this.ComicsView.Refresh();
             var count = this.Collection.Items.Count;
-            this.Footer.Content = count.ToString() + " Item" + (count == 1 ? "" : "s");
+            this.PushFooter("ItemCount", count.ToString() + " Item" + (count == 1 ? "" : "s"));
+        }
+
+        public void PushFooter(string key, string text) {
+            if (this.footerKeys.Contains(key)) {
+                this.footerStrings[key] = text;
+            } else {
+                this.footerKeys.Add(key);
+                this.footerStrings.Add(key, text);
+            }
+
+            if (key == this.footerKeys.Last()) {
+                this.Footer.Content = this.footerStrings[key];
+            }
+        }
+
+        public void PopFooter(string key) {
+            var update = false;
+            if (key == this.footerKeys.Last()) {
+                update = true;
+            }
+
+            this.footerKeys.Remove(key);
+            this.footerStrings.Remove(key);
+            if (update) {
+                var newFooter = "Comics";
+                if (this.footerKeys.Count != 0) {
+                    newFooter = this.footerStrings[this.footerKeys.Last()];
+                }
+
+                this.Footer.Content = newFooter;
+            }
+        }
+
+        public void DisableInteractions() {
+            ProfileSelector.IsEnabled = false;
+            SettingsButton.IsEnabled = false;
+
+            if (App.SettingsWindow != null) {
+                App.SettingsWindow.ProfileSelector.IsEnabled = false;
+            }
+        }
+
+        public void EnableInteractions() {
+            ProfileSelector.IsEnabled = true;
+            SettingsButton.IsEnabled = true;
+
+            if (App.SettingsWindow != null) {
+                App.SettingsWindow.ProfileSelector.IsEnabled = true;
+            }
         }
         
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
@@ -239,6 +293,14 @@ namespace Comics {
 
         private void ContextMenu_Exit(object sender, RoutedEventArgs e) {
             Application.Current.Shutdown();
+        }
+
+        private async void ContextMenu_UpdateDatabase(object sender, RoutedEventArgs e) {
+            PushFooter("DatabaseIndicator", "Building database...");
+            DisableInteractions();
+            await Task.Run(() => App.ViewModel.UpdateDatabase());
+            PopFooter("DatabaseIndicator");
+            EnableInteractions();
         }
 
         // When the user changes the sort order, we update the sort descriptions on the comics view.

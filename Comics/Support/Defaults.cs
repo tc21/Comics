@@ -46,6 +46,8 @@ namespace Comics {
 
             public int ItemHeight => this.ImageHeight + this.LabelHeight + 2 * this.TileMargin;
             public int ItemWidth => this.ImageWidth + 2 * this.TileMargin;
+
+            public string DatabaseFile => Path.Combine(UserDatabaseFolder, Profile.ProfileName + ".library.db");
         }
 
         // Searializable "tuple"
@@ -302,6 +304,23 @@ namespace Comics {
                 }
 
                 return userMetadataFolder;
+            }
+        }
+
+        public static string UserDatabaseFolder {
+            get {
+                string userDatabaseFolder = Properties.Settings.Default.DatabasePath;
+                if (!Path.IsPathRooted(userDatabaseFolder)) {
+                    userDatabaseFolder = Path.Combine(UserDataFolder, "database");
+                    Properties.Settings.Default.MetadataPath = userDatabaseFolder;
+                    Properties.Settings.Default.Save();
+                }
+
+                if (!Directory.Exists(userDatabaseFolder)) {
+                    Directory.CreateDirectory(userDatabaseFolder);
+                }
+
+                return userDatabaseFolder;
             }
         }
 

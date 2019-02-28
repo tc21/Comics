@@ -106,6 +106,7 @@
             <Separator />
             <MenuItem Header="Reload Comics" Click="ContextMenu_ReloadComics" />
             <MenuItem Header="Reload Thumbnails" Click="ContextMenu_ReloadThumbnails" />
+            <MenuItem Header="Build SQLite Database" Click="ContextMenu_UpdateDatabase" />
             <Separator />
             <MenuItem Header="Exit" Click="ContextMenu_Exit" />
         </ContextMenu>
