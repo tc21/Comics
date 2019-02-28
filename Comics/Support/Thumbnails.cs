@@ -22,7 +22,7 @@ namespace Comics {
                 image.DecodePixelWidth = width;
                 image.EndInit();
                 SaveBitmapImageToFile(image, pathToSave);
-            } catch (Exception e) when (e is DirectoryNotFoundException || e is NotSupportedException) {
+            } catch (Exception e) when (e is DirectoryNotFoundException || e is NotSupportedException || e is FileNotFoundException) {
                 return false;
             }
 

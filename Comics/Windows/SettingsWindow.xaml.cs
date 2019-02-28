@@ -146,7 +146,7 @@ namespace Comics {
                 Defaults.Profile.ExecutionArguments = this.OpenArgumentsTextBox.Text;
             } catch (Exception) { }
             Defaults.SaveProfile();
-            App.ViewModel.UpdateComicsAfterProfileChanged();
+            App.ViewModel.UpdateComicsAfterProfileUpdated();
         }
 
         private void Button_Cancel(object sender, RoutedEventArgs e) {

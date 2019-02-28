@@ -253,10 +253,10 @@ namespace Comics {
             }
 
             comic.Metadata.ThumbnailSource = openFileDialog.FileName;
-            comic.SaveMetadata();
+            comic.Save();
 
             File.Delete(comic.ThumbnailPath);
-            comic.CreateThumbnail();
+            comic.RecreateThumbnail();
             RefreshComics();
         }
 
@@ -296,11 +296,7 @@ namespace Comics {
         }
 
         private async void ContextMenu_UpdateDatabase(object sender, RoutedEventArgs e) {
-            PushFooter("DatabaseIndicator", "Building database...");
-            DisableInteractions();
-            await Task.Run(() => App.ViewModel.UpdateDatabase());
-            PopFooter("DatabaseIndicator");
-            EnableInteractions();
+            await App.ViewModel.UpdateDatabase(force: true);
         }
 
         // When the user changes the sort order, we update the sort descriptions on the comics view.

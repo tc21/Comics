@@ -23,7 +23,7 @@ namespace Comics.SQL {
         private const string key_display_title = "display_title";
         private const string key_display_author = "display_author";
         private const string key_display_category = "display_category";
-        private const string key_thumbnail_path = "thumbnail_path";
+        private const string key_thumbnail_source = "thumbnail_source";
         private const string key_loved = "loved";
         private const string key_disliked = "disliked";
         private const string key_active = "active";
@@ -107,9 +107,9 @@ namespace Comics.SQL {
                 var command = new SQLiteCommand();
 
 
-                foreach (var c in values) {
-                    valueStrings.Add(c.Key + " = @v_" + c.Key);
-                    command.Parameters.AddWithValue("@v_" + c.Key, c.Value);
+                foreach (var v in values) {
+                    valueStrings.Add(v.Key + " = @v_" + v.Key);
+                    command.Parameters.AddWithValue("@v_" + v.Key, v.Value);
                 }
 
                 foreach (var c in constraints) {
@@ -119,7 +119,7 @@ namespace Comics.SQL {
 
                 var valueString = "";
                 if (valueStrings.Count != 0) {
-                    valueString = " SET " + string.Join(", ", constraintStrings);
+                    valueString = " SET " + string.Join(", ", valueStrings);
                 }
 
                 var constraintString = "";
@@ -151,7 +151,7 @@ namespace Comics.SQL {
                     string.Format(
                         "INSERT INTO {11} ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})" +
                         "VALUES (@{0}, @{1}, @{2}, @{3}, @{4}, @{5}, @{6}, @{7}, @{8}, @{9}, @{10})",
-                        key_path, key_unique_id, key_display_title, key_display_author, key_display_category, key_thumbnail_path,
+                        key_path, key_unique_id, key_display_title, key_display_author, key_display_category, key_thumbnail_source,
                         key_loved, key_disliked, key_title, key_author, key_category, table_comics
                     ),
                     Connection
@@ -162,7 +162,7 @@ namespace Comics.SQL {
                 command.Parameters.AddWithValue("@" + key_display_title, comic.Title);
                 command.Parameters.AddWithValue("@" + key_display_author, comic.Author);
                 command.Parameters.AddWithValue("@" + key_display_category, comic.Category);
-                command.Parameters.AddWithValue("@" + key_thumbnail_path, comic.ThumbnailPath);
+                command.Parameters.AddWithValue("@" + key_thumbnail_source, comic.ThumbnailSourcePath);
                 command.Parameters.AddWithValue("@" + key_loved, Convert.ToInt32(comic.Loved));
                 command.Parameters.AddWithValue("@" + key_disliked, Convert.ToInt32(comic.Disliked));
                 command.Parameters.AddWithValue("@" + key_title, comic.real_title);
@@ -242,9 +242,9 @@ namespace Comics.SQL {
             private Comic GetComic(string constraintName, object constraintValue) {
                 var command = new SQLiteCommand(
                     string.Format(
-                        "SELECT ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}) FROM {10} WHERE {11} = @{11}",
+                        "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9} FROM {10} WHERE {11} = @{11}",
                         key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-                        key_display_category, key_thumbnail_path, key_loved, key_disliked, table_comics, constraintName
+                        key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics, constraintName
                     ),
                     Connection
                 );
@@ -262,12 +262,12 @@ namespace Comics.SQL {
                 return ComicFromRow(reader);
             }
 
-            public IEnumerator<Comic> AllComics() {
+            public IEnumerable<Comic> AllComics() {
                 var command = new SQLiteCommand(
                     string.Format(
-                        "SELECT ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}) FROM {10} WHERE {11} = 1",
+                        "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9} FROM {10} WHERE {11} = 1",
                         key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-                        key_display_category, key_thumbnail_path, key_loved, key_disliked, table_comics, key_active
+                        key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics, key_active
                     ),
                     Connection
                 );
@@ -301,15 +301,22 @@ namespace Comics.SQL {
                 var category = reader.GetString(3);
 
                 Metadata m = new Metadata {
-                    Title = reader.GetString(4),
-                    Author = reader.GetString(5),
-                    Category = reader.GetString(6),
-                    ThumbnailSource = reader.GetString(7),
+                    Title = reader.IsDBNull(4) ? null : reader.GetString(4),
+                    Author = reader.IsDBNull(5) ? null : reader.GetString(5),
+                    Category = reader.IsDBNull(6) ? null : reader.GetString(6),
+                    ThumbnailSource = reader.IsDBNull(7) ? null : reader.GetString(7),
                     Loved = reader.GetBoolean(8),
                     Disliked = reader.GetBoolean(9)
                 };
 
                 return new Comic(title, author, category, path, m);
+            }
+
+            public void InvalidateAllComics() {
+                new SQLiteCommand(
+                    string.Format("UPDATE {0} SET {1} = 0", table_comics, key_active),
+                    Connection
+                ).ExecuteNonQuery();
             }
         }
 
@@ -323,6 +330,11 @@ namespace Comics.SQL {
                 } else {
                     conn.AddComic(c);
                 }
+            }
+
+            public static IEnumerable<Comic> AllComics() {
+                var conn = DatabaseConnection.ForCurrentProfile();
+                return conn.AllComics();
             }
         }
     }

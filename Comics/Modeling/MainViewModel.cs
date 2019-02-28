@@ -193,47 +193,60 @@ namespace Comics {
             }
         }
 
-        // The loading of comics in a profile is done asynchronously. This is done to improve
-        // the fluidity of the program. Loading thumbnails is also done asynchronously, because 
-        // it takes a long time and the user still should be able to use the program. If we load
-        // a new profile before any of this is done, we modify the collection of comics while the 
-        // async operations are still looping over it. We can cancel the operations, ensure these
-        // two operations are themselves happening synchronously, or do this.
-        private void ComicLoadStarted() {
-            App.ComicsWindow?.PushFooter("LoadingIndicator", "Loading...");
-            App.ComicsWindow?.DisableInteractions();
-        }
-
-        private void ComicLoadEnded() {
-            App.ComicsWindow?.PopFooter("LoadingIndicator");
-            App.ComicsWindow?.EnableInteractions();
-        }
-
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
         public async void UpdateComicsAfterProfileChanged() {
-            await ReloadComicSteps();
+            await LoadComicsFromDatabase();
             App.SettingsWindow?.PopulateProfileSettings();
             App.ComicsWindow?.RefreshComics();
         }
 
+        public async void UpdateComicsAfterProfileUpdated() {
+            // currently the same for debugging
+            await LoadComicsFromDatabase();
+            App.SettingsWindow?.PopulateProfileSettings();
+            App.ComicsWindow?.RefreshComics();
+        }
+
+
         // Public interface to reload all comics
         public async Task ReloadComics() {
-            await ReloadComicSteps();
+            await ReloadComicsFromDisk();
             App.ComicsWindow?.ClearSelections();
             App.ComicsWindow?.RefreshComics();
         }
 
-        // function that actually reloads comics
-        private async Task ReloadComicSteps() {
-            ComicLoadStarted();
+        private async Task LoadComicsFromDatabase() {
+            App.ComicsWindow?.PushFooter("LoadingIndicator", "Loading...");
+            App.ComicsWindow?.DisableInteractions();
+
             this.AvailableComics.Clear();
             this.AvailableAuthors.Clear();
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
-            await Task.Run(() => LoadComics());
+            await Task.Run(() => PopulateComicsFromDatabase());
             App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails());
-            ComicLoadEnded();
+            
+            App.ComicsWindow?.PopFooter("LoadingIndicator");
+            App.ComicsWindow?.EnableInteractions();
+        }
+
+        // function that actually reloads comics
+        private async Task ReloadComicsFromDisk() {
+            App.ComicsWindow?.PushFooter("LoadingIndicator", "Reloading...");
+            App.ComicsWindow?.DisableInteractions();
+            this.AvailableComics.Clear();
+            this.AvailableAuthors.Clear();
+            this.AvailableCategories.Clear();
+            this.AvailableTags.Clear();
+            await Task.Run(() => LoadComicsFromDisk());
+            App.ComicsWindow?.UpdateSortDescriptions();
+            await Task.Run(() => GenerateComicThumbnails());
+
+            App.ComicsWindow?.PopFooter("LoadingIndicator");
+            //App.ComicsWindow?.EnableInteractions();
+
+            await UpdateDatabase();
         }
 
         // Public interface to reload (regenerate) all thumbnails
@@ -242,8 +255,14 @@ namespace Comics {
             App.ComicsWindow?.RefreshComics();
         }
 
+        private void PopulateComicsFromDatabase() {
+            foreach (var comic in SQL.Database.Manager.AllComics()) {
+                AddComicToAvailableComics(comic);
+            }
+        }
+
         // Loads all comics based on the current profile
-        private void LoadComics() {
+        private void LoadComicsFromDisk() {
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths) {
                 if (!Directory.Exists(categorizedPath.Path)) {
                     continue;
@@ -257,11 +276,14 @@ namespace Comics {
                         continue;
                     }
                     
-                    LoadComicsForAuthor(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null);
+                    LoadComicsForAuthorFromDisk(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null);
+
+                    // for pdfs and such
                     FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
-                            AddComicToAvailableComics(new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName));
+                            var comic = new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName);
+                            AddComicToAvailableComics(comic);
                         }
                     }
                 }
@@ -270,7 +292,7 @@ namespace Comics {
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
-        private void LoadComicsForAuthor(DirectoryInfo directory, string author, string category, int depth, string previousParts) {
+        private void LoadComicsForAuthorFromDisk(DirectoryInfo directory, string author, string category, int depth, string previousParts) {
             depth -= 1;
             DirectoryInfo[] comicDirectories = directory.GetDirectoriesInNaturalOrder();
 
@@ -287,10 +309,10 @@ namespace Comics {
                 Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
 
                 if (depth > 0 && Defaults.Profile.SubdirectoryAction == Defaults.SubdirectoryAction.SEPARATE) {
-                    LoadComicsForAuthor(comicDirectory, author, category, depth, currentName);
+                    LoadComicsForAuthorFromDisk(comicDirectory, author, category, depth, currentName);
                 }
 
-                if (comic.FilePaths.Count > 0) {
+                if (comic.FilePaths.Count() > 0) {
                     AddComicToAvailableComics(comic);
                 }
             }
@@ -319,7 +341,7 @@ namespace Comics {
         private void GenerateComicThumbnails() {
             foreach (Comic comic in this.AvailableComics) {
                 if (!(File.Exists(comic.ThumbnailPath))) {
-                    comic.CreateThumbnail();
+                    comic.RecreateThumbnail();
                 }
             }
         }
@@ -339,12 +361,31 @@ namespace Comics {
         }
 
         // Currently only generates a database from scratch
-        public void UpdateDatabase() {
-            var connection = SQL.Database.DatabaseConnection.ForCurrentProfile(true);
-            
-            foreach (var comic in this.AvailableComics) {
-                connection.AddComic(comic);
-            }
+        public async Task UpdateDatabase(bool force = false) {
+            App.ComicsWindow?.PushFooter("DatabaseIndicator", "Building database...");
+            App.ComicsWindow?.DisableInteractions();
+
+            await Task.Run(() => {
+                var connection = SQL.Database.DatabaseConnection.ForCurrentProfile(force);
+
+                if (!force) {
+                    connection.InvalidateAllComics();
+                }
+
+                foreach (var comic in this.AvailableComics) {
+                    if (force || !connection.HasComic(comic.UniqueIdentifier)) {
+                        comic.Metadata.ThumbnailSource = comic.CreateThumbnailAndReturnLocation();
+                        connection.AddComic(comic, false);
+                    } else {
+                        connection.UpdateComic(comic, false);
+                    }
+                }
+
+
+            });
+
+            App.ComicsWindow?.PopFooter("DatabaseIndicator");
+            App.ComicsWindow?.EnableInteractions();
         }
     }
 }

@@ -12,7 +12,7 @@
     display_author TEXT,
     display_category TEXT,
 
-    thumbnail_path TEXT,
+    thumbnail_source TEXT,
 
     loved INTEGER CHECK (loved IN (0, 1)),
     disliked INTEGER CHECK (loved IN (0, 1)),

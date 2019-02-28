@@ -123,10 +123,10 @@ namespace Comics {
                     thumbnailItem.Click += ((o, e) => {
                         // This also needs to be more generic
                         comic.Metadata.ThumbnailSource = viewer.CurrentImage;
-                        comic.SaveMetadata();
+                        comic.Save();
 
                         File.Delete(comic.ThumbnailPath);
-                        comic.CreateThumbnail();
+                        comic.RecreateThumbnail();
                         App.ComicsWindow.RefreshComics();
                     });
                     contextMenu.Items.Add(loveItem);
