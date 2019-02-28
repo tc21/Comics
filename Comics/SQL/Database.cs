@@ -43,7 +43,11 @@ namespace Comics.SQL {
             }
 
             ~DatabaseConnection() {
-                Connection.Close();
+                try {
+                    Connection.Close();
+                } catch (ObjectDisposedException) {
+                    // do nothing
+                }
             }
         
             public static DatabaseConnection ForCurrentProfile(bool empty = false) {
@@ -134,7 +138,7 @@ namespace Comics.SQL {
             }
 
             private int ComicRowid(Comic comic) {
-                var rowids = GetRowids(table_comics, new Dictionary<string, object> { [key_unique_id] = comic.path });
+                var rowids = GetRowids(table_comics, new Dictionary<string, object> { [key_unique_id] = comic.UniqueIdentifier });
                 if (rowids.Count != 1) {
                     throw new Exception("ComicRowId: expected 1 id, got " + rowids.Count.ToString());
                 }
@@ -274,9 +278,13 @@ namespace Comics.SQL {
 
                 var reader = command.ExecuteReader();
 
+                var comics = new List<Comic>();
+
                 while (reader.Read()) {
-                    yield return ComicFromRow(reader);
+                    comics.Add(ComicFromRow(reader));
                 }
+
+                return comics;
             }
 
             private void AssociateTag(int comicid, int tagid) {

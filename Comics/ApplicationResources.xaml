@@ -9,6 +9,23 @@
     <SolidColorBrush x:Key="HoveredBackgroundColor">#FFE5F3FF</SolidColorBrush>
     <SolidColorBrush x:Key="SelectedBorderColor">#FF99D1FF</SolidColorBrush>
     <SolidColorBrush x:Key="SubtitleColor">#FF7F7F7F</SolidColorBrush>
+
+
+    <!--<SolidColorBrush x:Key="FooterColor">#788289</SolidColorBrush>
+    <SolidColorBrush x:Key="DisabledColor">#FF939393</SolidColorBrush>
+    <SolidColorBrush x:Key="LovedColor">#db5982</SolidColorBrush>
+    <SolidColorBrush x:Key="OverlayBackgroundColor">#23262d</SolidColorBrush>
+    <SolidColorBrush x:Key="SelectedBackgroundColor">#006092</SolidColorBrush>
+    <SolidColorBrush x:Key="HoveredBackgroundColor">#1d2e33</SolidColorBrush>
+    <SolidColorBrush x:Key="SelectedBorderColor">#00a1d6</SolidColorBrush>-->
+
+
+    <!--<SolidColorBrush x:Key="BackgroundColor">#1b1e32</SolidColorBrush>-->
+    <!--<SolidColorBrush x:Key="TitleColor">#788289</SolidColorBrush>-->
+    <!--<SolidColorBrush x:Key="SubtitleColor">#788289</SolidColorBrush>-->
+    <!--<SolidColorBrush x:Key="ButtonColor">#272b33</SolidColorBrush>-->
+    <!--<SolidColorBrush x:Key="SidebarColor">#23262d</SolidColorBrush>-->
+
     <!-- Styles -->
     <!-- Indicate item hovering over -->
     <Style x:Key="HoverEffect" TargetType="{x:Type Border}">

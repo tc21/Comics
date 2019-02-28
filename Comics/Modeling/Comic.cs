@@ -50,7 +50,7 @@ namespace Comics {
             this.real_category = category;
             this.path = path;
 
-            if (!Directory.Exists(path)) {
+            if (!(Directory.Exists(path) || File.Exists(path))) {
                 throw new ComicLoadException("Invalid path given to comic");
             }
 
@@ -61,6 +61,10 @@ namespace Comics {
             this.Metadata = metadata;
 
             this.Random = randomizer.Next();
+
+            if (!File.Exists(this.ThumbnailPath)) {
+                this.Metadata.ThumbnailSource = CreateThumbnailAndReturnLocation();
+            }
         }
 
         // Not meant to replace HashCode()
@@ -69,6 +73,10 @@ namespace Comics {
         }
 
         private static IEnumerable<string> RetrieveFilesForComicAtPath(string path, int currentDepth = 0) {
+            if (File.Exists(path)) {
+                return new List<string> { path };
+            }
+
             DirectoryInfo di = new DirectoryInfo(path);
             return RetrieveFilesForComicAtPath(di, currentDepth);
         }
@@ -116,6 +124,13 @@ namespace Comics {
 
         // Creates a thumbnail for this comic and saves it to disk
         public string CreateThumbnailAndReturnLocation() {
+            if (File.Exists(this.path)) {
+                if (GenerateThumbnail(this.path)) {
+                    return this.path;
+                }
+                return null;
+            }
+
             foreach (var file in ValidFilesForComicAtPath(new DirectoryInfo(this.path))) {
                 if (GenerateThumbnail(file.FullName)) {
                     return file.FullName;
@@ -180,6 +195,10 @@ namespace Comics {
         }
 
         public void OpenContainingFolder() {
+            if (File.Exists(this.path)) {
+                Process.Start(new FileInfo(this.path).DirectoryName);
+            }
+
             Process.Start(this.path);
         }
 

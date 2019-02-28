@@ -256,9 +256,18 @@ namespace Comics {
         }
 
         private void PopulateComicsFromDatabase() {
-            foreach (var comic in SQL.Database.Manager.AllComics()) {
-                AddComicToAvailableComics(comic);
-            }
+            var comics = SQL.Database.Manager.AllComics();
+            var comic_collection = new ObservableCollection<Comic>(comics);
+            var authors = new ObservableCollection<CheckBoxString>(new HashSet<CheckBoxString>(comics.Select((c) => new CheckBoxString(c.Author))));
+            var categories = new ObservableCollection<string>(new HashSet<string>(comics.Select((c) => c.Category)));
+
+            App.Current.Dispatcher.Invoke(() => {
+                this.AvailableComics = comic_collection;
+                this.AvailableAuthors = authors;
+                this.AvailableCategories = categories;
+
+                App.ComicsWindow.RefreshFilter();
+            });
         }
 
         // Loads all comics based on the current profile
@@ -374,7 +383,6 @@ namespace Comics {
 
                 foreach (var comic in this.AvailableComics) {
                     if (force || !connection.HasComic(comic.UniqueIdentifier)) {
-                        comic.Metadata.ThumbnailSource = comic.CreateThumbnailAndReturnLocation();
                         connection.AddComic(comic, false);
                     } else {
                         connection.UpdateComic(comic, false);

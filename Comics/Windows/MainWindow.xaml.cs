@@ -76,6 +76,11 @@ namespace Comics {
             this.PushFooter("ItemCount", count.ToString() + " Item" + (count == 1 ? "" : "s"));
         }
 
+        // we need to call this when we reassign things in the viewmodel
+        public void RefreshFilter() {
+            this.ComicsView.Filter = this.ComicFilter;
+        }
+
         public void PushFooter(string key, string text) {
             if (this.footerKeys.Contains(key)) {
                 this.footerStrings[key] = text;
