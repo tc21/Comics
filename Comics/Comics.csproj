@@ -78,6 +78,9 @@
     <Compile Include="Support\Interop.cs" />
     <Compile Include="Support\Settings.cs" />
     <Compile Include="Support\Thumbnails.cs" />
+    <Compile Include="UI\ChangeTrackingTextBox.xaml.cs">
+      <DependentUpon>ChangeTrackingTextBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\RemainingWidthConverter.cs" />
     <Compile Include="Windows\InfoWindow.xaml.cs">
       <DependentUpon>InfoWindow.xaml</DependentUpon>
@@ -88,6 +91,10 @@
     <Compile Include="UI\VirtualizingWrapPanel\VirtualizingWrapPanel.cs" />
     <Compile Include="Support\VisualHelper.cs" />
     <Page Include="ApplicationResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\ChangeTrackingTextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

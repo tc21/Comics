@@ -32,6 +32,11 @@ namespace Comics.SQL {
         private const string key_xref_comic_id = "comicid";
         private const string key_xref_tag_id = "tagid";
 
+        private static readonly object databaseLock = new object();
+
+        private static string profile = null;
+        private static DatabaseConnection shared = null;
+
 
         public class DatabaseConnection {
             public SQLiteConnection Connection { get; }
@@ -49,7 +54,25 @@ namespace Comics.SQL {
                     // do nothing
                 }
             }
-        
+
+            private int ExecuteNonQuery(SQLiteCommand c) {
+                //lock (databaseLock) {
+                    return c.ExecuteNonQuery();
+                //}
+            }
+
+            private object ExecuteScalar(SQLiteCommand c) {
+                //lock (databaseLock) {
+                    return c.ExecuteScalar();
+                //}
+            }
+
+            private SQLiteDataReader ExecuteReader(SQLiteCommand c) {
+                //lock (databaseLock) {
+                    return c.ExecuteReader();
+                //}
+            }
+
             public static DatabaseConnection ForCurrentProfile(bool empty = false) {
                 bool init = (empty || !File.Exists(Defaults.Profile.DatabaseFile));
 
@@ -57,13 +80,17 @@ namespace Comics.SQL {
                     SQLiteConnection.CreateFile(Defaults.Profile.DatabaseFile);
                 }
 
-                var connection = new DatabaseConnection(Defaults.Profile.DatabaseFile);
+
+                if (shared == null || profile != Defaults.Profile.DatabaseFile) {
+                    shared = new DatabaseConnection(Defaults.Profile.DatabaseFile);
+                    profile = Defaults.Profile.DatabaseFile;
+                }
                 
                 if (init) {
-                    connection.Init();
+                    shared.Init();
                 }
 
-                return connection;
+                return shared;
             }
 
             private void Init() {
@@ -71,7 +98,7 @@ namespace Comics.SQL {
 
                 using (StreamReader reader = new StreamReader(rs)) {
                     var command = new SQLiteCommand(reader.ReadToEnd(), this.Connection);
-                    command.ExecuteNonQuery();
+                    ExecuteNonQuery(command);
                 }
             }
 
@@ -87,7 +114,7 @@ namespace Comics.SQL {
 
                 var constraintString = "";
                 if (constraintStrings.Count != 0) {
-                    constraintString = " WHERE " + string.Join(", ", constraintStrings);
+                    constraintString = " WHERE " + string.Join(" AND ", constraintStrings);
                 }
 
                 command.CommandText = "SELECT rowid FROM " + table + constraintString;
@@ -128,13 +155,13 @@ namespace Comics.SQL {
 
                 var constraintString = "";
                 if (constraintStrings.Count != 0) {
-                    constraintString = " WHERE " + string.Join(", ", constraintStrings);
+                    constraintString = " WHERE " + string.Join(" AND ", constraintStrings);
                 }
 
                 command.CommandText = "UPDATE " + table + valueString + constraintString;
                 command.Connection = Connection;
 
-                return command.ExecuteNonQuery();
+                return ExecuteNonQuery(command);
             }
 
             private int ComicRowid(Comic comic) {
@@ -173,11 +200,11 @@ namespace Comics.SQL {
                 command.Parameters.AddWithValue("@" + key_author, comic.real_author);
                 command.Parameters.AddWithValue("@" + key_category, comic.real_category);
 
-                if (command.ExecuteNonQuery() == 0) {
+                if (ExecuteNonQuery(command) == 0) {
                     throw new Exception("Insertion failed");
                 }
 
-                int rowid = Convert.ToInt32(new SQLiteCommand("SELECT last_insert_rowid()", Connection).ExecuteScalar());
+                int rowid = Convert.ToInt32(ExecuteScalar(new SQLiteCommand("SELECT last_insert_rowid()", Connection)));
 
                 foreach (var tag in comic.Tags) {
                     AssociateTag(rowid, TagRowid(tag));
@@ -191,10 +218,12 @@ namespace Comics.SQL {
                     throw new Exception("Comic does not exist");  // use own exception if you ever want to handle this
                 }
 
-                return EditRows(
+                var comicid = ComicRowid(comic);
+
+                var updateResult = EditRows(
                     table_comics,
                     new Dictionary<string, object> {
-                        [key_unique_id] = comic.UniqueIdentifier
+                        ["rowid"] = comicid
                     },
                     new Dictionary<string, object> {
                         [key_path] = comic.path,
@@ -209,6 +238,27 @@ namespace Comics.SQL {
                         [key_active] = true
                     }
                 ) != 0;
+
+                if (!updateResult) {
+                    return false;
+                }
+
+                var storedTags = GetComic(comicid).Tags;
+
+                var delete = storedTags.Except(comic.Tags);
+                var add = comic.Tags.Except(storedTags);
+
+                foreach (var tag in delete) {
+                    var xrefid = (int)ComicTagXrefId(comicid, TagRowid(tag));
+                    RemoveRow(table_tags_xref, xrefid);
+                }
+
+                foreach (var tag in add) {
+                    var tagid = AddTag(tag);
+                    AssociateTag(comicid, tagid);
+                }
+
+                return true;
             }
 
             public int AddTag(string tag) {
@@ -217,13 +267,13 @@ namespace Comics.SQL {
                     Connection
                 );
                 command.Parameters.AddWithValue("@" + key_tag_name, tag);
-                command.ExecuteNonQuery();
+                ExecuteNonQuery(command);
 
                 var idCommand = new SQLiteCommand(
                     string.Format("SELECT rowid FROM {0} WHERE {1} = @{1}", table_tags, key_tag_name),
                     Connection);
-                command.Parameters.AddWithValue("@" + key_tag_name, tag);
-                return Convert.ToInt32(command.ExecuteScalar());
+                idCommand.Parameters.AddWithValue("@" + key_tag_name, tag);
+                return Convert.ToInt32(ExecuteScalar(idCommand));
             }
 
             private int TagRowid(string tag) {
@@ -243,19 +293,21 @@ namespace Comics.SQL {
                 return GetComic("rowid", rowid);
             }
 
+            private static readonly string getComicQuery = string.Format(
+                "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, rowid FROM {10}",
+                key_path, key_title, key_author, key_category, key_display_title, key_display_author,
+                key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics
+            );
+
             private Comic GetComic(string constraintName, object constraintValue) {
                 var command = new SQLiteCommand(
-                    string.Format(
-                        "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9} FROM {10} WHERE {11} = @{11}",
-                        key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-                        key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics, constraintName
-                    ),
+                    string.Format(getComicQuery + " WHERE {0} = @{0}", constraintName),
                     Connection
                 );
 
                 command.Parameters.AddWithValue("@" + constraintName, constraintValue);
 
-                var reader = command.ExecuteReader();
+                var reader = ExecuteReader(command);
 
                 if (!reader.HasRows) {
                     return null;
@@ -268,15 +320,11 @@ namespace Comics.SQL {
 
             public IEnumerable<Comic> AllComics() {
                 var command = new SQLiteCommand(
-                    string.Format(
-                        "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9} FROM {10} WHERE {11} = 1",
-                        key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-                        key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics, key_active
-                    ),
+                    string.Format(getComicQuery + " WHERE {0} = 1", key_active),
                     Connection
                 );
 
-                var reader = command.ExecuteReader();
+                var reader = ExecuteReader(command);
 
                 var comics = new List<Comic>();
 
@@ -287,26 +335,57 @@ namespace Comics.SQL {
                 return comics;
             }
 
+            private bool RemoveRow(string table, int rowid) {
+                var result = ExecuteNonQuery(new SQLiteCommand(string.Format("DELETE FROM {0} WHERE rowid = {1}", table, rowid), Connection));
+                return result == 1;
+            }
+
+            private bool TagAssociated(Comic comic, string tag) {
+                return TagAssociated(ComicRowid(comic), TagRowid(tag));
+            }
+
+            private bool TagAssociated(int comicid, int tagid) {
+                return ComicTagXrefId(comicid, tagid) != null;
+            }
+
+            private int? ComicTagXrefId(int comicid, int tagid) {
+                var rowids = GetRowids(
+                    table_tags_xref,
+                    new Dictionary<string, object> {
+                        [key_xref_comic_id] = comicid,
+                        [key_xref_tag_id] = tagid
+                    }
+                );
+
+                if (rowids.Count == 0) {
+                    return null;
+                }
+
+                return rowids[0];
+            }
+
             private void AssociateTag(int comicid, int tagid) {
-                new SQLiteCommand(
+                ExecuteNonQuery(new SQLiteCommand(
                     string.Format(
                         "INSERT INTO {2} ({3}, {4}) VALUES ({0}, {1})",
                         comicid, tagid, table_tags_xref, key_xref_comic_id, key_xref_tag_id
                     ),
                     Connection
-                ).ExecuteNonQuery();
+                ));
             }
             
             public void AssociateTag(Comic comic, string tag) {
-                AssociateTag(ComicRowid(comic), TagRowid(tag));
+                var tagid = AddTag(tag);
+                AssociateTag(ComicRowid(comic), tagid);
             }
 
-            // ordering is an implementation detail
+            // ordering is an implementation detail defined by getComicQuery
             private Comic ComicFromRow(SQLiteDataReader reader) {
                 var path = reader.GetString(0);
                 var title = reader.GetString(1);
                 var author = reader.GetString(2);
                 var category = reader.GetString(3);
+                var rowid = reader.GetInt32(10);
 
                 Metadata m = new Metadata {
                     Title = reader.IsDBNull(4) ? null : reader.GetString(4),
@@ -314,17 +393,46 @@ namespace Comics.SQL {
                     Category = reader.IsDBNull(6) ? null : reader.GetString(6),
                     ThumbnailSource = reader.IsDBNull(7) ? null : reader.GetString(7),
                     Loved = reader.GetBoolean(8),
-                    Disliked = reader.GetBoolean(9)
+                    Disliked = reader.GetBoolean(9),
+                    Tags = new HashSet<string>(ReadTags(rowid))
                 };
 
                 return new Comic(title, author, category, path, m);
             }
 
+            private List<string> ReadTags(int comicid) {
+                var command = new SQLiteCommand(
+                    string.Format(
+                        "SELECT {0} FROM {1} WHERE {2} = {3}",
+                        key_xref_tag_id, table_tags_xref, key_xref_comic_id, comicid
+                    ),
+                    Connection
+                );
+
+                var reader = ExecuteReader(command);
+
+                var tags = new List<string>();
+
+                while (reader.Read()) {
+                    var tagid = reader.GetInt32(0);
+                    tags.Add(GetTag(tagid));
+                }
+
+                return tags;
+            }
+
+            private string GetTag(int tagid) {
+                return (string)ExecuteScalar(new SQLiteCommand(
+                    string.Format("SELECT {0} from {1} WHERE rowid = {2}", key_tag_name, table_tags, tagid),
+                    Connection
+                ));
+            }
+
             public void InvalidateAllComics() {
-                new SQLiteCommand(
+                ExecuteNonQuery(new SQLiteCommand(
                     string.Format("UPDATE {0} SET {1} = 0", table_comics, key_active),
                     Connection
-                ).ExecuteNonQuery();
+                ));
             }
         }
 

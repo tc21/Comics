@@ -223,6 +223,8 @@ namespace Comics {
             this.AvailableAuthors.Clear();
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
+            this.AvailableTags.Add("Test Tag");
+
             await Task.Run(() => PopulateComicsFromDatabase());
             App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails());
@@ -258,13 +260,33 @@ namespace Comics {
         private void PopulateComicsFromDatabase() {
             var comics = SQL.Database.Manager.AllComics();
             var comic_collection = new ObservableCollection<Comic>(comics);
-            var authors = new ObservableCollection<CheckBoxString>(new HashSet<CheckBoxString>(comics.Select((c) => new CheckBoxString(c.Author))));
-            var categories = new ObservableCollection<string>(new HashSet<string>(comics.Select((c) => c.Category)));
 
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics = comic_collection;
+            });
+
+            UpdateFilterLists();
+        }
+
+        public void UpdateFilterLists() {
+            var authors_set = new HashSet<CheckBoxString>();
+            var categories_set = new HashSet<string>();
+            var tags_set = new HashSet<string>();
+
+            foreach (var comic in this.AvailableComics) {
+                authors_set.Add(new CheckBoxString(comic.Author));
+                categories_set.Add(comic.Category);
+                tags_set.UnionWith(comic.Tags);
+            }
+
+            var authors = new ObservableCollection<CheckBoxString>(authors_set);
+            var categories = new ObservableCollection<string>(categories_set);
+            var tags = new ObservableCollection<string>(tags_set);
+
+            App.Current.Dispatcher.Invoke(() => {
                 this.AvailableAuthors = authors;
                 this.AvailableCategories = categories;
+                this.AvailableTags = tags;
 
                 App.ComicsWindow.RefreshFilter();
             });

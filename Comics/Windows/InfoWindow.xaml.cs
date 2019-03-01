@@ -21,6 +21,10 @@ namespace Comics {
         public List<Comic> EditingComics {
             get => this.editingComics;
             set {
+                if (value.Count == 0) {
+                    return;
+                }
+
                 this.editingComics = value;
                 this.Title = string.Format("Editing {0}", value[0].Title);
                 if (value.Count > 1) {
@@ -39,13 +43,18 @@ namespace Comics {
             PopulateInitialInfo();
         }
 
-        private static Brush ActiveTextForeground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-        private static Brush InactiveTextForeground = new SolidColorBrush(Color.FromRgb(0x7f, 0x7f, 0x7f));
+        protected override void OnInitialized(EventArgs e) {
+            base.OnInitialized(e);
+        }
 
         public void PopulateInitialInfo() {
             if (this.EditingComics == null) {
                 return;
             }
+
+            this.ComicTitle = null;
+            this.ComicAuthor = null;
+            this.ComicTags = null;
 
             foreach (var comic in this.EditingComics) {
                 if (this.ComicTitle == null) {
@@ -59,9 +68,22 @@ namespace Comics {
                 } else if (this.ComicAuthor != comic.Author) {
                     this.ComicAuthor = "Various";
                 }
+                
+                if (this.ComicTags == null) {
+                    this.ComicTags = comic.TagString;
+                } else if (this.ComicTags != comic.TagString) {
+                    this.ComicTags = "Various";
+                }
             }
 
-            this.ResetChanges();
+
+            this.TagEditor.Value = this.ComicTags;
+            this.TitleEditor.Value = this.ComicTitle;
+            this.AuthorEditor.Value = this.ComicAuthor;
+
+            this.TitleEditor.SaveState();
+            this.AuthorEditor.SaveState();
+            this.TagEditor.SaveState();
 
             /* 1. this.Tags is null, because PopulateInitialInfo is called multiple times at random: it's the way it's supposed to work
              * 2. you should pass in the default list of tags, it should be showed as a list of checkboxes
@@ -73,7 +95,6 @@ namespace Comics {
 
         public const string ComicTitlePropertyName = "ComicTitle";
         private string comicTitle = null;
-        private bool titleChanged = false;
         public string ComicTitle {
             get => this.comicTitle;
             set {
@@ -89,7 +110,6 @@ namespace Comics {
 
         public const string ComicAuthorPropertyName = "ComicAuthor";
         private string comicAuthor = null;
-        private bool authorChanged = false;
         public string ComicAuthor {
             get => this.comicAuthor;
             set {
@@ -102,17 +122,17 @@ namespace Comics {
             }
         }
 
-        public const string AvailableTagsPropertyName = "AvailableTags";
-        public ObservableCollection<string> availableTags = new ObservableCollection<string>();
-        public ObservableCollection<string> AvailableTags {
-            get => this.availableTags;
+        public const string ComicTagsPropertyName = "ComicTags";
+        public string comicTags = null;
+        public string ComicTags {
+            get => this.comicTags;
             set {
-                if (this.availableTags == value) {
+                if (this.comicTags == value) {
                     return;
                 }
 
-                this.availableTags = value;
-                NotifyPropertyChanged(AvailableTagsPropertyName);
+                this.comicTags = value;
+                NotifyPropertyChanged(ComicTagsPropertyName);
             }
         }
 
@@ -124,39 +144,41 @@ namespace Comics {
 
         private void SaveChanges() {
             foreach (var comic in this.EditingComics) {
-                if (titleChanged) {
-                    comic.Title = this.ComicTitle;
+                // THIS IS A BUG and you need to fix it: this.ComicTitle, etc. is not implicitly changing, so you have to access values directly for now
+
+                if (this.TitleEditor.Changed) {
+                    comic.Title = this.TitleEditor.Value;
                 }
 
-                if (authorChanged) {
-                    comic.Author = this.ComicAuthor;
+                if (this.AuthorEditor.Changed) {
+                    comic.Author = this.AuthorEditor.Value;
+                }
+
+                if (this.TagEditor.Changed) {
+                    if ((bool)this.TagReplacementActionCheckBox.IsChecked) {
+                        comic.TagString += ',' + this.TagEditor.Value;
+                    } else {
+                        comic.TagString = this.TagEditor.Value;
+                    }
+
                 }
             }
 
+            App.ComicsWindow.ComicInfoUpdated();
             PopulateInitialInfo();
         }
 
-        private void ResetChanges() {
-            this.titleChanged = false;
-            this.TitleTextBox.Foreground = InactiveTextForeground;
-            this.TitleChangedIndicator.Visibility = Visibility.Hidden;
-            
-            this.authorChanged = false;
-            this.AuthorTextBox.Foreground = InactiveTextForeground;
-            this.AuthorChangedIndicator.Visibility = Visibility.Hidden;
-        }
+        //private void Tag_Checked(object sender, RoutedEventArgs e) {
+        //    // todo
+        //}
 
-        private void Tag_Checked(object sender, RoutedEventArgs e) {
-            // todo
-        }
+        //private void Tag_Unchecked(object sender, RoutedEventArgs e) {
 
-        private void Tag_Unchecked(object sender, RoutedEventArgs e) {
+        //}
 
-        }
+        //private void Button_EditTags(object sender, RoutedEventArgs e) {
 
-        private void Button_EditTags(object sender, RoutedEventArgs e) {
-
-        }
+        //}
 
         private void Button_Confirm(object sender, RoutedEventArgs e) {
             SaveChanges();
@@ -169,24 +191,6 @@ namespace Comics {
 
         private void Button_Cancel(object sender, RoutedEventArgs e) {
             Close();
-        }
-
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e) {
-            var textbox = sender as TextBox;
-
-            // what we should to is write a custom usercontrol with properties such as "Edited", but this is just a proof of concept
-
-            if (textbox == this.AuthorTextBox) {
-                authorChanged = true;
-                textbox.Foreground = ActiveTextForeground;
-                AuthorChangedIndicator.Visibility = Visibility.Visible;
-            }
-
-            if (textbox == this.TitleTextBox) {
-                titleChanged = true;
-                textbox.Foreground = ActiveTextForeground;
-                TitleChangedIndicator.Visibility = Visibility.Visible;
-            }
         }
         
         private void InfoWindow_Closing(object sender, CancelEventArgs e) {

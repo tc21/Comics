@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Comics"
         xmlns:ui="clr-namespace:UI"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:ui1="clr-namespace:Comics.UI"
         mc:Ignorable="d"
         Title="Edit Comics"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
@@ -33,19 +34,19 @@
                 <TabItem Header="Metadata">
                     <ScrollViewer>
                         <DockPanel>
-                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Label DockPanel.Dock="Left" Content="Title" Width="72" />
-                                <Label DockPanel.Dock="Left" x:Name="TitleChangedIndicator" Content="(Edited)" Width="52" FontStyle="Italic" Opacity="0.6" Visibility="Hidden"/>
-                                <TextBox x:Name="TitleTextBox" Text="{Binding ComicTitle}" TextChanged="TextBox_TextChanged"/>
-                            </DockPanel>
+                            <ui1:ChangeTrackingTextBox x:Name="TitleEditor" DockPanel.Dock="Top" Margin="4,2,16,2"
+                                                       Label="Title" Value="{Binding ComicTitle}"
+                                                       InactiveForeground="{StaticResource SubtitleColor}"/>
+                            <ui1:ChangeTrackingTextBox x:Name="AuthorEditor" DockPanel.Dock="Top" Margin="4,2,16,2" 
+                                                       Label="Author" Value="{Binding ComicAuthor}"
+                                                       InactiveForeground="{StaticResource SubtitleColor}"/>
+                            <ui1:ChangeTrackingTextBox x:Name="TagEditor" DockPanel.Dock="Top" Margin="4,2,16,2" 
+                                                       Label="Tags" Value="{Binding ComicTags}"
+                                                       InactiveForeground="{StaticResource SubtitleColor}"/>
 
-                            <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                                <Label DockPanel.Dock="Left" Content="Author" Width="72" />
-                                <Label DockPanel.Dock="Left" x:Name="AuthorChangedIndicator" Content="(Edited)" Width="52" FontStyle="Italic" Opacity="0.6" Visibility="Hidden" />
-                                <TextBox x:Name="AuthorTextBox" Text="{Binding ComicAuthor}" TextChanged="TextBox_TextChanged" />
-                            </DockPanel>
+                            <CheckBox x:Name="TagReplacementActionCheckBox" DockPanel.Dock="Top" Margin="4,2,16,2" Content="Add tags instead of replacing" />
 
-                            <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← coming soon!" />
+                            <!--<Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← coming soon!" />
 
                             <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                                 <ItemsControl.ItemTemplate>
@@ -53,7 +54,7 @@
                                         <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
                                     </HierarchicalDataTemplate>
                                 </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            </ItemsControl>-->
 
                             <Rectangle />
                         </DockPanel>

@@ -168,11 +168,6 @@ namespace Comics {
             get => this.Metadata.Category ?? this.real_category;
             set { this.Metadata.Category = value; Save(); NotifyPropertyChanged("Category"); }
         }
-        
-        public HashSet<string> Tags {
-            get => this.Metadata.Tags ?? new HashSet<string>();
-            set { this.Metadata.Tags = value; Save(); NotifyPropertyChanged("Tags"); }
-        }
 
         public bool Loved {
             get => this.Metadata.Loved;
@@ -183,6 +178,19 @@ namespace Comics {
             get => this.Metadata.Disliked;
             set { this.Metadata.Disliked = value; Save(); NotifyPropertyChanged("Disliked"); }
         }
+
+        // tags separated by commas
+        public string TagString {
+            get => (this.Metadata.Tags == null) ? "" : (string.Join(", ", this.Metadata.Tags) ?? "");
+            set { this.Metadata.Tags = ParseTags(value); Save(); NotifyPropertyChanged("Tags"); }
+        }
+
+        private HashSet<string> ParseTags(string tags) {
+            // non-empty tags split by commas
+            return new HashSet<string>(tags.Split(',').Select((s) => s.ToLowerInvariant().Trim()).Where((s) => s != ""));
+        }
+
+        public HashSet<string> Tags => this.Metadata.Tags ?? new HashSet<string>();
 
         // Maybe I will eventually code a viewer into this program, but I already have an image viewer.
         public void Open() {

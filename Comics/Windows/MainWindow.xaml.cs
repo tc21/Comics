@@ -143,6 +143,11 @@ namespace Comics {
             Properties.Settings.Default.Save();
         }
 
+        // reload author list, etc
+        public void ComicInfoUpdated() {
+            App.ViewModel.UpdateFilterLists();
+        }
+
         // With the actual filtering done asynchronously, the filter imposed on the views are then quite simple.
         private bool ComicFilter(object item) {
             Comic comic = (Comic)item;

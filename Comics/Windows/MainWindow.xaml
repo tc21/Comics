@@ -198,7 +198,7 @@
                     </ItemsControl>
 
 
-                    <Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← not implemented"></Label>
+                    <Label DockPanel.Dock="Top" FontSize="14" Content="Tags"></Label>
                     <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
