@@ -67,8 +67,7 @@ namespace Comics {
             //this.AvailableTags = new ObservableCollection<string>(this.Tags);
         }
 
-        public const string DisplayTitlePropertyName = "DisplayTitle";
-        public const string SortTitlePropertyName = "SortTitle";
+        public const string ComicTitlePropertyName = "ComicTitle";
         private string comicTitle = null;
         public string ComicTitle {
             get => this.comicTitle;
@@ -78,13 +77,12 @@ namespace Comics {
                 }
 
                 this.comicTitle = value;
-                NotifyPropertyChanged(DisplayTitlePropertyName);
+                NotifyPropertyChanged(ComicTitlePropertyName);
             }
 
         }
 
-        public const string DisplayAuthorPropertyName = "DisplayAuthor";
-        public const string SortAuthorPropertyName = "SortAuthor";
+        public const string ComicAuthorPropertyName = "ComicAuthor";
         private string comicAuthor = null;
         public string ComicAuthor {
             get => this.comicAuthor;
@@ -94,7 +92,7 @@ namespace Comics {
                 }
 
                 this.comicAuthor = value;
-                NotifyPropertyChanged(DisplayAuthorPropertyName);
+                NotifyPropertyChanged(ComicAuthorPropertyName);
             }
         }
 

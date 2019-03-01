@@ -408,11 +408,10 @@ namespace Comics {
         }
 
         // the following two functions allow for items to be dragged out of the program
-        private Point dragStart;
+        private Point? dragStart;
         private List<Comic> selectedComics = null;
 
         private void Collection_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
-
             var source = e.OriginalSource as DependencyObject;
 
             while (source is ContentElement) {
@@ -423,9 +422,7 @@ namespace Comics {
                 source = VisualTreeHelper.GetParent(source);
             }
 
-            ListBoxItem item = source as ListBoxItem;
-
-            if (item != null) {
+            if (source is ListBoxItem item) {
                 this.dragStart = e.GetPosition(null);
                 if (this.Collection.SelectedItems.Count > 1) {
                     this.selectedComics = new List<Comic>(this.Collection.SelectedItems.Cast<Comic>());
@@ -434,37 +431,47 @@ namespace Comics {
                 }
             }
         }
+        
+        private void Collection_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
+            // note: this function is not called if a DragDrop event has already started:
+            // see end of Collection_MouseMove
+            this.dragStart = null;
+        }
 
         private void Collection_MouseMove(object sender, MouseEventArgs e) {
-            Point mouse = e.GetPosition(null);
-            Vector difference = this.dragStart - mouse;
-            
-            if (e.LeftButton == MouseButtonState.Pressed &&
-                Math.Abs(difference.X) > SystemParameters.MinimumHorizontalDragDistance &&
-                Math.Abs(difference.Y) > SystemParameters.MinimumVerticalDragDistance) {
+            if (dragStart is Point start) {
+                Point mouse = e.GetPosition(null);
+                Vector difference = start - mouse;
 
-                if (this.Collection.SelectedItems.Count == 0) {
-                    return;
-                }
+                if (e.LeftButton == MouseButtonState.Pressed &&
+                    Math.Abs(difference.X) > SystemParameters.MinimumHorizontalDragDistance &&
+                    Math.Abs(difference.Y) > SystemParameters.MinimumVerticalDragDistance) {
 
-                if (this.selectedComics != null) {
-                    foreach (var comic in this.selectedComics) {
-                        if (!this.Collection.SelectedItems.Contains(comic)) {
-                            this.Collection.SelectedItems.Add(comic);
-                        }
+                    if (this.Collection.SelectedItems.Count == 0) {
+                        return;
                     }
-                    this.selectedComics = null;
+
+                    if (this.selectedComics != null) {
+                        foreach (var comic in this.selectedComics) {
+                            if (!this.Collection.SelectedItems.Contains(comic)) {
+                                this.Collection.SelectedItems.Add(comic);
+                            }
+                        }
+                        this.selectedComics = null;
+                    }
+
+                    string dataFormat = DataFormats.FileDrop;
+                    string[] files = new string[this.Collection.SelectedItems.Count];
+
+                    for (int i = 0; i < this.Collection.SelectedItems.Count; i++) {
+                        files[i] = (this.Collection.SelectedItems[i] as Comic).path;
+                    }
+
+                    DataObject dataObject = new DataObject(dataFormat, files);
+                    DragDrop.DoDragDrop(this.Collection, dataObject, DragDropEffects.Copy);
+                    // DoDragDrop takes over control, and at this point the mouse is released
+                    this.dragStart = null;
                 }
-
-                string dataFormat = DataFormats.FileDrop;
-                string[] files = new string[this.Collection.SelectedItems.Count];
-
-                for (int i = 0; i < this.Collection.SelectedItems.Count; i++) {
-                    files[i] = (this.Collection.SelectedItems[i] as Comic).path;
-                }
-
-                DataObject dataObject = new DataObject(dataFormat, files);
-                DragDrop.DoDragDrop(this.Collection, dataObject, DragDropEffects.Copy);
             }
         }
 

@@ -256,6 +256,7 @@
                     Loaded="Collection_Loaded"
                     SelectionMode="Extended"
                     PreviewMouseLeftButtonDown="Collection_PreviewMouseLeftButtonDown"
+                    PreviewMouseLeftButtonUp="Collection_PreviewMouseLeftButtonUp"
                     MouseMove="Collection_MouseMove"
                     >
                 </ListBox>
