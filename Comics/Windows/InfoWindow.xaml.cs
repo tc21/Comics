@@ -24,8 +24,7 @@ namespace Comics {
                 this.editingComics = value;
                 this.Title = string.Format("Editing {0}", value[0].Title);
                 if (value.Count > 1) {
-                    this.Title += string.Format(" and {0} other", value.Count - 1);
-                    throw new Exception("This should not happen. You are trying to edit mulpitle items, when it should not be possible.");
+                    this.Title += string.Format(" and {0} more", value.Count - 1);
                 }
                 this.Title += "...";
                 PopulateInitialInfo();
@@ -39,6 +38,9 @@ namespace Comics {
             App.InfoWindow = this;
             PopulateInitialInfo();
         }
+
+        private static Brush ActiveTextForeground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+        private static Brush InactiveTextForeground = new SolidColorBrush(Color.FromRgb(0x7f, 0x7f, 0x7f));
 
         public void PopulateInitialInfo() {
             if (this.EditingComics == null) {
@@ -59,6 +61,8 @@ namespace Comics {
                 }
             }
 
+            this.ResetChanges();
+
             /* 1. this.Tags is null, because PopulateInitialInfo is called multiple times at random: it's the way it's supposed to work
              * 2. you should pass in the default list of tags, it should be showed as a list of checkboxes
              * 3. there should be an add tag button
@@ -69,6 +73,7 @@ namespace Comics {
 
         public const string ComicTitlePropertyName = "ComicTitle";
         private string comicTitle = null;
+        private bool titleChanged = false;
         public string ComicTitle {
             get => this.comicTitle;
             set {
@@ -84,6 +89,7 @@ namespace Comics {
 
         public const string ComicAuthorPropertyName = "ComicAuthor";
         private string comicAuthor = null;
+        private bool authorChanged = false;
         public string ComicAuthor {
             get => this.comicAuthor;
             set {
@@ -118,10 +124,26 @@ namespace Comics {
 
         private void SaveChanges() {
             foreach (var comic in this.EditingComics) {
-                comic.Title = this.ComicTitle;
-                comic.Author = this.ComicAuthor;
-                break; // just in case - remove eventually
+                if (titleChanged) {
+                    comic.Title = this.ComicTitle;
+                }
+
+                if (authorChanged) {
+                    comic.Author = this.ComicAuthor;
+                }
             }
+
+            PopulateInitialInfo();
+        }
+
+        private void ResetChanges() {
+            this.titleChanged = false;
+            this.TitleTextBox.Foreground = InactiveTextForeground;
+            this.TitleChangedIndicator.Visibility = Visibility.Hidden;
+            
+            this.authorChanged = false;
+            this.AuthorTextBox.Foreground = InactiveTextForeground;
+            this.AuthorChangedIndicator.Visibility = Visibility.Hidden;
         }
 
         private void Tag_Checked(object sender, RoutedEventArgs e) {
@@ -150,9 +172,21 @@ namespace Comics {
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e) {
-            var debug = (sender as TextBox).Parent;
-            // todo: this doesn't do anything at the moment, but eventually we should be able to detect and only save
-            // fields to which the user changed stuff, and then we will be able to edit multiple items.
+            var textbox = sender as TextBox;
+
+            // what we should to is write a custom usercontrol with properties such as "Edited", but this is just a proof of concept
+
+            if (textbox == this.AuthorTextBox) {
+                authorChanged = true;
+                textbox.Foreground = ActiveTextForeground;
+                AuthorChangedIndicator.Visibility = Visibility.Visible;
+            }
+
+            if (textbox == this.TitleTextBox) {
+                titleChanged = true;
+                textbox.Foreground = ActiveTextForeground;
+                TitleChangedIndicator.Visibility = Visibility.Visible;
+            }
         }
         
         private void InfoWindow_Closing(object sender, CancelEventArgs e) {

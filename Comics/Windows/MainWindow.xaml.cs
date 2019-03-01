@@ -194,11 +194,6 @@ namespace Comics {
         }
 
         private void ContextMenu_EditInfo(object sender, RoutedEventArgs e) {
-            if (this.Collection.SelectedItems.Count != 1) {
-                // todo: implement the ability to edit multiple items
-                return;
-            }
-
             if (App.InfoWindow != null) {
                 App.InfoWindow.EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList();
                 //App.InfoWindow.Tags = this.availableTags.ToList();
@@ -210,7 +205,7 @@ namespace Comics {
                 Owner = this,
                 EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList(),
                 //Tags = this.availableTags.ToList()
-        };
+            };
 
             info.Show();
         }

@@ -77,9 +77,9 @@
                                 </DockPanel>
                                 <DockPanel Grid.Row="1">
                                     <Label Content="Folders" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="FolderList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Folders}" CellEditEnding="CellEditEnding">
+                                    <DataGrid x:Name="FolderList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Categories}" CellEditEnding="CellEditEnding">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Type" Width="100" Binding="{Binding Type}" />
+                                            <DataGridTextColumn Header="Category" Width="100" Binding="{Binding Category}" />
                                             <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
@@ -96,10 +96,6 @@
                             <Rectangle />
                         </DockPanel>
                     </ScrollViewer>
-                </TabItem>
-
-                <TabItem Header="Tags">
-                    Hello! This feature is not implemented yet.
                 </TabItem>
 
                 <TabItem Header="Behavior">
