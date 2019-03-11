@@ -34,6 +34,9 @@ namespace Comics {
 
         // This property returns the view containing objects so the view can be updated 
         private ICollectionView ComicsView => CollectionViewSource.GetDefaultView(this.Collection?.ItemsSource);
+        private ICollectionView AuthorView => CollectionViewSource.GetDefaultView(this.AuthorSelector?.ItemsSource);
+        private ICollectionView TagView => CollectionViewSource.GetDefaultView(this.TagSelector?.ItemsSource);
+        private ICollectionView CategoryView => CollectionViewSource.GetDefaultView(this.CategorySelector?.ItemsSource);
 
         public MainWindow() {
             InitializeComponent();
@@ -326,6 +329,16 @@ namespace Comics {
             foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
                 this.ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
             }
+
+            this.AuthorView.SortDescriptions.Clear();
+            this.AuthorView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+
+            this.CategoryView.SortDescriptions.Clear();
+            this.CategoryView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+
+            this.TagView.SortDescriptions.Clear();
+            this.TagView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+
         }
 
         // Ways for the user to open a comic

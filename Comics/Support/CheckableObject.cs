@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Comics {
-    public class Checkable<T> : INotifyPropertyChanged {
+    public class Checkable<T> : IComparable, INotifyPropertyChanged where T : IComparable {
         private readonly T stored;
 
         public Checkable(T obj) {
@@ -27,6 +27,15 @@ namespace Comics {
             }
 
             return stored.Equals(obj);
+        }
+
+
+        public int CompareTo(object obj) {
+            if (obj is Checkable<T>) {
+                return this.stored.CompareTo(((Checkable<T>)obj).stored);
+            }
+
+            return stored.CompareTo(obj);
         }
 
         private bool isChecked = false;
