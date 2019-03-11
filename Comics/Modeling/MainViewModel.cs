@@ -34,52 +34,9 @@ namespace Comics {
             }
         }
 
-        // there has to be a better way than this, which is why I'm inlining this solution for now
-        public class CheckBoxString : INotifyPropertyChanged {
-            private readonly string stored;
-
-            private bool isChecked = false;
-            public bool IsChecked {
-                get => isChecked;
-                set {
-                    isChecked = value;
-                    NotifyPropertyChanged("IsChecked");
-                }
-            }
-
-            public CheckBoxString(string s) {
-                stored = s;
-            }
-
-            public static implicit operator CheckBoxString(string s) {
-                return new CheckBoxString(s);
-            }
-
-            public override string ToString() {
-                return stored;
-            }
-
-            public override bool Equals(object obj) {
-                if (obj is CheckBoxString) {
-                    return this.stored.Equals(((CheckBoxString)obj).stored);
-                }
-
-                return this.stored.Equals(obj);
-            }
-
-            public override int GetHashCode() {
-                return this.stored.GetHashCode();
-            }
-
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged(string propertyName) {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
         public const string AvailableAuthorsPropertyName = "AvailableAuthors";
-        public ObservableCollection<CheckBoxString> availableAuthors = new ObservableCollection<CheckBoxString>();
-        public ObservableCollection<CheckBoxString> AvailableAuthors {
+        public ObservableCollection<Checkable<string>> availableAuthors = new ObservableCollection<Checkable<string>>();
+        public ObservableCollection<Checkable<string>> AvailableAuthors {
             get => this.availableAuthors;
             set {
                 if (this.availableAuthors == value) {
@@ -108,8 +65,8 @@ namespace Comics {
 
         // All loaded categories
         public const string AvailableTagsPropertyName = "AvailableTags";
-        private ObservableCollection<CheckBoxString> availableTags = new ObservableCollection<CheckBoxString>();
-        public ObservableCollection<CheckBoxString> AvailableTags {
+        private ObservableCollection<Checkable<string>> availableTags = new ObservableCollection<Checkable<string>>();
+        public ObservableCollection<Checkable<string>> AvailableTags {
             get => this.availableTags;
             set {
                 if (this.availableTags == value) {
@@ -274,19 +231,19 @@ namespace Comics {
         }
 
         public void UpdateFilterLists() {
-            var authors_set = new HashSet<CheckBoxString>();
+            var authors_set = new HashSet<Checkable<string>>();
             var categories_set = new HashSet<string>();
-            var tags_set = new HashSet<CheckBoxString>();
+            var tags_set = new HashSet<Checkable<string>>();
 
             foreach (var comic in this.AvailableComics) {
                 authors_set.Add(comic.Author);
                 categories_set.Add(comic.Category);
-                tags_set.UnionWith(comic.Tags.Select<string, CheckBoxString>((s) => s));
+                tags_set.UnionWith(comic.Tags.Select<string, Checkable<string>>((s) => s));
             }
 
-            var authors = new ObservableCollection<CheckBoxString>(authors_set);
+            var authors = new ObservableCollection<Checkable<string>>(authors_set);
             var categories = new ObservableCollection<string>(categories_set);
-            var tags = new ObservableCollection<CheckBoxString>(tags_set);
+            var tags = new ObservableCollection<Checkable<string>>(tags_set);
 
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableAuthors = authors;
@@ -357,8 +314,8 @@ namespace Comics {
         private void AddComicToAvailableComics(Comic comic) {
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics.Add(comic);
-                if (!this.AvailableAuthors.Contains(new CheckBoxString(comic.Author))) {
-                    this.AvailableAuthors.Add(new CheckBoxString(comic.Author));
+                if (!this.AvailableAuthors.Contains(new Checkable<string>(comic.Author))) {
+                    this.AvailableAuthors.Add(new Checkable<string>(comic.Author));
                 }
 
                 if (!this.AvailableCategories.Contains(comic.Category)) {

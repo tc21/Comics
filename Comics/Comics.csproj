@@ -72,6 +72,7 @@
     </ApplicationDefinition>
     <Compile Include="Modeling\Comic.cs" />
     <Compile Include="SQL\Database.cs" />
+    <Compile Include="Support\CheckableObject.cs" />
     <Compile Include="Support\Defaults.cs" />
     <Compile Include="Modeling\MainViewModel.cs" />
     <Compile Include="Support\Files.cs" />
