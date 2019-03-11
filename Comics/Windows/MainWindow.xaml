@@ -185,24 +185,29 @@
                 </Border>
 
                 <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2">
-                    <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2" Checked="ShowLoved_Checked" Unchecked="ShowLoved_Unchecked"/>
-                    <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Checked" Unchecked="ShowDisliked_Unchecked"/>
+                    <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2"  Checked="ShowLoved_Changed" Unchecked="ShowLoved_Changed"/>
+                    <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Changed" Unchecked="ShowDisliked_Changed"/>
 
                     <Label DockPanel.Dock="Top" FontSize="14" Content="Category"></Label>
                     <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource AvailableCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" Checked="Category_Checked" Unchecked="Category_Unchecked"></CheckBox>
+                                <CheckBox Content="{Binding .}" Checked="Category_Changed" Unchecked="Category_Changed"></CheckBox>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-
-                    <Label DockPanel.Dock="Top" FontSize="14" Content="Tags"></Label>
+                    <DockPanel DockPanel.Dock="Top">
+                        <Label DockPanel.Dock="Left" FontSize="14" Content="Tags"></Label>
+                        <TextBlock x:Name="RemoveSelectedTagsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6">
+                            <Hyperlink Foreground="#FF7F7F7F" FontSize="11" Click="RemoveSelectedTagsLink_Click">remove selections</Hyperlink>
+                        </TextBlock>
+                        <Rectangle />
+                    </DockPanel>
                     <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" Checked="Tag_Checked" Unchecked="Tag_Unchecked"></CheckBox>
+                                <CheckBox Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Tag_Changed" Unchecked="Tag_Changed"></CheckBox>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -217,7 +222,7 @@
                     <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource AvailableAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Author_Checked" Unchecked="Author_Unchecked"/>
+                                <CheckBox Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Author_Changed" Unchecked="Author_Changed"/>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

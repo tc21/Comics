@@ -345,60 +345,62 @@ namespace Comics {
         }
 
         // Handlers for when the user checks and unchecks sidebar options
-        private void Category_Checked(object sender, RoutedEventArgs e) {
-            this.selectedCategories.Add(((CheckBox)sender).Content.ToString());
-            RefreshComics();
-        }
-
-        private void Category_Unchecked(object sender, RoutedEventArgs e) {
-            this.selectedCategories.Remove(((CheckBox)sender).Content.ToString());
-            RefreshComics();
-        }
-
-        private void Author_Checked(object sender, RoutedEventArgs e) {
-            this.selectedAuthors.Add(((CheckBox)sender).Content.ToString());
-            if (this.selectedAuthors.Count == 1) {
-                this.RemoveSelectedAuthorsLink.Visibility = Visibility.Visible;
+        private void Category_Changed(object sender, RoutedEventArgs e) {
+            if (sender as CheckBox is CheckBox checkbox &&
+                checkbox.IsChecked is bool isChecked) {
+                if (isChecked) {
+                    this.selectedCategories.Add(checkbox.Content.ToString());
+                } else {
+                    this.selectedCategories.Remove(checkbox.Content.ToString());
+                }
+                RefreshComics();
             }
-            RefreshComics();
         }
-        
-        private void Author_Unchecked(object sender, RoutedEventArgs e) {
-            this.selectedAuthors.Remove(((CheckBox)sender).Content.ToString());
-            if (this.selectedAuthors.Count == 0) {
-                this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
+        private void Author_Changed(object sender, RoutedEventArgs e) {
+            if (sender as CheckBox is CheckBox checkbox &&
+                checkbox.IsChecked is bool isChecked) {
+                if (isChecked) {
+                    this.selectedAuthors.Add(checkbox.Content.ToString());
+                    this.RemoveSelectedAuthorsLink.Visibility = Visibility.Visible;
+                } else {
+                    this.selectedAuthors.Remove(checkbox.Content.ToString());
+                    if (this.selectedAuthors.Count == 0) {
+                        this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
+                    }
+                }
+                RefreshComics();
             }
-            RefreshComics();
         }
 
-        private void Tag_Checked(object sender, RoutedEventArgs e) {
-            this.selectedTags.Add(((CheckBox)sender).Content.ToString());
-            RefreshComics();
-        }
-        
-        private void Tag_Unchecked(object sender, RoutedEventArgs e) {
-            this.selectedTags.Remove(((CheckBox)sender).Content.ToString());
-            RefreshComics();
+        private void Tag_Changed(object sender, RoutedEventArgs e) {
+
+            if (sender as CheckBox is CheckBox checkbox &&
+                checkbox.IsChecked is bool isChecked) {
+                if (isChecked) {
+                    this.selectedTags.Add(checkbox.Content.ToString());
+                    this.RemoveSelectedTagsLink.Visibility = Visibility.Visible;
+                } else {
+                    this.selectedTags.Remove(checkbox.Content.ToString());
+                    if (this.selectedTags.Count == 0) {
+                        this.RemoveSelectedTagsLink.Visibility = Visibility.Hidden;
+                    }
+                }
+                RefreshComics();
+            }
         }
 
-        private void ShowLoved_Checked(object sender, RoutedEventArgs e) {
-            this.onlyShowLoved = true;
-            RefreshComics();
+        private void ShowLoved_Changed(object sender, RoutedEventArgs e) {
+            if ((sender as CheckBox).IsChecked is bool isChecked) {
+                this.onlyShowLoved = isChecked;
+                RefreshComics();
+            }
         }
 
-        private void ShowLoved_Unchecked(object sender, RoutedEventArgs e) {
-            this.onlyShowLoved = false;
-            RefreshComics();
-        }
-
-        private void ShowDisliked_Checked(object sender, RoutedEventArgs e) {
-            this.showDisliked = true;
-            RefreshComics();
-        }
-
-        private void ShowDisliked_Unchecked(object sender, RoutedEventArgs e) {
-            this.showDisliked = false;
-            RefreshComics();
+        private void ShowDisliked_Changed(object sender, RoutedEventArgs e) {
+            if ((sender as CheckBox).IsChecked is bool isChecked) {
+                this.showDisliked = isChecked;
+                RefreshComics();
+            }
         }
 
         protected override void OnClosing(CancelEventArgs e) {
@@ -477,7 +479,7 @@ namespace Comics {
 
         public void ClearSelections() {
             this.RemoveSelectedAuthors();
-            this.selectedCategories.Clear();
+            this.RemoveSelectedTags();
             this.selectedTags.Clear();
         }
 
@@ -485,10 +487,22 @@ namespace Comics {
             this.selectedAuthors.Clear();
             this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
         }
+        
+        private void RemoveSelectedTags() {
+            this.selectedTags.Clear();
+            this.RemoveSelectedTagsLink.Visibility = Visibility.Hidden;
+        }
 
         private void RemoveSelectedAuthorsLink_Click(object sender, RoutedEventArgs e) {
             RemoveSelectedAuthors();
             foreach (var item in App.ViewModel.AvailableAuthors) {
+                item.IsChecked = false;
+            }
+            RefreshComics();
+        }
+        private void RemoveSelectedTagsLink_Click(object sender, RoutedEventArgs e) {
+            RemoveSelectedTags();
+            foreach (var item in App.ViewModel.AvailableTags) {
                 item.IsChecked = false;
             }
             RefreshComics();

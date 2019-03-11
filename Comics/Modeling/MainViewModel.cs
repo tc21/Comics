@@ -51,6 +51,10 @@ namespace Comics {
                 stored = s;
             }
 
+            public static implicit operator CheckBoxString(string s) {
+                return new CheckBoxString(s);
+            }
+
             public override string ToString() {
                 return stored;
             }
@@ -104,8 +108,8 @@ namespace Comics {
 
         // All loaded categories
         public const string AvailableTagsPropertyName = "AvailableTags";
-        private ObservableCollection<string> availableTags = new ObservableCollection<string>();
-        public ObservableCollection<string> AvailableTags {
+        private ObservableCollection<CheckBoxString> availableTags = new ObservableCollection<CheckBoxString>();
+        public ObservableCollection<CheckBoxString> AvailableTags {
             get => this.availableTags;
             set {
                 if (this.availableTags == value) {
@@ -189,6 +193,7 @@ namespace Comics {
             }
 
             if (Defaults.LoadProfile(profile)) {
+                App.ComicsWindow?.ClearSelections();
                 UpdateComicsAfterProfileChanged();
             }
         }
@@ -271,17 +276,17 @@ namespace Comics {
         public void UpdateFilterLists() {
             var authors_set = new HashSet<CheckBoxString>();
             var categories_set = new HashSet<string>();
-            var tags_set = new HashSet<string>();
+            var tags_set = new HashSet<CheckBoxString>();
 
             foreach (var comic in this.AvailableComics) {
-                authors_set.Add(new CheckBoxString(comic.Author));
+                authors_set.Add(comic.Author);
                 categories_set.Add(comic.Category);
-                tags_set.UnionWith(comic.Tags);
+                tags_set.UnionWith(comic.Tags.Select<string, CheckBoxString>((s) => s));
             }
 
             var authors = new ObservableCollection<CheckBoxString>(authors_set);
             var categories = new ObservableCollection<string>(categories_set);
-            var tags = new ObservableCollection<string>(tags_set);
+            var tags = new ObservableCollection<CheckBoxString>(tags_set);
 
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableAuthors = authors;
