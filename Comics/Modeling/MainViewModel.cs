@@ -391,7 +391,8 @@ namespace Comics {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Currently only generates a database from scratch
+        // Used with "force" to generate a new database from scratch, or without "force" to
+        // add new comics as well as update existing comics.
         public async Task UpdateDatabase(bool force = false) {
             App.ComicsWindow?.PushFooter("DatabaseIndicator", "Building database...");
             App.ComicsWindow?.DisableInteractions();

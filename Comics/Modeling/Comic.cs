@@ -55,6 +55,10 @@ namespace Comics {
             }
 
             if (metadata == null) {
+                metadata = SQL.Database.Manager.GetMetadata(this.UniqueIdentifier);
+            }
+
+            if (metadata == null) {
                 metadata = new Metadata();
             }
 

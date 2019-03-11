@@ -452,6 +452,19 @@ namespace Comics.SQL {
                 var conn = DatabaseConnection.ForCurrentProfile();
                 return conn.AllComics();
             }
+
+
+            public static Metadata GetMetadata(string uniqueIdentifier) {
+                var conn = DatabaseConnection.ForCurrentProfile();
+                
+                var comic = conn.GetComic(uniqueIdentifier);
+
+                if (comic == null) {
+                    return null;
+                }
+
+                return comic.Metadata;
+            }
         }
     }
 }
