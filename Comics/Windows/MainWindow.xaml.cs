@@ -249,7 +249,7 @@ namespace Comics {
             }
 
             Comic comic = (this.Collection.SelectedItem as Comic);
-            if (comic == null) {
+            if (comic is null) {
                 return;
             }
 
@@ -310,7 +310,7 @@ namespace Comics {
         // When the user changes the sort order, we update the sort descriptions on the comics view.
         // When the user selects "random", we have to randomize a field inside the comic object.
         private void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (this.ComicsView == null) {
+            if (this.ComicsView is null) {
                 return;
             }
 

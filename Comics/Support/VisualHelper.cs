@@ -29,18 +29,17 @@ namespace Comics {
         /// </summary>
         public static Comic ComicAtMouseButtonEvent(object sender, MouseButtonEventArgs e) {
             ItemsControl itemsControl;
-            if (sender is ItemsControl) {
-                itemsControl = sender as ItemsControl;
-            } else if (sender is Panel) {
-                itemsControl = FindParentWithType<ItemsControl>(sender as Panel);
+            if (sender is ItemsControl control) {
+                itemsControl = control;
+            } else if (sender is Panel panel) {
+                itemsControl = FindParentWithType<ItemsControl>(panel);
             } else {
                 return null;
             }
 
-            FrameworkElement sourceItemsContainer = itemsControl.ContainerFromElement(e.OriginalSource as Visual) as FrameworkElement;
 
             object item;
-            if (sourceItemsContainer == null) {
+            if (!(itemsControl.ContainerFromElement(e.OriginalSource as Visual) is FrameworkElement sourceItemsContainer)) {
                 item = itemsControl.DataContext;
             } else if (sourceItemsContainer == e.Source) {
                 item = e.Source;

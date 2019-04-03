@@ -22,8 +22,8 @@ namespace Comics {
         }
 
         public override bool Equals(object obj) {
-            if (obj is Checkable<T>) {
-                return this.stored.Equals(((Checkable<T>)obj).stored);
+            if (obj is Checkable<T> checkable) {
+                return this.stored.Equals(checkable.stored);
             }
 
             return stored.Equals(obj);
@@ -31,8 +31,8 @@ namespace Comics {
 
 
         public int CompareTo(object obj) {
-            if (obj is Checkable<T>) {
-                return this.stored.CompareTo(((Checkable<T>)obj).stored);
+            if (obj is Checkable<T> checkable) {
+                return this.stored.CompareTo(checkable.stored);
             }
 
             return stored.CompareTo(obj);

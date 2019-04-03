@@ -81,7 +81,7 @@ namespace Comics.SQL {
                 }
 
 
-                if (shared == null || profile != Defaults.Profile.DatabaseFile) {
+                if (shared is null || profile != Defaults.Profile.DatabaseFile) {
                     shared = new DatabaseConnection(Defaults.Profile.DatabaseFile);
                     profile = Defaults.Profile.DatabaseFile;
                 }
@@ -329,7 +329,10 @@ namespace Comics.SQL {
                 var comics = new List<Comic>();
 
                 while (reader.Read()) {
-                    comics.Add(ComicFromRow(reader));
+                    var comic = ComicFromRow(reader);
+                    if (comic != null) {
+                        comics.Add(comic);
+                    }
                 }
 
                 return comics;
@@ -380,6 +383,7 @@ namespace Comics.SQL {
             }
 
             // ordering is an implementation detail defined by getComicQuery
+            // returns null if data is invalid
             private Comic ComicFromRow(SQLiteDataReader reader) {
                 var path = reader.GetString(0);
                 var title = reader.GetString(1);
@@ -397,7 +401,13 @@ namespace Comics.SQL {
                     Tags = new HashSet<string>(ReadTags(rowid))
                 };
 
-                return new Comic(title, author, category, path, m);
+                try {
+                    return new Comic(title, author, category, path, m);
+                } catch (ComicLoadException) {
+                    InvalidateComic(rowid);
+                }
+
+                return null;
             }
 
             private List<string> ReadTags(int comicid) {
@@ -434,6 +444,13 @@ namespace Comics.SQL {
                     Connection
                 ));
             }
+
+            public void InvalidateComic(int comicid) {
+                ExecuteNonQuery(new SQLiteCommand(
+                    string.Format("UPDATE {0} SET {1} = 0 WHERE rowid = {2}", table_comics, key_active, comicid),
+                    Connection
+                ));
+            }
         }
 
         public static class Manager {
@@ -456,14 +473,8 @@ namespace Comics.SQL {
 
             public static Metadata GetMetadata(string uniqueIdentifier) {
                 var conn = DatabaseConnection.ForCurrentProfile();
-                
                 var comic = conn.GetComic(uniqueIdentifier);
-
-                if (comic == null) {
-                    return null;
-                }
-
-                return comic.Metadata;
+                return comic?.Metadata;
             }
         }
     }

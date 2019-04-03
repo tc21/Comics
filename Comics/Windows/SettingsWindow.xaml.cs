@@ -179,7 +179,7 @@ namespace Comics {
             if (e.EditAction == DataGridEditAction.Commit) {
                 string header = e.Column.Header as string;
                 TextBox textBox = e.EditingElement as TextBox;
-                if (header == null || textBox == null) {
+                if (header is null || textBox is null) {
                     return;
                 }
 

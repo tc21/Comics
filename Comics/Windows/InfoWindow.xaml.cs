@@ -48,7 +48,7 @@ namespace Comics {
         }
 
         public void PopulateInitialInfo() {
-            if (this.EditingComics == null) {
+            if (this.EditingComics is null) {
                 return;
             }
 
@@ -57,19 +57,19 @@ namespace Comics {
             this.ComicTags = null;
 
             foreach (var comic in this.EditingComics) {
-                if (this.ComicTitle == null) {
+                if (this.ComicTitle is null) {
                     this.ComicTitle = comic.Title;
                 } else if (this.ComicTitle != comic.Title) {
                     this.ComicTitle = "Various"; // todo not actually implemented: currently we just disallow multiple edits
                 }
 
-                if (this.ComicAuthor == null) {
+                if (this.ComicAuthor is null) {
                     this.ComicAuthor = comic.Author;
                 } else if (this.ComicAuthor != comic.Author) {
                     this.ComicAuthor = "Various";
                 }
                 
-                if (this.ComicTags == null) {
+                if (this.ComicTags is null) {
                     this.ComicTags = comic.TagString;
                 } else if (this.ComicTags != comic.TagString) {
                     this.ComicTags = "Various";

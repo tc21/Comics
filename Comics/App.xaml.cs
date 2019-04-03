@@ -43,7 +43,7 @@ namespace Comics {
         private static MainViewModel viewModel = null;
         public static MainViewModel ViewModel {
             get {
-                if (viewModel == null) {
+                if (viewModel is null) {
                     viewModel = new MainViewModel();
                 }
 

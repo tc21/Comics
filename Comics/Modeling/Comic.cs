@@ -54,11 +54,11 @@ namespace Comics {
                 throw new ComicLoadException("Invalid path given to comic");
             }
 
-            if (metadata == null) {
+            if (metadata is null) {
                 metadata = SQL.Database.Manager.GetMetadata(this.UniqueIdentifier);
             }
 
-            if (metadata == null) {
+            if (metadata is null) {
                 metadata = new Metadata();
             }
 
@@ -185,7 +185,7 @@ namespace Comics {
 
         // tags separated by commas
         public string TagString {
-            get => (this.Metadata.Tags == null) ? "" : (string.Join(", ", this.Metadata.Tags) ?? "");
+            get => (this.Metadata.Tags is null) ? "" : (string.Join(", ", this.Metadata.Tags) ?? "");
             set { this.Metadata.Tags = ParseTags(value); Save(); NotifyPropertyChanged("Tags"); }
         }
 

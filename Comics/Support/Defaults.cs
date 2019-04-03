@@ -391,7 +391,7 @@ namespace Comics {
 
         public static void CreateNewProfile(string name) {
             // Used internally for generating a temp profile
-            if (name == null) {
+            if (name is null) {
                 Profile = new UserDefaults() {
                     ProfileName = defaultProfileName,
                     ImageHeight = defaultImageHeight,

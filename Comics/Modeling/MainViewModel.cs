@@ -249,8 +249,6 @@ namespace Comics {
                 this.AvailableCategories = categories;
                 this.AvailableTags = tags;
 
-                //SortFilterLists();
-
                 App.ComicsWindow.RefreshFilter();
             });
         }
@@ -283,8 +281,6 @@ namespace Comics {
                 }
 
             }
-
-            //SortFilterLists();
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
