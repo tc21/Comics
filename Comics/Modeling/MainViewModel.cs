@@ -187,7 +187,6 @@ namespace Comics {
             this.AvailableTags.Clear();
 
             await Task.Run(() => PopulateComicsFromDatabase());
-            App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails());
             
             App.ComicsWindow?.PopFooter("LoadingIndicator");
@@ -203,7 +202,6 @@ namespace Comics {
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
             await Task.Run(() => LoadComicsFromDisk());
-            App.ComicsWindow?.UpdateSortDescriptions();
             await Task.Run(() => GenerateComicThumbnails());
 
             App.ComicsWindow?.PopFooter("LoadingIndicator");
@@ -250,6 +248,7 @@ namespace Comics {
                 this.AvailableTags = tags;
 
                 App.ComicsWindow.RefreshFilter();
+                App.ComicsWindow.UpdateSortDescriptions();
             });
         }
 
@@ -279,8 +278,9 @@ namespace Comics {
                         }
                     }
                 }
-
             }
+
+            UpdateFilterLists();
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
