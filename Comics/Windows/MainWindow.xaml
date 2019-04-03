@@ -87,7 +87,7 @@
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
-            <MenuItem Header="Edit Info" Click="ContextMenu_EditInfo" />
+            <MenuItem Header="Edit Info" Command="local:ApplicationCommands.EditInfo" />
             <Separator />
             <MenuItem Header="Love" Click="ContextMenu_Love" />
             <MenuItem Header="Dislike" Click="ContextMenu_Dislike" />
@@ -144,6 +144,14 @@
             </Setter>
         </Style>
     </Window.Resources>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="local:ApplicationCommands.EditInfo" CanExecute="CollectionEvent_OneOrMore_CanExecute" Executed="EditInfo_Executed" />
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <KeyBinding Command="local:ApplicationCommands.EditInfo" Key="I" Modifiers="Ctrl" />
+    </Window.InputBindings>
 
     <!-- Actual Window -->
     <DockPanel>

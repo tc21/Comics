@@ -201,23 +201,6 @@ namespace Comics {
             OpenSelectedComics();
         }
 
-        private void ContextMenu_EditInfo(object sender, RoutedEventArgs e) {
-            if (App.InfoWindow != null) {
-                App.InfoWindow.EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList();
-                //App.InfoWindow.Tags = this.availableTags.ToList();
-                App.InfoWindow.Activate();
-                return;
-            }
-            
-            Window info = new InfoWindow {
-                Owner = this,
-                EditingComics = this.Collection.SelectedItems.Cast<Comic>().ToList(),
-                //Tags = this.availableTags.ToList()
-            };
-
-            info.Show();
-        }
-
         private void ContextMenu_Love(object sender, RoutedEventArgs e) {
             foreach (var c in this.Collection.SelectedItems) {
                 Comic comic = (c as Comic);
