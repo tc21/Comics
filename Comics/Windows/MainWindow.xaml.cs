@@ -297,31 +297,43 @@ namespace Comics {
                 return;
             }
 
-            UpdateSortDescriptions();
+            UpdateComicSortDescriptions();
 
             Properties.Settings.Default.SelectedSortIndex = this.SortOrderBox.SelectedIndex;
         }
 
-        public void UpdateSortDescriptions() {
+        public void UpdateSortDescriptions(bool randomize = true) {
+            UpdateComicSortDescriptions(randomize);
+            UpdateAuthorSortDescriptions();
+            UpdateCategorySortDescriptions();
+            UpdateTagSortDescriptions();
+        }
+
+        public void UpdateComicSortDescriptions(bool randomize = true) {
             this.ComicsView.SortDescriptions.Clear();
 
-            if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex) {
+            if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex && randomize) {
                 App.ViewModel.RandomizeComics();
             }
 
             foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
                 this.ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
             }
+        }
 
+        public void UpdateAuthorSortDescriptions() {
             this.AuthorView.SortDescriptions.Clear();
             this.AuthorView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+        }
 
+        public void UpdateCategorySortDescriptions() {
             this.CategoryView.SortDescriptions.Clear();
             this.CategoryView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+        }
 
+        public void UpdateTagSortDescriptions() {
             this.TagView.SortDescriptions.Clear();
             this.TagView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
-
         }
 
         // Ways for the user to open a comic

@@ -31,6 +31,9 @@ namespace Comics {
 
                 this.availableComics = value;
                 NotifyPropertyChanged(AvailableComicsPropertyName);
+                // it's on the main window to update sort descriptions, which has to happen after the main window knows
+                // about the change in this property
+                App.ComicsWindow?.UpdateComicSortDescriptions();
             }
         }
 
@@ -45,6 +48,7 @@ namespace Comics {
 
                 this.availableAuthors = value;
                 NotifyPropertyChanged(AvailableAuthorsPropertyName);
+                App.ComicsWindow?.UpdateAuthorSortDescriptions();
             }
         }
 
@@ -60,6 +64,7 @@ namespace Comics {
 
                 this.availableCategories = value;
                 NotifyPropertyChanged(AvailableCategoriesPropertyName);
+                App.ComicsWindow?.UpdateCategorySortDescriptions();
             }
         }
 
@@ -75,6 +80,7 @@ namespace Comics {
 
                 this.availableTags = value;
                 NotifyPropertyChanged(AvailableTagsPropertyName);
+                App.ComicsWindow?.UpdateTagSortDescriptions();
             }
         }
 
@@ -248,7 +254,6 @@ namespace Comics {
                 this.AvailableTags = tags;
 
                 App.ComicsWindow.RefreshFilter();
-                App.ComicsWindow.UpdateSortDescriptions();
             });
         }
 
