@@ -20,8 +20,8 @@
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </Window.Resources>
-    
-    <Border Background="{StaticResource OverlayBackgroundColor}">
+
+    <Border Background="{DynamicResource LightBackgroundColor}">
 
         <DockPanel Margin="4">
             <DockPanel DockPanel.Dock="Bottom">
@@ -30,21 +30,24 @@
                 <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply"  Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
-            <TabControl Background="{StaticResource OverlayBackgroundColor}">
+            <TabControl Background="{DynamicResource LightBackgroundColor}">
                 <TabItem Header="Metadata">
                     <ScrollViewer>
                         <DockPanel>
                             <ui1:ChangeTrackingTextBox x:Name="TitleEditor" DockPanel.Dock="Top" Margin="4,2,16,2"
                                                        Label="Title" Value="{Binding ComicTitle}"
-                                                       InactiveForeground="{StaticResource SubtitleColor}"/>
+                                                       Foreground="{DynamicResource TextColor}"
+                                                       InactiveForeground="{DynamicResource LightTextColor}"/>
                             <ui1:ChangeTrackingTextBox x:Name="AuthorEditor" DockPanel.Dock="Top" Margin="4,2,16,2" 
                                                        Label="Author" Value="{Binding ComicAuthor}"
-                                                       InactiveForeground="{StaticResource SubtitleColor}"/>
+                                                       Foreground="{DynamicResource TextColor}"
+                                                       InactiveForeground="{DynamicResource LightTextColor}"/>
                             <ui1:ChangeTrackingTextBox x:Name="TagEditor" DockPanel.Dock="Top" Margin="4,2,16,2" 
                                                        Label="Tags" Value="{Binding ComicTags}"
-                                                       InactiveForeground="{StaticResource SubtitleColor}"/>
+                                                       Foreground="{DynamicResource TextColor}"
+                                                       InactiveForeground="{DynamicResource LightTextColor}"/>
 
-                            <CheckBox x:Name="TagReplacementActionCheckBox" DockPanel.Dock="Top" Margin="4,2,16,2" Content="Add tags instead of replacing" />
+                            <CheckBox Style="{StaticResource CheckBoxStyle}" x:Name="TagReplacementActionCheckBox" DockPanel.Dock="Top" Margin="4,2,16,2" Content="Add tags instead of replacing" />
 
                             <!--<Label DockPanel.Dock="Top" FontSize="14" Content="Tags ← coming soon!" />
 

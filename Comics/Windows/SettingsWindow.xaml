@@ -23,7 +23,7 @@
             <Setter Property="Content" Value="···" />
             <Setter Property="FontSize" Value="24" />
             <Setter Property="Background" Value="{x:Null}" />
-            <Setter Property="Foreground" Value="{StaticResource FooterColor}" />
+            <Setter Property="Foreground" Value="{DynamicResource FooterColor}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Height" Value="19" />
             <Setter Property="Padding" Value="0,-8,0,0" />
@@ -35,7 +35,7 @@
             <MenuItem Header="New" Click="ProfileMenu_New"/>
         </ContextMenu>
     </Window.Resources>
-    <Border Background="{StaticResource OverlayBackgroundColor}">
+    <Border Background="{DynamicResource LightBackgroundColor}">
         <DockPanel Margin="4">
             <DockPanel Style="{StaticResource Dropdown}" DockPanel.Dock="Top">
                 <Label DockPanel.Dock="Left" Content="Profile:" />
@@ -51,7 +51,7 @@
                 <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
-            <TabControl Background="{StaticResource OverlayBackgroundColor}">
+            <TabControl Background="{DynamicResource LightBackgroundColor}">
                 <TabItem Header="Content">
                     <ScrollViewer>
                         <DockPanel>
@@ -136,6 +136,11 @@
                             <Label DockPanel.Dock="Left" Content="Subtitle Font Size" Width="180" />
                             <TextBox IsEnabled="False"/>
                         </DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
+                            <Button  DockPanel.Dock="Left" Margin="4,2,16,2" Click="SwitchTheme" Content="Switch Theme"/>
+                            <Rectangle />
+                        </DockPanel>
+
                         <Rectangle />
                     </DockPanel>
                 </TabItem>

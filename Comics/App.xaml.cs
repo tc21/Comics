@@ -50,5 +50,19 @@ namespace Comics {
                 return viewModel;
             }
         }
+
+        private void Application_Startup(object sender, StartupEventArgs e) {
+            UpdateTheme();
+        }
+
+        public void SwitchTheme() {
+            Comics.Properties.Settings.Default.DarkModeEnabled = !Comics.Properties.Settings.Default.DarkModeEnabled;
+            UpdateTheme();
+        }
+
+        public void UpdateTheme() {
+            var path = Comics.Properties.Settings.Default.DarkModeEnabled ? $"Windows/Themes/Dark.xaml" : $"Windows/Themes/Default.xaml";
+            this.Resources.MergedDictionaries[0].Source = new Uri(path, UriKind.Relative);
+        }
     }
 }

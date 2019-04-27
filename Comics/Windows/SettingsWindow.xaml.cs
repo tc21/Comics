@@ -306,5 +306,9 @@ namespace Comics {
                 this.CommandExampleLabel.Text = "Error: File not found";
             }
         }
+
+        private void SwitchTheme(object sender, RoutedEventArgs e) {
+            (App.Current as App).SwitchTheme();
+        }
     }
 }

@@ -1,0 +1,26 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Comics.Windows.Themes">
+    <SolidColorBrush x:Key="BackgroundColor" Color="#FF1B1E23" />
+    <SolidColorBrush x:Key="LightBackgroundColor" Color="#FF23262D" />
+    <SolidColorBrush x:Key="BorderColor" Color="#FF3E424D" />
+    <SolidColorBrush x:Key="LightBorderColor" Color="#FF626673" />
+    <SolidColorBrush x:Key="ButtonColor" Color="#FF272B33" />
+    <SolidColorBrush x:Key="ButtonHighlightColor" Color="#FF3E424D" />
+    <SolidColorBrush x:Key="TextColor" Color="#FF99A2AA" />
+    <SolidColorBrush x:Key="FillColor" Color="#FF99A2AA" />
+    <SolidColorBrush x:Key="LightTextColor" Color="#FF6F7B86" />
+    <SolidColorBrush x:Key="DisabledTextColor" Color="#FF6F7B86" />
+    <SolidColorBrush x:Key="DisabledFillColor" Color="#FF6F7B86" />
+    <SolidColorBrush x:Key="HighlightedTextColor" Color="#FFBBC4CC" />
+    <SolidColorBrush x:Key="HighlightedFillColor" Color="#FFBBC4CC" />
+    <SolidColorBrush x:Key="FooterColor" Color="#FFBBC4CC" />
+    <SolidColorBrush x:Key="SelectedBackgroundColor" Color="#FF23262D" />
+    <SolidColorBrush x:Key="HoveredBackgroundColor" Color="#FF3E424D" />
+    <SolidColorBrush x:Key="SelectedBorderColor" Color="#FF3E424D"/>
+
+    <SolidColorBrush x:Key="ImageOverlayColor" Color="#201b1e23"/>
+
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowFrameBrushKey}" Color="#FF3E424D" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#FF1B1E23" />
+</ResourceDictionary>

@@ -1,17 +1,19 @@
-﻿<Window x:Class="Comics.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Comics"
         xmlns:ui="clr-namespace:UI"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        xmlns:dat="clr-namespace:System.Windows.Data;assembly=PresentationFramework"
+        xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
+        x:Class="Comics.MainWindow"
         mc:Ignorable="d"
         Loaded="MainWindow_Loaded"
         Closing="MainWindow_Closing"
         Title="Comics"
         SizeChanged="CollectionContainerSizeChanged"
+        Background="{DynamicResource BackgroundColor}"
+        Foreground="{DynamicResource TextColor}"
         >
 
     <Window.Resources>
@@ -32,12 +34,25 @@
                                 <RowDefinition Height="16"/>
                             </Grid.RowDefinitions>
                             <Grid Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Image Source="{Binding Path=ThumbnailPath, Converter={StaticResource ThumbnailConverter}}"/>
+                                <Image Source="{Binding ThumbnailPath, Converter={StaticResource ThumbnailConverter}}"/>
                                 <Polygon Style="{StaticResource PreferenceOverlay}" />
                                 <TextBlock Style="{StaticResource PreferenceLabel}" />
+                                <Rectangle Fill="{DynamicResource ImageOverlayColor}" />
                             </Grid>
-                            <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Author}" FontSize="10" LineHeight="14" Height="14" Foreground="{StaticResource SubtitleColor}" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Grid.Row="2" HorizontalAlignment="Center" Text="{Binding Title}" FontSize="12" LineHeight="16" Height="16" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Row="1" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Author}" 
+                                       FontSize="10" LineHeight="14" Height="14" 
+                                       Foreground="{DynamicResource LightTextColor}" 
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Grid.Row="2" 
+                                       HorizontalAlignment="Center" 
+                                       Text="{Binding Title}" 
+                                       FontSize="12" LineHeight="16" Height="16" 
+                                       Foreground="{DynamicResource TextColor}"
+                                       TextWrapping="WrapWithOverflow" 
+                                       TextTrimming="CharacterEllipsis"/>
                         </Grid>
                     </DataTemplate>
                 </Setter.Value>
@@ -52,7 +67,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
-                        <ScrollViewer Focusable="False" PanningMode="VerticalOnly">
+                        <ScrollViewer Focusable="False" PanningMode="VerticalOnly" Template="{DynamicResource StylableScrollViewerControlTemplate}">
                             <ItemsPresenter />
                         </ScrollViewer>
                     </ControlTemplate>
@@ -68,22 +83,23 @@
             </Setter>
         </Style>
         <!-- Main library source -->
-        <CollectionViewSource x:Key="AvailableComicsSource" Source="{Binding Path=AvailableComics}" />
-        <CollectionViewSource x:Key="AvailableAuthors" Source="{Binding Path=AvailableAuthors}">
+        <CollectionViewSource x:Key="AvailableComicsSource" Source="{Binding AvailableComics}" />
+        <CollectionViewSource x:Key="AvailableAuthors" Source="{Binding AvailableAuthors}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        <CollectionViewSource x:Key="AvailableCategories" Source="{Binding Path=AvailableCategories}">
+        <CollectionViewSource x:Key="AvailableCategories" Source="{Binding AvailableCategories}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
-        <CollectionViewSource x:Key="AvailableTags" Source="{Binding Path=AvailableTags}">
+        <CollectionViewSource x:Key="AvailableTags" Source="{Binding AvailableTags}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Sort" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
+        
         <!-- Context menus -->
         <ContextMenu x:Key="ComicsContextMenu">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
@@ -100,7 +116,7 @@
         </ContextMenu>
         <ContextMenu x:Key="SettingsContextMenu">
             <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
-                <!--<MenuItem Header="Quick Toggles" IsEnabled="False">
+            <!--<MenuItem Header="Quick Toggles" IsEnabled="False">
                 <MenuItem />
                 </MenuItem>-->
             <Separator />
@@ -122,7 +138,7 @@
             </Style.Triggers>
         </Style>
         <!-- Profile selector dropdown -->
-        <Style x:Key="ProfileSelectorStyle" TargetType="{x:Type ComboBox}">
+        <Style x:Key="ProfileSelectorStyle" BasedOn="{StaticResource ComboBoxStyle}" TargetType="{x:Type ComboBox}">
             <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
             <Setter Property="FontSize" Value="22" />
             <Setter Property="BorderThickness" Value="0" />
@@ -143,6 +159,17 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="SidebarHeaderStyle" TargetType="{x:Type Label}">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+        </Style>
+
+        <Style x:Key="InlineLinkStyle" TargetType="{x:Type Hyperlink}">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource LightTextColor}" />
+        </Style>
+
     </Window.Resources>
 
     <Window.CommandBindings>
@@ -156,7 +183,7 @@
     <!-- Actual Window -->
     <DockPanel>
         <!-- Status bar -->
-        <StatusBar DockPanel.Dock="Bottom" Height="22">
+        <StatusBar DockPanel.Dock="Bottom" Height="22" Background="{DynamicResource LightBackgroundColor}">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -169,11 +196,10 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0" HorizontalAlignment="Left" FontSize="11">
-                <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}"  Content="⚙" Click="ShowSettingsContextMenu" ContextMenu="{StaticResource SettingsContextMenu}">
-                </Button>
+                <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}"  Content="⚙" Click="ShowSettingsContextMenu" ContextMenu="{StaticResource SettingsContextMenu}"/>
             </StatusBarItem>
             <StatusBarItem x:Name="Footer" Grid.Column="1" HorizontalAlignment="Center" FontSize="11" Padding="0">
-                <Label Content="Comics" Foreground="{StaticResource FooterColor}"></Label>
+                <Label Content="Comics" Foreground="{DynamicResource FooterColor}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" FontSize="11">
                 <Button x:Name="RightSidebarButton" Style="{StaticResource RightSidebarButtonStyle}" Click="ToggleRightSidebar" />
@@ -183,54 +209,63 @@
         <!-- Everything else -->
         <DockPanel>
             <!-- Right sidebar -->
-            <DockPanel x:Name="RightSidebar" DockPanel.Dock="Right" Margin="0,0,0,0" Width="200" Background="{StaticResource OverlayBackgroundColor}">
-                <Border BorderBrush="Gray" BorderThickness="1" DockPanel.Dock="Top" Margin="8">
-                    <DockPanel Background="White">
-                        <Label DockPanel.Dock="Left" Content="🔍" TextOptions.TextFormattingMode="Display" Foreground="{StaticResource DisabledColor}"/>
-                        <Label DockPanel.Dock="Left" Content="›" TextOptions.TextFormattingMode="Display" Foreground="{StaticResource DisabledColor}" Margin="-8,0,-4,0" Style="{StaticResource Rotate90Degrees}"/>
-                        <TextBox x:Name="SearchBox" DockPanel.Dock="Left" Style="{StaticResource UnstyledBox}" TextOptions.TextFormattingMode="Display" TextChanged="SearchBox_TextChanged" />
+            <DockPanel x:Name="RightSidebar" DockPanel.Dock="Right" Margin="0,0,0,0" Width="200" Background="{DynamicResource LightBackgroundColor}">
+                <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" DockPanel.Dock="Top" Margin="8">
+                    <DockPanel Background="{DynamicResource BackgroundColor}">
+                        <Label DockPanel.Dock="Left" Content="🔍"
+                               TextOptions.TextFormattingMode="Display"
+                               Foreground="{StaticResource DisabledColor}"/>
+                        <Label DockPanel.Dock="Left" Content="›"
+                               TextOptions.TextFormattingMode="Display"
+                               Foreground="{StaticResource DisabledColor}"
+                               Margin="-8,0,-4,0"
+                               Style="{StaticResource Rotate90Degrees}"/>
+                        <TextBox x:Name="SearchBox" DockPanel.Dock="Left" 
+                                 Style="{StaticResource UnstyledBox}"
+                                 TextOptions.TextFormattingMode="Display" TextChanged="SearchBox_TextChanged"
+                                 Foreground="{DynamicResource TextColor}" BorderBrush="{DynamicResource BorderColor}" />
                     </DockPanel>
                 </Border>
 
                 <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2">
-                    <CheckBox DockPanel.Dock="Top"  Content="Only show loved" Margin="8,2,4,2"  Checked="ShowLoved_Changed" Unchecked="ShowLoved_Changed"/>
-                    <CheckBox DockPanel.Dock="Top"  Content="Don't hide disliked" Margin="8,2,4,2" Checked="ShowDisliked_Changed" Unchecked="ShowDisliked_Changed"/>
+                    <CheckBox DockPanel.Dock="Top" Style="{StaticResource CheckBoxStyle}" Margin="8,2,4,2" 
+                              Content="Only show loved" Checked="ShowLoved_Changed" Unchecked="ShowLoved_Changed"/>
+                    <CheckBox DockPanel.Dock="Top" Style="{StaticResource CheckBoxStyle}" Margin="8,2,4,2"
+                              Content="Don't hide disliked" Checked="ShowDisliked_Changed" Unchecked="ShowDisliked_Changed"/>
 
-                    <Label DockPanel.Dock="Top" FontSize="14" Content="Category"></Label>
-                    <ItemsControl x:Name="CategorySelector" ItemsSource="{Binding Source={StaticResource AvailableCategories}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                    <Label DockPanel.Dock="Top" Content="Category" Style="{StaticResource SidebarHeaderStyle}" />
+                    <ItemsControl DockPanel.Dock="Top" x:Name="CategorySelector" 
+                                  ItemsSource="{Binding Source={StaticResource AvailableCategories}}" 
+                                  Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" Checked="Category_Changed" Unchecked="Category_Changed"></CheckBox>
+                                <CheckBox Style="{StaticResource CheckBoxStyle}" Content="{Binding .}" Checked="Category_Changed" Unchecked="Category_Changed" />
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <DockPanel DockPanel.Dock="Top">
-                        <Label DockPanel.Dock="Left" FontSize="14" Content="Tags"></Label>
-                        <TextBlock x:Name="RemoveSelectedTagsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6">
-                            <Hyperlink Foreground="#FF7F7F7F" FontSize="11" Click="RemoveSelectedTagsLink_Click">remove selections</Hyperlink>
-                        </TextBlock>
+                        <Label DockPanel.Dock="Left" FontSize="14" Content="Tags" Style="{StaticResource SidebarHeaderStyle}" />
+                        <TextBlock x:Name="RemoveSelectedTagsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6"><Hyperlink Style="{StaticResource InlineLinkStyle}" Click="RemoveSelectedTagsLink_Click"><Run Text="remove selections"/></Hyperlink></TextBlock>
                         <Rectangle />
                     </DockPanel>
                     <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Tag_Changed" Unchecked="Tag_Changed"></CheckBox>
+                                <CheckBox Style="{StaticResource CheckBoxStyle}"  Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Tag_Changed" Unchecked="Tag_Changed"/>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <DockPanel DockPanel.Dock="Top">
-                        <Label DockPanel.Dock="Left" FontSize="14" Content="Authors"></Label>
-                        <TextBlock x:Name="RemoveSelectedAuthorsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6">
-                            <Hyperlink Foreground="#FF7F7F7F" FontSize="11" Click="RemoveSelectedAuthorsLink_Click">remove selections</Hyperlink>
-                        </TextBlock>
+                        <Label DockPanel.Dock="Left" Content="Authors" Style="{StaticResource SidebarHeaderStyle}" />
+                        <TextBlock x:Name="RemoveSelectedAuthorsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6"><Hyperlink Style="{StaticResource InlineLinkStyle}" Click="RemoveSelectedAuthorsLink_Click"><Run Text="remove selections"/></Hyperlink></TextBlock>
                         <Rectangle />
                     </DockPanel>
                     <ItemsControl x:Name="AuthorSelector" ItemsSource="{Binding Source={StaticResource AvailableAuthors}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
-                                <CheckBox Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Author_Changed" Unchecked="Author_Changed"/>
+                                <CheckBox Style="{StaticResource CheckBoxStyle}" Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Author_Changed" Unchecked="Author_Changed"/>
                             </HierarchicalDataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -239,15 +274,17 @@
             </DockPanel>
 
             <!-- Main area (collection view) -->
-            <DockPanel Margin="0,0,0,0" x:Name="ContentGrid" SizeChanged="CollectionContainerSizeChanged">
+            <DockPanel Margin="0,0,0,0" x:Name="ContentGrid" SizeChanged="CollectionContainerSizeChanged" Background="{DynamicResource BackgroundColor}">
                 <!-- Header (category and sort selection) -->
-                <DockPanel DockPanel.Dock="Top" Height="40" Background="{StaticResource OverlayBackgroundColor}">
+                <DockPanel DockPanel.Dock="Top" Height="40" Background="{DynamicResource LightBackgroundColor}">
                     <DockPanel DockPanel.Dock="Left" TextOptions.TextFormattingMode="Display">
-                        <ComboBox x:Name="ProfileSelector" Style="{StaticResource ProfileSelectorStyle}" ItemsSource="{Binding Profiles}" SelectedIndex="{Binding SelectedProfile}"/>
+                        <ComboBox x:Name="ProfileSelector" Style="{StaticResource ProfileSelectorStyle}" 
+                                  ItemsSource="{Binding Profiles}" SelectedIndex="{Binding SelectedProfile}"/>
                     </DockPanel>
                     <DockPanel Style="{StaticResource Dropdown}">
-                        <Label Content="Sort:" />
-                        <ComboBox x:Name="SortOrderBox" SelectionChanged="SortOrderBox_SelectionChanged" ItemsSource="{Binding SortPropertyDisplayName}">
+                        <Label Content="Sort:" Foreground="{DynamicResource TextColor}" />
+                        <ComboBox x:Name="SortOrderBox"
+                                  SelectionChanged="SortOrderBox_SelectionChanged" ItemsSource="{Binding SortPropertyDisplayName}" >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}" />
@@ -271,8 +308,7 @@
                     PreviewMouseLeftButtonDown="Collection_PreviewMouseLeftButtonDown"
                     PreviewMouseLeftButtonUp="Collection_PreviewMouseLeftButtonUp"
                     MouseMove="Collection_MouseMove"
-                    >
-                </ListBox>
+                    />
             </DockPanel>
         </DockPanel>
     </DockPanel>
