@@ -332,8 +332,9 @@ namespace Comics {
         }
 
         public void UpdateTagSortDescriptions() {
+            // TODO switch between count and name
             this.TagView.SortDescriptions.Clear();
-            this.TagView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+            this.TagView.SortDescriptions.Add(new SortDescription("", ListSortDirection.Descending));
         }
 
         // Ways for the user to open a comic

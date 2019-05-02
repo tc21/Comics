@@ -70,8 +70,8 @@ namespace Comics {
 
         // All loaded categories
         public const string AvailableTagsPropertyName = "AvailableTags";
-        private ObservableCollection<Checkable<string>> availableTags = new ObservableCollection<Checkable<string>>();
-        public ObservableCollection<Checkable<string>> AvailableTags {
+        private ObservableCollection<Checkable<CustomSort<string>>> availableTags = new ObservableCollection<Checkable<CustomSort<string>>>();
+        public ObservableCollection<Checkable<CustomSort<string>>> AvailableTags {
             get => this.availableTags;
             set {
                 if (this.availableTags == value) {
@@ -236,17 +236,28 @@ namespace Comics {
         public void UpdateFilterLists() {
             var authors_set = new HashSet<Checkable<string>>();
             var categories_set = new HashSet<string>();
-            var tags_set = new HashSet<Checkable<string>>();
+            //var tags_set = new HashSet<Checkable<string>>();
+            var tags_dict = new Dictionary<string, int>();
 
             foreach (var comic in this.AvailableComics) {
                 authors_set.Add(comic.Author);
                 categories_set.Add(comic.Category);
-                tags_set.UnionWith(comic.Tags.Select<string, Checkable<string>>((s) => s));
+                //tags_set.UnionWith(comic.Tags.Select<string, Checkable<string>>((s) => s));
+                foreach (var tag in comic.Tags) {
+                    if (tags_dict.ContainsKey(tag)) {
+                        tags_dict[tag] += 1;
+                    } else {
+                        tags_dict[tag] = 1;
+                    }
+                }
             }
 
             var authors = new ObservableCollection<Checkable<string>>(authors_set);
             var categories = new ObservableCollection<string>(categories_set);
-            var tags = new ObservableCollection<Checkable<string>>(tags_set);
+            //var tags = new ObservableCollection<Checkable<string>>(tags_set);
+            var tags = new ObservableCollection<Checkable<CustomSort<string>>>(
+                tags_dict.Select(p => new Checkable<CustomSort<string>>(new CustomSort<string>(p.Key, p.Value)))
+            );
 
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableAuthors = authors;
@@ -327,8 +338,9 @@ namespace Comics {
                 }
 
                 foreach (var tag in comic.Tags) {
-                    if (!this.AvailableTags.Contains(tag)) {
-                        this.AvailableTags.Add(tag);
+                    var cs = new CustomSort<string>(tag);
+                    if (!this.AvailableTags.Contains(cs)) {
+                        this.AvailableTags.Add(cs);
                     }
                 }
             });
