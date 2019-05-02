@@ -17,9 +17,7 @@ using System.Windows;
  *        comics, and you want then to show up in the same library. But they have to be opened differently. The
  *        current program only allows you to have one way to open stuff, which will have to be changed.
  *    or folders as subitems in a work
- * 3. Implement library files so you don't have to index everything from disk everytime you startup the program
  * 4. Add keyboard shortcuts and controls since basically everything only works from the mouse right now
- * 5. Implement tags (work in progress)
  * 6. Add the ability to have custom actions: for example, you may be able to assign an action
  *        type: right click menu item
  *        name: upsample comic using waifu2x
@@ -31,8 +29,14 @@ using System.Windows;
  *            os.rmdir('{folder}/temp')
  *        }
  *    which is saved per profile.
+ *    
+ *    
+ * 7. Tag matching: switch between AND mode / OR mode
+ * 8. Right click: show only this author
+ * 9. (Long term) live author filtering
+ * 10. Scroll bar for tags (min-height for scroll views)?
  * 
- * Last modified Tianyi Cao, 2018-03-11.
+ * Last modified Tianyi Cao, 2019-05-02.
  */
 namespace Comics {
     // Interaction logic for App.xaml
