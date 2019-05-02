@@ -515,5 +515,19 @@ namespace Comics {
             }
             RefreshComics();
         }
+
+        private void Sidebar_SizeChanged(object sender, SizeChangedEventArgs e) {
+            UpdateTagSelectorMaxHeight(e.NewSize.Height);
+        }
+
+        private void Sidebar_Loaded(object sender, RoutedEventArgs e) {
+            UpdateTagSelectorMaxHeight((e.Source as DockPanel).ActualHeight);
+        }
+
+        private void UpdateTagSelectorMaxHeight(double containerHeight) {
+            // 120 is a magic number limiting the max size of the tag selector such that
+            // the tag and author selectors fill up the same amount of space
+            TagSelector.MaxHeight = (containerHeight - CategorySelector.ActualHeight - 120) / 2;
+        }
     }
 }

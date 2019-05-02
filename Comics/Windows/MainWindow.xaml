@@ -227,7 +227,7 @@
                     </DockPanel>
                 </Border>
 
-                <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2">
+                <DockPanel DockPanel.Dock="Top" Margin="4,2,4,2" SizeChanged="Sidebar_SizeChanged" Loaded="Sidebar_Loaded">
                     <CheckBox DockPanel.Dock="Top" Style="{StaticResource CheckBoxStyle}" Margin="8,2,4,2" 
                               Content="Only show loved" Checked="ShowLoved_Changed" Unchecked="ShowLoved_Changed"/>
                     <CheckBox DockPanel.Dock="Top" Style="{StaticResource CheckBoxStyle}" Margin="8,2,4,2"
@@ -249,7 +249,11 @@
                         <TextBlock x:Name="RemoveSelectedTagsLink" Visibility="Hidden" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6"><Hyperlink Style="{StaticResource InlineLinkStyle}" Click="RemoveSelectedTagsLink_Click"><Run Text="remove selections"/></Hyperlink></TextBlock>
                         <Rectangle />
                     </DockPanel>
-                    <ItemsControl x:Name="TagSelector" ItemsSource="{Binding Source={StaticResource AvailableTags}}" DockPanel.Dock="Top" Style="{StaticResource ScrollableCheckBoxStyle}">
+                    <ItemsControl x:Name="TagSelector" 
+                                  ItemsSource="{Binding Source={StaticResource AvailableTags}}" 
+                                  DockPanel.Dock="Top" 
+                                  Style="{StaticResource ScrollableCheckBoxStyle}"
+                                  MaxHeight="240">
                         <ItemsControl.ItemTemplate>
                             <HierarchicalDataTemplate>
                                 <CheckBox Style="{StaticResource CheckBoxStyle}"  Content="{Binding .}" IsChecked="{Binding IsChecked}" Checked="Tag_Changed" Unchecked="Tag_Changed"/>
