@@ -38,7 +38,7 @@
     <Border Background="{DynamicResource LightBackgroundColor}">
         <DockPanel Margin="4">
             <DockPanel Style="{StaticResource Dropdown}" DockPanel.Dock="Top">
-                <Label DockPanel.Dock="Left" Content="Profile:" />
+                <Label DockPanel.Dock="Left" Content="Profile:" Foreground="{DynamicResource TextColor}" />
                 <Button DockPanel.Dock="Right" x:Name="ProfileOptionsButton" Style="{StaticResource ProfileOptionsButton}" ContextMenu="{StaticResource ProfileOptionsContextMenu}" Click="ProfileOptionsButton_Click"/>
                 <Grid>
                     <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}" />
@@ -46,13 +46,16 @@
                 </Grid>
             </DockPanel>
             <DockPanel DockPanel.Dock="Bottom">
-                <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
+                <Button Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"
+                        DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
+                <Button Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"
+                        DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
+                <Button Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"
+                        DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
-            <TabControl Background="{DynamicResource LightBackgroundColor}">
-                <TabItem Header="Content">
+            <TabControl Background="{DynamicResource LightBackgroundColor}" BorderBrush="{DynamicResource BorderColor}">
+                <TabItem Header="Content" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}">
                     <ScrollViewer>
                         <DockPanel>
                             <Grid DockPanel.Dock="Bottom">
@@ -68,27 +71,27 @@
                                     <RowDefinition />
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0">
-                                    <Label Content="Recognized Extensions" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="ExtensionList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Extensions}" CellEditEnding="CellEditEnding">
+                                    <Label Content="Recognized Extensions" DockPanel.Dock="Top" Foreground="{DynamicResource TextColor}"></Label>
+                                    <DataGrid x:Name="ExtensionList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Extensions}" CellEditEnding="CellEditEnding" Background="{DynamicResource BackgroundColor}" Foreground="{DynamicResource TextColor}">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Extension" Width="*" Binding="{Binding Value}" />
+                                            <DataGridTextColumn Header="Extension" Width="*" Binding="{Binding Value}" Foreground="{DynamicResource TextColor}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </DockPanel>
                                 <DockPanel Grid.Row="1">
-                                    <Label Content="Folders" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="FolderList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Categories}" CellEditEnding="CellEditEnding">
+                                    <Label Content="Folders" DockPanel.Dock="Top" Foreground="{DynamicResource TextColor}"></Label>
+                                    <DataGrid x:Name="FolderList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding Categories}" CellEditEnding="CellEditEnding" Foreground="{DynamicResource TextColor}" Background="{DynamicResource BackgroundColor}">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Category" Width="100" Binding="{Binding Category}" />
-                                            <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" />
+                                            <DataGridTextColumn Header="Category" Width="100" Binding="{Binding Category}" Foreground="{DynamicResource TextColor}" />
+                                            <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" Foreground="{DynamicResource TextColor}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </DockPanel>
                                 <DockPanel Grid.Row="2">
-                                    <Label Content="Ignored Prefixes" DockPanel.Dock="Top"></Label>
-                                    <DataGrid x:Name="IgnoredPrefixList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding IgnoredPrefixes}" CellEditEnding="CellEditEnding">
+                                    <Label Content="Ignored Prefixes" DockPanel.Dock="Top" Foreground="{DynamicResource TextColor}"></Label>
+                                    <DataGrid x:Name="IgnoredPrefixList" DockPanel.Dock="Top" Style="{StaticResource DataGridStyle}" ItemsSource="{Binding IgnoredPrefixes}" CellEditEnding="CellEditEnding" Foreground="{DynamicResource TextColor}" Background="{DynamicResource BackgroundColor}">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Prefix" Width="*" Binding="{Binding Value}" />
+                                            <DataGridTextColumn Header="Prefix" Width="*" Binding="{Binding Value}" Foreground="{DynamicResource TextColor}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </DockPanel>
@@ -98,46 +101,46 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem Header="Behavior">
+                <TabItem Header="Behavior" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Label DockPanel.Dock="Left" Content="Child folder traversal depth" Width="180" />
-                            <TextBox IsEnabled="False"/>
+                            <Label DockPanel.Dock="Left" Content="Child folder traversal depth" Width="180" Foreground="{DynamicResource TextColor}" />
+                            <TextBox IsEnabled="False" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Label DockPanel.Dock="Left" Content="Treat child folders as separate works"/>
-                            <CheckBox DockPanel.Dock="Right" VerticalAlignment="Center" IsEnabled="False"/>
+                            <Label DockPanel.Dock="Left" Content="Treat child folders as separate works" Foreground="{DynamicResource TextColor}"/>
+                            <CheckBox Style="{DynamicResource CheckBoxStyle}" DockPanel.Dock="Right" VerticalAlignment="Center" IsEnabled="False"/>
                             <Rectangle />
                         </DockPanel>
-                        <Label DockPanel.Dock="Top" Content="Application to open work with:" Margin="4,2,16,2"/>
-                        <TextBox DockPanel.Dock="Top" x:Name="OpenApplicationTextBox" TextChanged="OpenApplicationTextBox_TextChanged" Margin="8,2,16,2" Height="24"/>
-                        <Label DockPanel.Dock="Top" Content="Additional arguments:" Margin="4,2,16,2"/>
-                        <TextBox DockPanel.Dock="Top" x:Name="OpenArgumentsTextBox" TextChanged="OpenArgumentsTextBox_TextChanged" Margin="8,2,16,2" Height="24"/>
-                        <Label DockPanel.Dock="Top" Content="Example Command:"  Margin="4,2,16,2" />
+                        <Label DockPanel.Dock="Top" Content="Application to open work with:" Margin="4,2,16,2" Foreground="{DynamicResource TextColor}"/>
+                        <TextBox DockPanel.Dock="Top" x:Name="OpenApplicationTextBox" TextChanged="OpenApplicationTextBox_TextChanged" Margin="8,2,16,2" Height="24" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"/>
+                        <Label DockPanel.Dock="Top" Content="Additional arguments:" Margin="4,2,16,2" Foreground="{DynamicResource TextColor}"/>
+                        <TextBox DockPanel.Dock="Top" x:Name="OpenArgumentsTextBox" TextChanged="OpenArgumentsTextBox_TextChanged" Margin="8,2,16,2" Height="24" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"/>
+                        <Label DockPanel.Dock="Top" Content="Example Command:"  Margin="4,2,16,2" Foreground="{DynamicResource TextColor}" />
                         <TextBlock DockPanel.Dock="Top" x:Name="CommandExampleLabel" Text="firstfile.png" Margin="8,2,16,2" TextWrapping="Wrap"/>
                         <Rectangle />
                     </DockPanel>
                 </TabItem>
-                <TabItem Header="Interface">
+                <TabItem Header="Interface" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Label DockPanel.Dock="Left" Content="Image Height" Width="180" />
+                            <Label DockPanel.Dock="Left" Content="Image Height" Width="180" Foreground="{DynamicResource TextColor}" />
                             <TextBox IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Label DockPanel.Dock="Left" Content="Image Width" Width="180" />
+                            <Label DockPanel.Dock="Left" Content="Image Width" Width="180" Foreground="{DynamicResource TextColor}" />
                             <TextBox IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Label DockPanel.Dock="Left" Content="Title Font Size" Width="180" />
+                            <Label DockPanel.Dock="Left" Content="Title Font Size" Width="180" Foreground="{DynamicResource TextColor}" />
                             <TextBox IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Label DockPanel.Dock="Left" Content="Subtitle Font Size" Width="180" />
+                            <Label DockPanel.Dock="Left" Content="Subtitle Font Size" Width="180" Foreground="{DynamicResource TextColor}" />
                             <TextBox IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
-                            <Button  DockPanel.Dock="Left" Margin="4,2,16,2" Click="SwitchTheme" Content="Switch Theme"/>
+                            <Button  DockPanel.Dock="Left" Margin="4,2,16,2" Click="SwitchTheme" Content="Switch Theme" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}"/>
                             <Rectangle />
                         </DockPanel>
 
