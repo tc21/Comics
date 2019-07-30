@@ -405,44 +405,6 @@ namespace Comics {
         public void Save() {
             SQL.Database.Manager.UpdateComic(this);
         }
-
-        //public void SaveMetadata() {
-        //    XmlSerializer writer = new XmlSerializer(typeof(Metadata));
-        //    string path = Path.Combine(Defaults.UserMetadataFolder, this.MetadataPath);
-        //    string tempPath = path + ".tmp";
-
-        //    using (FileStream tempFile = File.Create(tempPath)) {
-        //        writer.Serialize(tempFile, this.Metadata);
-        //    }
-
-        //    if (File.Exists(path)) {
-        //        File.Delete(path);
-        //    }
-
-        //    File.Move(tempPath, path);
-        //}
-
-        //public bool LoadMetadata() {
-        //    Metadata profile;
-        //    XmlSerializer reader = new XmlSerializer(typeof(Metadata));
-        //    string path = Path.Combine(Defaults.UserMetadataFolder, this.MetadataPath);
-
-        //    if (!File.Exists(path)) {
-        //        return false;
-        //    }
-
-        //    using (StreamReader file = new StreamReader(path)) {
-        //        profile = (Metadata)reader.Deserialize(file);
-        //    }
-
-        //    this.Metadata = profile;
-        //    return true;
-        //}
-
-        public void SyncWithDatabase() {
-            // will throw an exception on failure
-            SQL.Database.Manager.UpdateComic(this);
-        }
     }
 
     public class Metadata {

@@ -290,6 +290,17 @@ namespace Comics {
             await App.ViewModel.UpdateDatabase(force: true);
         }
 
+
+        private void ContextMenu_RemoveFromDatabase(object sender, RoutedEventArgs e) {
+            var comicsToRemove =this.Collection.SelectedItems.OfType<Comic>().ToArray();
+
+            foreach (var comic_ in comicsToRemove) {
+                if (comic_ is Comic comic) {
+                    App.ViewModel.RemoveComicFromDatabase(comic);
+                }
+            }
+        }
+
         // When the user changes the sort order, we update the sort descriptions on the comics view.
         // When the user selects "random", we have to randomize a field inside the comic object.
         private void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
@@ -529,6 +540,27 @@ namespace Comics {
             // 120 is a magic number limiting the max size of the tag selector such that
             // the tag and author selectors fill up the same amount of space
             TagSelector.MaxHeight = (containerHeight - CategorySelector.ActualHeight - 120) / 2;
+        }
+
+        private void Collection_DragEnter(object sender, DragEventArgs e) {
+            e.Effects = DragDropEffects.Copy;
+        }
+
+        private void Collection_Drop(object sender, DragEventArgs e) {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+                foreach (var file in files) {
+                    if (Directory.Exists(file)) {
+                        var names = file.Split('\\');
+
+                        var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
+                        var title = names[names.Length - 1];
+
+                        App.ViewModel.AddComicFromDisk(title, author, MainViewModel.ManuallyAddedComicCategoryName, file);
+                    }
+                }
+            }
         }
     }
 }

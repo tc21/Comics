@@ -17,6 +17,7 @@ using Comics.Support;
 namespace Comics {
     public class MainViewModel : INotifyPropertyChanged {
         //private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        public const string ManuallyAddedComicCategoryName = "Manually Added";
 
         // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
         // All loaded comics
@@ -184,30 +185,40 @@ namespace Comics {
         }
 
         private async Task LoadComicsFromDatabase() {
-            App.ComicsWindow?.PushFooter("LoadingIndicator", "Loading...");
+
+            App.ComicsWindow?.PushFooter("LoadingIndicator", "Reloading...");
             App.ComicsWindow?.DisableInteractions();
 
             this.AvailableComics.Clear();
             this.AvailableAuthors.Clear();
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
-
             await Task.Run(() => PopulateComicsFromDatabase());
             await Task.Run(() => GenerateComicThumbnails());
-            
+
             App.ComicsWindow?.PopFooter("LoadingIndicator");
             App.ComicsWindow?.EnableInteractions();
         }
 
         // function that actually reloads comics
         private async Task ReloadComicsFromDisk() {
+            
             App.ComicsWindow?.PushFooter("LoadingIndicator", "Reloading...");
             App.ComicsWindow?.DisableInteractions();
+
+            var cachedComics = this.AvailableComics.Where(c => c.Category == ManuallyAddedComicCategoryName).ToArray();
+
             this.AvailableComics.Clear();
             this.AvailableAuthors.Clear();
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
+
             await Task.Run(() => LoadComicsFromDisk());
+
+            foreach (var comic in cachedComics) {
+                AddComic(comic);
+            }
+
             await Task.Run(() => GenerateComicThumbnails());
 
             App.ComicsWindow?.PopFooter("LoadingIndicator");
@@ -219,6 +230,38 @@ namespace Comics {
         // Public interface to reload (regenerate) all thumbnails
         public async Task ReloadComicThumbnails() {
             await Task.Run(() => GenerateComicThumbnails());
+            App.ComicsWindow?.RefreshComics();
+        }
+
+        public void AddComicFromDisk(string title, string author, string category, string path) {
+            AddComic(new Comic(title, author, category, path), true);
+        }
+
+        private void AddComic(Comic comic, bool recreateThumbnail = false) {
+            foreach (var existingComic in AvailableComics) {
+                if (existingComic.UniqueIdentifier == comic.UniqueIdentifier) {
+                    return;
+                }
+            }
+
+            AddComicToAvailableComics(comic);
+
+            if (recreateThumbnail || !(File.Exists(comic.ThumbnailPath))) {
+                comic.RecreateThumbnail();
+            }
+           
+            comic.Save();
+        }
+
+        public void RemoveComicFromDatabase(Comic comic) {
+            SQL.Database.Manager.RemoveComic(comic);
+            this.AvailableComics.Remove(comic);
+
+            /* TODO: Currently, when a comic is removed its author/category/tag checkboxes aren't removed.
+             * To do this, we need an efficient way of checking if an author/etc is the *only* author/etc remaining.
+             * I recommend doing reference counting, perhaps taking advantage of a struct similar to CustomSort. */
+
+            App.ComicsWindow?.ClearSelections();
             App.ComicsWindow?.RefreshComics();
         }
 

@@ -112,6 +112,7 @@
             <!-- This option should ideally be in "Edit Info" -->
             <MenuItem Header="Redefine Thumbnail" Click="ContextMenu_RedefineThumbnail" />
             <Separator />
+            <MenuItem Header="Remove From Database" Click="ContextMenu_RemoveFromDatabase" />
             <MenuItem Header="Delete Local Files" IsEnabled="False" />
         </ContextMenu>
         <ContextMenu x:Key="SettingsContextMenu">
@@ -312,6 +313,9 @@
                     PreviewMouseLeftButtonDown="Collection_PreviewMouseLeftButtonDown"
                     PreviewMouseLeftButtonUp="Collection_PreviewMouseLeftButtonUp"
                     MouseMove="Collection_MouseMove"
+                    AllowDrop="True"
+                    DragEnter="Collection_DragEnter"
+                    Drop="Collection_Drop"
                     />
             </DockPanel>
         </DockPanel>

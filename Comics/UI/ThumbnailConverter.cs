@@ -31,8 +31,6 @@ namespace UI {
                 return null;
             } catch (NotSupportedException) {
                 return null;
-            } catch (IOException) {
-                return null;
             }
         }
 

@@ -445,7 +445,12 @@ namespace Comics.SQL {
                 ));
             }
 
-            public void InvalidateComic(int comicid) {
+            public void InvalidateComic(Comic comic) {
+                var comicid = ComicRowid(comic);
+                InvalidateComic(comicid);
+            }
+
+            private void InvalidateComic(int comicid) {
                 ExecuteNonQuery(new SQLiteCommand(
                     string.Format("UPDATE {0} SET {1} = 0 WHERE rowid = {2}", table_comics, key_active, comicid),
                     Connection
@@ -462,6 +467,13 @@ namespace Comics.SQL {
                     }
                 } else {
                     conn.AddComic(c);
+                }
+            }
+
+            public static void RemoveComic(Comic c) {
+                var conn = DatabaseConnection.ForCurrentProfile();
+                if (conn.HasComic(c.UniqueIdentifier)) {
+                    conn.InvalidateComic(c);
                 }
             }
 
