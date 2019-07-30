@@ -14,6 +14,7 @@ namespace Comics.SQL {
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
+        private const string table_progress = "comic_progress";
 
         private const string key_path = "folder";
         private const string key_unique_id = "unique_name";
@@ -32,6 +33,9 @@ namespace Comics.SQL {
         private const string key_xref_comic_id = "comicid";
         private const string key_xref_tag_id = "tagid";
 
+        private const string key_progress_comicid = "comicid";
+        private const string key_progress = "progress";
+
         private static readonly object databaseLock = new object();
 
         private static string profile = null;
@@ -45,6 +49,7 @@ namespace Comics.SQL {
             private DatabaseConnection(string path) {
                 Connection = new SQLiteConnection("Data Source=" + path + ";Version=3;");
                 Connection.Open();
+                Migrate();
             }
 
             ~DatabaseConnection() {
@@ -91,6 +96,31 @@ namespace Comics.SQL {
                 }
 
                 return shared;
+            }
+
+            private void Migrate() {
+                var version = (long)ExecuteScalar(new SQLiteCommand("SELECT version FROM version", this.Connection));
+                
+                if (version > DatabaseConnection.version) {
+                    throw new Exception("Database version too high!");
+                }
+
+                while (version < DatabaseConnection.version) {
+                    version += 1;
+                    var migration = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+                        string.Format("Comics.SQL.{0}.sql", version)
+                    );
+
+                    using (var reader = new StreamReader(migration)) {
+                        var command = new SQLiteCommand(reader.ReadToEnd(), this.Connection);
+                        ExecuteNonQuery(command);
+                    }
+
+                    ExecuteNonQuery(new SQLiteCommand(
+                        string.Format("UPDATE version SET version = {0}", version),
+                        this.Connection
+                    ));
+                }
             }
 
             private void Init() {
@@ -453,6 +483,37 @@ namespace Comics.SQL {
             private void InvalidateComic(int comicid) {
                 ExecuteNonQuery(new SQLiteCommand(
                     string.Format("UPDATE {0} SET {1} = 0 WHERE rowid = {2}", table_comics, key_active, comicid),
+                    Connection
+                ));
+            }
+            
+            public int GetProgress(Comic comic) {
+                return GetProgress(ComicRowid(comic));
+            }
+
+            public void SetProgress(Comic comic, int progress) {
+                SetProgress(ComicRowid(comic), progress);
+            }
+
+            private int GetProgress(int comicid) {
+                var progress = ExecuteScalar(new SQLiteCommand(
+                    string.Format("SELECT {0} FROM {1} WHERE rowid = {2}", table_progress, key_progress, comicid),
+                    Connection
+                ));
+
+                if (progress is null) {
+                    return 0;
+                }
+
+                return (int)progress;
+            }
+
+            private void SetProgress(int comicid, int progress) {
+                // note: dependent on the implementation of ON CONFLICT REPLACE
+                ExecuteNonQuery(new SQLiteCommand(
+                    string.Format(
+                        "INSERT INTO {0} ({1}, {2}) VALUES ({3}, {4})", 
+                        table_progress, key_progress_comicid, key_progress, comicid, progress),
                     Connection
                 ));
             }

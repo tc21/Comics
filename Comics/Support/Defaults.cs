@@ -106,6 +106,9 @@ namespace Comics {
                         Width = Properties.Settings.Default.ViewerWidth
                     };
 
+                    var conn = SQL.Database.DatabaseConnection.ForCurrentProfile();
+                    viewer.GoToIndex(conn.GetProgress(comic));
+
                     // This should be moved somewhere else, but I don't know where. (probably MainWindow, I'm thinking.)
                     var contextMenu = viewer.ContextMenu;
                     if (contextMenu is null) {
@@ -140,6 +143,8 @@ namespace Comics {
                         Properties.Settings.Default.ViewerLeft = viewer.Left;
                         Properties.Settings.Default.ViewerHeight = viewer.ActualHeight;
                         Properties.Settings.Default.ViewerWidth = viewer.ActualWidth;
+
+                        conn.SetProgress(comic, viewer.CurrentImageIndex);
                     });
                     viewer.Show();
                 } else {

@@ -1,4 +1,8 @@
-﻿CREATE TABLE comics (
+﻿CREATE TABLE version (
+    version INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE comics (
     -- rowid INTEGER PRIMARY KEY AUTOINCREMENT,
     folder TEXT NOT NULL,
 
@@ -28,4 +32,11 @@ CREATE TABLE comic_tags (
     comicid INTEGER NOT NULL,
     tagid INTEGER NOT NULL,
     UNIQUE(comicid, tagid) ON CONFLICT IGNORE
+);
+
+CREATE TABLE progress (
+    comicid INTEGER NOT NULL,
+    progress INTEGER NOT NULL,
+    
+    UNIQUE(comicid) ON CONFLICT REPLACE
 );
