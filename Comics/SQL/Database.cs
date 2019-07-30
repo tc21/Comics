@@ -14,7 +14,7 @@ namespace Comics.SQL {
         private const string table_comics = "comics";
         private const string table_tags = "tags";
         private const string table_tags_xref = "comic_tags";
-        private const string table_progress = "comic_progress";
+        private const string table_progress = "progress";
 
         private const string key_path = "folder";
         private const string key_unique_id = "unique_name";
@@ -496,16 +496,17 @@ namespace Comics.SQL {
             }
 
             private int GetProgress(int comicid) {
-                var progress = ExecuteScalar(new SQLiteCommand(
-                    string.Format("SELECT {0} FROM {1} WHERE rowid = {2}", table_progress, key_progress, comicid),
+                var progress = ExecuteReader(new SQLiteCommand(
+                    string.Format("SELECT {0} FROM {1} WHERE {2} = {3}", table_progress, key_progress, key_progress_comicid, comicid),
                     Connection
                 ));
 
-                if (progress is null) {
-                    return 0;
+                if (progress.HasRows) {
+                    progress.Read();
+                    return progress.GetInt32(0);
                 }
 
-                return (int)progress;
+                return 0;
             }
 
             private void SetProgress(int comicid, int progress) {
