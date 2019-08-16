@@ -172,8 +172,10 @@ namespace Comics {
         }
 
         public string Category {
-            get => this.Metadata.Category ?? this.real_category;
-            set { this.Metadata.Category = value; Save(); NotifyPropertyChanged("Category"); }
+            get => this.real_category;
+            set { }
+            //get => this.Metadata.Category ?? this.real_category;
+            //set { this.Metadata.Category = value; Save(); NotifyPropertyChanged("Category"); }
         }
 
         public bool Loved {
