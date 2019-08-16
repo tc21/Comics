@@ -62,19 +62,19 @@ namespace Comics.SQL {
 
             private int ExecuteNonQuery(SQLiteCommand c) {
                 //lock (databaseLock) {
-                    return c.ExecuteNonQuery();
+                return c.ExecuteNonQuery();
                 //}
             }
 
             private object ExecuteScalar(SQLiteCommand c) {
                 //lock (databaseLock) {
-                    return c.ExecuteScalar();
+                return c.ExecuteScalar();
                 //}
             }
 
             private SQLiteDataReader ExecuteReader(SQLiteCommand c) {
                 //lock (databaseLock) {
-                    return c.ExecuteReader();
+                return c.ExecuteReader();
                 //}
             }
 
@@ -90,7 +90,7 @@ namespace Comics.SQL {
                     shared = new DatabaseConnection(Defaults.Profile.DatabaseFile);
                     profile = Defaults.Profile.DatabaseFile;
                 }
-                
+
                 if (init) {
                     shared.Init();
                 }
@@ -100,7 +100,7 @@ namespace Comics.SQL {
 
             private void Migrate() {
                 var version = (long)ExecuteScalar(new SQLiteCommand("SELECT version FROM version", this.Connection));
-                
+
                 if (version > DatabaseConnection.version) {
                     throw new Exception("Database version too high!");
                 }
@@ -315,29 +315,34 @@ namespace Comics.SQL {
                 return GetRowids(table_comics, new Dictionary<string, object> { [key_unique_id] = uniqueIdentifier }).Count != 0;
             }
 
-            public Comic GetComic(string uniqueIdentifier) {
-                return GetComic(key_unique_id, uniqueIdentifier);
-            }
-
-            private Comic GetComic(int rowid) {
-                return GetComic("rowid", rowid);
-            }
-
             private static readonly string getComicQuery = string.Format(
                 "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, rowid FROM {10}",
                 key_path, key_title, key_author, key_category, key_display_title, key_display_author,
                 key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics
             );
 
-            private Comic GetComic(string constraintName, object constraintValue) {
+            private SQLiteDataReader GetComicReaderWithContraint(string constraintName, object constraintValue) {
                 var command = new SQLiteCommand(
                     string.Format(getComicQuery + " WHERE {0} = @{0}", constraintName),
-                    Connection
+                    this.Connection
                 );
 
                 command.Parameters.AddWithValue("@" + constraintName, constraintValue);
 
-                var reader = ExecuteReader(command);
+                return this.ExecuteReader(command);
+            }
+
+            public Comic GetComic(string uniqueIdentifier) 
+                => this.GetComic(key_unique_id, uniqueIdentifier);
+
+            public Metadata GetComicMetadata(string uniqueIdentifier) 
+                => this.GetComicMetadata(key_unique_id, uniqueIdentifier);
+
+            private Comic GetComic(int rowid)
+                => this.GetComic("rowid", rowid);
+
+            private Comic GetComic(string constraintName, object constraintValue) {
+                var reader = this.GetComicReaderWithContraint(constraintName, constraintValue);
 
                 if (!reader.HasRows) {
                     return null;
@@ -345,7 +350,19 @@ namespace Comics.SQL {
 
                 reader.Read();
 
-                return ComicFromRow(reader);
+                return this.ComicFromRow(reader);
+            }
+
+            private Metadata GetComicMetadata(string constraintName, object constraintValue) {
+                var reader = this.GetComicReaderWithContraint(constraintName, constraintValue);
+                
+                if (!reader.HasRows) {
+                    return null;
+                }
+
+                reader.Read();
+
+                return this.ComicMetadataFromRow(reader);
             }
 
             public IEnumerable<Comic> AllComics() {
@@ -420,24 +437,31 @@ namespace Comics.SQL {
                 var author = reader.GetString(2);
                 var category = reader.GetString(3);
                 var rowid = reader.GetInt32(10);
+                var metadata = this.ComicMetadataFromRow(reader);
 
-                Metadata m = new Metadata {
+                try {
+                    return new Comic(title, author, category, path, metadata);
+                } catch (ComicLoadException) {
+                    this.InvalidateComic(rowid);
+                }
+
+                return null;
+            }
+
+            private Metadata ComicMetadataFromRow(SQLiteDataReader reader) {
+                var rowid = reader.GetInt32(10);
+
+                var m = new Metadata {
                     Title = reader.IsDBNull(4) ? null : reader.GetString(4),
                     Author = reader.IsDBNull(5) ? null : reader.GetString(5),
                     Category = reader.IsDBNull(6) ? null : reader.GetString(6),
                     ThumbnailSource = reader.IsDBNull(7) ? null : reader.GetString(7),
                     Loved = reader.GetBoolean(8),
                     Disliked = reader.GetBoolean(9),
-                    Tags = new HashSet<string>(ReadTags(rowid))
+                    Tags = new HashSet<string>(this.ReadTags(rowid))
                 };
 
-                try {
-                    return new Comic(title, author, category, path, m);
-                } catch (ComicLoadException) {
-                    InvalidateComic(rowid);
-                }
-
-                return null;
+                return m;
             }
 
             private List<string> ReadTags(int comicid) {
@@ -547,8 +571,7 @@ namespace Comics.SQL {
 
             public static Metadata GetMetadata(string uniqueIdentifier) {
                 var conn = DatabaseConnection.ForCurrentProfile();
-                var comic = conn.GetComic(uniqueIdentifier);
-                return comic?.Metadata;
+                return conn.GetComicMetadata(uniqueIdentifier);
             }
         }
     }
