@@ -98,6 +98,7 @@ namespace Comics {
 
             public void StartComic(Comic comic) {
                 var arguments = Comic.ExecutionString.CreateExecutionArguments(Profile.ExecutionArguments, comic);
+
                 if (this.Type == Application.Viewer) {
                     var viewer = new Viewer.MainWindow(arguments.ToArray()) {
                         Top = Support.Helper.RestrictToRange(Properties.Settings.Default.ViewerTop, 0, null),
@@ -109,15 +110,7 @@ namespace Comics {
                     var conn = SQL.Database.DatabaseConnection.ForCurrentProfile();
                     viewer.GoToIndex(conn.GetProgress(comic));
 
-                    // This should be moved somewhere else, but I don't know where. (probably MainWindow, I'm thinking.)
-                    var contextMenu = viewer.ContextMenu;
-                    if (contextMenu is null) {
-                        // Note: As you can see, more primitive operations like delete, show in explorer, etc.
-                        // should be implemented by the viewer itself, and not us.
-                        contextMenu = new System.Windows.Controls.ContextMenu();
-                    } else {
-                        contextMenu.Items.Add(new System.Windows.Controls.Separator());
-                    }
+                    var customContextMenuItems = new List<object>();
                     var loveItem = new System.Windows.Controls.MenuItem { Header = "Love" };
                     loveItem.Click += ((o, e) => comic.Loved = !comic.Loved);
                     var dislikeItem = new System.Windows.Controls.MenuItem() { Header = "Dislike" };
@@ -132,11 +125,10 @@ namespace Comics {
                         comic.RecreateThumbnail();
                         App.ComicsWindow.RefreshComics();
                     });
-                    contextMenu.Items.Add(loveItem);
-                    contextMenu.Items.Add(dislikeItem);
-                    contextMenu.Items.Add(thumbnailItem);
-                    viewer.ContextMenu = contextMenu;
-
+                    customContextMenuItems.Add(loveItem);
+                    customContextMenuItems.Add(dislikeItem);
+                    customContextMenuItems.Add(thumbnailItem);
+                    viewer.CustomContextMenuItems = customContextMenuItems;
 
                     viewer.Closing += ((sender, e) => {
                         Properties.Settings.Default.ViewerTop = viewer.Top;
@@ -146,6 +138,7 @@ namespace Comics {
 
                         conn.SetProgress(comic, viewer.CurrentImageIndex);
                     });
+
                     viewer.Show();
                 } else {
                     if (!File.Exists(this.Path)) {
