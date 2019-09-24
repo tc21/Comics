@@ -100,10 +100,10 @@ namespace Comics {
                 var arguments = Comic.ExecutionString.CreateExecutionArguments(Profile.ExecutionArguments, comic);
                 if (this.Type == Application.Viewer) {
                     var viewer = new Viewer.MainWindow(arguments.ToArray()) {
-                        Top = Properties.Settings.Default.ViewerTop,
-                        Left = Properties.Settings.Default.ViewerLeft,
-                        Height = Properties.Settings.Default.ViewerHeight,
-                        Width = Properties.Settings.Default.ViewerWidth
+                        Top = Support.Helper.RestrictToRange(Properties.Settings.Default.ViewerTop, 0, null),
+                        Left = Support.Helper.RestrictToRange(Properties.Settings.Default.ViewerLeft, 0, null),
+                        Height = Support.Helper.RestrictToRange(Properties.Settings.Default.ViewerHeight, 200, null),
+                        Width = Support.Helper.RestrictToRange(Properties.Settings.Default.ViewerWidth, 200, null)
                     };
 
                     var conn = SQL.Database.DatabaseConnection.ForCurrentProfile();
