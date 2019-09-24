@@ -47,13 +47,13 @@ namespace Comics {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public Comic(string title, string author, string category, string path, Metadata metadata = null) {
+        public Comic(string title, string author, string category, string path, Metadata metadata = null, bool validate = true) {
             this.real_title = title;
             this.real_author = author;
             this.real_category = category;
             this.path = path;
 
-            if (!(Directory.Exists(path) || File.Exists(path))) {
+            if (validate && !(Directory.Exists(path) || File.Exists(path))) {
                 throw new ComicLoadException("Invalid path given to comic");
             }
 
@@ -69,7 +69,7 @@ namespace Comics {
 
             this.Random = randomizer.Next();
 
-            if (!File.Exists(this.ThumbnailPath)) {
+            if (validate && !File.Exists(this.ThumbnailPath)) {
                 this.Metadata.ThumbnailSource = CreateThumbnailAndReturnLocation();
             }
         }

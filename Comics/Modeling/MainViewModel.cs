@@ -194,10 +194,34 @@ namespace Comics {
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
             await Task.Run(() => PopulateComicsFromDatabase());
+
+            App.ComicsWindow?.PushFooter("LoadingIndicator", "Validating...");
+            await Task.Run(() => ValidateLoadedComics());
+
+            App.ComicsWindow?.PushFooter("LoadingIndicator", "Generating thumbnails...");
             await Task.Run(() => GenerateComicThumbnails());
 
             App.ComicsWindow?.PopFooter("LoadingIndicator");
             App.ComicsWindow?.EnableInteractions();
+        }
+
+        private void ValidateLoadedComics() {
+            var validatedComics = new ObservableCollection<Comic>();
+
+            UpdateFilterLists();
+
+            foreach (var comic in AvailableComics) {
+                try {
+                    var validatedComic = new Comic(comic.real_title, comic.real_author, comic.real_category, comic.path, comic.Metadata);
+                    validatedComics.Add(validatedComic);
+                } catch (ComicLoadException) {
+                    // do nothing
+                }
+            }
+
+            App.Current.Dispatcher.Invoke(() => {
+                this.AvailableComics = validatedComics;
+            });
         }
 
         // function that actually reloads comics

@@ -440,7 +440,7 @@ namespace Comics.SQL {
                 var metadata = this.ComicMetadataFromRow(reader);
 
                 try {
-                    return new Comic(title, author, category, path, metadata);
+                    return new Comic(title, author, category, path, metadata, validate: false);
                 } catch (ComicLoadException) {
                     this.InvalidateComic(rowid);
                 }
