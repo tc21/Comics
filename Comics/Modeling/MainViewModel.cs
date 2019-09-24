@@ -208,8 +208,6 @@ namespace Comics {
         private void ValidateLoadedComics() {
             var validatedComics = new ObservableCollection<Comic>();
 
-            UpdateFilterLists();
-
             foreach (var comic in AvailableComics) {
                 try {
                     var validatedComic = new Comic(comic.real_title, comic.real_author, comic.real_category, comic.path, comic.Metadata);
@@ -222,6 +220,8 @@ namespace Comics {
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics = validatedComics;
             });
+
+            UpdateFilterLists();
         }
 
         // function that actually reloads comics
