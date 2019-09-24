@@ -557,7 +557,7 @@ namespace Comics {
                         var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
                         var title = names[names.Length - 1];
 
-                        App.ViewModel.AddComicFromDisk(title, author, MainViewModel.ManuallyAddedComicCategoryName, file);
+                        App.ViewModel.AddComicFromDisk(title, author, MainViewModel.ManuallyAddedComicCategoryName, file, App.ViewModel.AvailableComics);
                     }
                 }
             }

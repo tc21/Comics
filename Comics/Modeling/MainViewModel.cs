@@ -232,16 +232,19 @@ namespace Comics {
 
             var cachedComics = this.AvailableComics.Where(c => c.Category == ManuallyAddedComicCategoryName).ToArray();
 
-            this.AvailableComics.Clear();
-            this.AvailableAuthors.Clear();
-            this.AvailableCategories.Clear();
-            this.AvailableTags.Clear();
+            var newAvailableComics = new ObservableCollection<Comic>();
 
-            await Task.Run(() => LoadComicsFromDisk());
+            await Task.Run(() => LoadComicsFromDisk(newAvailableComics));
 
             foreach (var comic in cachedComics) {
-                AddComic(comic);
+                AddComic(comic, newAvailableComics);
             }
+
+            App.Current.Dispatcher.Invoke(() => {
+                this.AvailableComics = newAvailableComics;
+            });
+
+            UpdateFilterLists();
 
             await Task.Run(() => GenerateComicThumbnails());
 
@@ -257,18 +260,18 @@ namespace Comics {
             App.ComicsWindow?.RefreshComics();
         }
 
-        public void AddComicFromDisk(string title, string author, string category, string path) {
-            AddComic(new Comic(title, author, category, path), true);
+        public void AddComicFromDisk(string title, string author, string category, string path, ObservableCollection<Comic> target) {
+            AddComic(new Comic(title, author, category, path), target, true);
         }
 
-        private void AddComic(Comic comic, bool recreateThumbnail = false) {
-            foreach (var existingComic in AvailableComics) {
+        private void AddComic(Comic comic, ObservableCollection<Comic> target, bool recreateThumbnail = false) {
+            foreach (var existingComic in target) {
                 if (existingComic.UniqueIdentifier == comic.UniqueIdentifier) {
                     return;
                 }
             }
 
-            AddComicToAvailableComics(comic);
+            AddComicToAvailableComics(comic, target);
 
             if (recreateThumbnail || !(File.Exists(comic.ThumbnailPath))) {
                 comic.RecreateThumbnail();
@@ -336,7 +339,7 @@ namespace Comics {
         }
 
         // Loads all comics based on the current profile
-        private void LoadComicsFromDisk() {
+        private void LoadComicsFromDisk(ObservableCollection<Comic> target) {
             foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths) {
                 if (!Directory.Exists(categorizedPath.Path)) {
                     continue;
@@ -350,14 +353,14 @@ namespace Comics {
                         continue;
                     }
                     
-                    LoadComicsForAuthorFromDisk(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null);
+                    LoadComicsForAuthorFromDisk(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null, target);
 
                     // for pdfs and such
                     FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
                     foreach (FileInfo file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
                             var comic = new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName);
-                            AddComicToAvailableComics(comic);
+                            AddComicToAvailableComics(comic, target);
                         }
                     }
                 }
@@ -367,7 +370,7 @@ namespace Comics {
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
-        private void LoadComicsForAuthorFromDisk(DirectoryInfo directory, string author, string category, int depth, string previousParts) {
+        private void LoadComicsForAuthorFromDisk(DirectoryInfo directory, string author, string category, int depth, string previousParts, ObservableCollection<Comic> target) {
             depth -= 1;
             DirectoryInfo[] comicDirectories = directory.GetDirectoriesInNaturalOrder();
 
@@ -384,33 +387,17 @@ namespace Comics {
                 Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
 
                 if (depth > 0 && Defaults.Profile.SubdirectoryAction == Defaults.SubdirectoryAction.SEPARATE) {
-                    LoadComicsForAuthorFromDisk(comicDirectory, author, category, depth, currentName);
+                    LoadComicsForAuthorFromDisk(comicDirectory, author, category, depth, currentName, target);
                 }
 
                 if (comic.FilePaths.Count() > 0) {
-                    AddComicToAvailableComics(comic);
+                    AddComicToAvailableComics(comic, target);
                 }
             }
         }
 
-        private void AddComicToAvailableComics(Comic comic) {
-            App.Current.Dispatcher.Invoke(() => {
-                this.AvailableComics.Add(comic);
-                if (!this.AvailableAuthors.Contains(new Checkable<string>(comic.Author))) {
-                    this.AvailableAuthors.Add(new Checkable<string>(comic.Author));
-                }
-
-                if (!this.AvailableCategories.Contains(comic.Category)) {
-                    this.AvailableCategories.Add(comic.Category);
-                }
-
-                foreach (var tag in comic.Tags) {
-                    var cs = new CustomSort<string>(tag);
-                    if (!this.AvailableTags.Contains(cs)) {
-                        this.AvailableTags.Add(cs);
-                    }
-                }
-            });
+        private void AddComicToAvailableComics(Comic comic, ObservableCollection<Comic> target) {
+            target.Add(comic);
         }
 
         // Generates thumbnails for comics
