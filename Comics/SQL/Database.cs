@@ -42,7 +42,7 @@ namespace Comics.SQL {
 
         public class DatabaseConnection {
             public SQLiteConnection Connection { get; }
-            private const int version = 1;
+            private const int version = 2;
 
             private DatabaseConnection(string path) {
                 Connection = new SQLiteConnection("Data Source=" + path + ";Version=3;");

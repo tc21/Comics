@@ -179,7 +179,7 @@
     <EmbeddedResource Include="SQL\init.sql" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SQL\Migrations\2.sql" />
+    <EmbeddedResource Include="SQL\Migrations\2.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SQL\Migrations\1.sql" />
