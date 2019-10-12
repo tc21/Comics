@@ -215,10 +215,10 @@
                     <DockPanel Background="{DynamicResource BackgroundColor}">
                         <Label DockPanel.Dock="Left" Content="🔍"
                                TextOptions.TextFormattingMode="Display"
-                               Foreground="{StaticResource DisabledColor}"/>
+                               Foreground="{DynamicResource LightTextColor}"/>
                         <Label DockPanel.Dock="Left" Content="›"
                                TextOptions.TextFormattingMode="Display"
-                               Foreground="{StaticResource DisabledColor}"
+                               Foreground="{DynamicResource LightTextColor}"
                                Margin="-8,0,-4,0"
                                Style="{StaticResource Rotate90Degrees}"/>
                         <TextBox x:Name="SearchBox" DockPanel.Dock="Left" 

@@ -173,8 +173,7 @@
                 BorderBrush="{TemplateBinding BorderBrush}"
                 Background="{TemplateBinding Background}"
                 BorderThickness="{TemplateBinding BorderThickness}"
-                Padding="{TemplateBinding Padding}"
-                Margin="{TemplateBinding Margin}"
+                Padding="2,0"
                 >
             
             <VisualStateManager.VisualStateGroups>
@@ -193,7 +192,8 @@
                     </VisualState>
                 </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
-            <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+            <ContentPresenter Margin="2" 
+                              HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
         </Border>
         <ControlTemplate.Triggers>
             <Trigger Property="IsDefault" Value="true">
@@ -208,7 +208,45 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+    <ControlTemplate x:Key="StylableTabItemControlTemplate" TargetType="{x:Type TabItem}">
+        <Grid x:Name="Root">
+            <Border x:Name="Border"
+                    Margin="0"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    Background="{TemplateBinding Background}">
+            </Border>
+            <ContentPresenter x:Name="ContentSite"
+                              Margin="6,2"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"
+                              ContentSource="Header"
+                              RecognizesAccessKey="True" />
+        </Grid>
 
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsSelected" Value="true">
+                <Setter Property="Margin" Value="-2,-2,-2,-1" TargetName="Border" />
+                <Setter Property="Margin" Value="6,0,6,2" TargetName="ContentSite" />
+                <Setter Property="Panel.ZIndex" Value="1" />
+            </Trigger>
+
+            <Trigger Property="IsSelected" Value="false">
+                <Setter Property="Background" Value="{DynamicResource ButtonColor}" TargetName="Border" />
+            </Trigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsSelected" Value="false" />
+                    <Condition Property="IsMouseOver" Value="true" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="Background" Value="{DynamicResource ButtonHighlightColor}" TargetName="Border" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+    
     <!-- Dark theme styles -->
     <Style x:Key="CheckBoxStyle" TargetType="{x:Type CheckBox}">
         <Setter Property="Template" Value="{DynamicResource StylableCheckBoxControlTemplate}" />
@@ -233,6 +271,20 @@
         <Setter Property="Background" Value="{DynamicResource BackgroundColor}" />
         <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+    </Style>
+    <Style x:Key="TabControlStyle" TargetType="{x:Type TabControl}">
+        <Setter Property="Background" Value="{DynamicResource LightBackgroundColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+
+        <Style.Resources>
+            <Style TargetType="{x:Type TabItem}">
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+                <Setter Property="Background" Value="{DynamicResource LightBackgroundColor}" />
+                <Setter Property="BorderThickness" Value="1,1,1,0" />
+                <Setter Property="Template" Value="{StaticResource StylableTabItemControlTemplate}" />
+            </Style>
+        </Style.Resources>
     </Style>
 
     <!-- Indicate item hovering over -->
@@ -276,9 +328,10 @@
         </Style.Resources>
     </Style>
     <Style x:Key="FooterButton" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonStyle}">
-        <Setter Property="Width" Value="22"/>
-        <Setter Property="Height" Value="22"/>
-        <Setter Property="Margin" Value="-1,-2,0,0"/>
+        <Setter Property="Width" Value="26"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Margin" Value="-5"/>
+        <Setter Property="Padding" Value="0"/>
         <Setter Property="Background" Value="{x:Null}"/>
         <Setter Property="Foreground" Value="{DynamicResource FooterColor}"/>
         <Setter Property="FontSize" Value="14"/>

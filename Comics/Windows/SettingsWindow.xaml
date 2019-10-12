@@ -19,15 +19,14 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="ProfileOptionsButton" TargetType="{x:Type Button}">
+        <Style x:Key="ProfileOptionsButton" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonStyle}">
             <Setter Property="Content" Value="···" />
             <Setter Property="FontSize" Value="24" />
             <Setter Property="Background" Value="{x:Null}" />
             <Setter Property="Foreground" Value="{DynamicResource FooterColor}" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Height" Value="19" />
-            <Setter Property="Padding" Value="0,-8,0,0" />
-            <Setter Property="Margin" Value="4" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="0,-6,0,6" />
         </Style>
         <ContextMenu x:Key="ProfileOptionsContextMenu">
             <MenuItem Header="Rename" Click="ProfileMenu_Rename" />
@@ -39,7 +38,9 @@
         <DockPanel Margin="4">
             <DockPanel Style="{StaticResource Dropdown}" DockPanel.Dock="Top">
                 <Label DockPanel.Dock="Left" Content="Profile:" Foreground="{DynamicResource TextColor}" />
-                <Button DockPanel.Dock="Right" x:Name="ProfileOptionsButton" Style="{StaticResource ProfileOptionsButton}" ContextMenu="{StaticResource ProfileOptionsContextMenu}" Click="ProfileOptionsButton_Click"/>
+                <Button DockPanel.Dock="Right" x:Name="ProfileOptionsButton"
+                        Style="{StaticResource ProfileOptionsButton}" ContextMenu="{StaticResource ProfileOptionsContextMenu}"
+                        Click="ProfileOptionsButton_Click" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                 <Grid>
                     <ComboBox x:Name="ProfileSelector" SelectionChanged="ProfileSelector_SelectionChanged" ItemsSource="{Binding Profiles}" />
                     <TextBox x:Name="ProfileNameEditor" Visibility="Hidden" Text="Profile Name" FontSize="14" VerticalAlignment="Center" TextOptions.TextFormattingMode="Display" Padding="4,2,0,2" KeyDown="ProfileNameEditor_KeyDown"/>
@@ -54,9 +55,9 @@
                         DockPanel.Dock="Right" Content="Apply" Click="Button_Apply" IsEnabled="{Binding ProfileChanged}" Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
-            <TabControl Background="{DynamicResource LightBackgroundColor}" BorderBrush="{DynamicResource BorderColor}">
+            <TabControl Style="{StaticResource TabControlStyle}">
                 <TabItem Header="Content" Background="{DynamicResource ButtonColor}" BorderBrush="{DynamicResource BorderColor}" Foreground="{DynamicResource TextColor}">
-                    <ScrollViewer>
+                    <ScrollViewer Template="{DynamicResource StylableScrollViewerControlTemplate}">
                         <DockPanel>
                             <Grid DockPanel.Dock="Bottom">
                                 <Grid.ColumnDefinitions>
@@ -125,19 +126,19 @@
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Label DockPanel.Dock="Left" Content="Image Height" Width="180" Foreground="{DynamicResource TextColor}" />
-                            <TextBox IsEnabled="False"/>
+                            <TextBox BorderBrush="{DynamicResource BorderColor}" IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Label DockPanel.Dock="Left" Content="Image Width" Width="180" Foreground="{DynamicResource TextColor}" />
-                            <TextBox IsEnabled="False"/>
+                            <TextBox BorderBrush="{DynamicResource BorderColor}" IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Label DockPanel.Dock="Left" Content="Title Font Size" Width="180" Foreground="{DynamicResource TextColor}" />
-                            <TextBox IsEnabled="False"/>
+                            <TextBox BorderBrush="{DynamicResource BorderColor}" IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Label DockPanel.Dock="Left" Content="Subtitle Font Size" Width="180" Foreground="{DynamicResource TextColor}" />
-                            <TextBox IsEnabled="False"/>
+                            <TextBox BorderBrush="{DynamicResource BorderColor}" IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Button Style="{StaticResource ButtonStyle}" DockPanel.Dock="Left" Margin="4,2,16,2" Click="SwitchTheme" Content="Switch Theme" />
