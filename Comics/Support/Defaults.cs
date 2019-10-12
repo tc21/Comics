@@ -118,13 +118,12 @@ namespace Comics {
                     var thumbnailItem = new System.Windows.Controls.MenuItem() { Header = "Set Thumbnail as Current Image" };
                     thumbnailItem.Click += ((o, e) => {
                         // This also needs to be more generic
-                        comic.Metadata.ThumbnailSource = viewer.CurrentImage;
+                        comic.ThumbnailSource = viewer.CurrentImage;
                         comic.Save();
-
-                        File.Delete(comic.ThumbnailPath);
-                        comic.RecreateThumbnail();
+                        comic.GenerateThumbnail();
                         App.ComicsWindow.RefreshComics();
                     });
+
                     customContextMenuItems.Add(loveItem);
                     customContextMenuItems.Add(dislikeItem);
                     customContextMenuItems.Add(thumbnailItem);

@@ -215,7 +215,7 @@ namespace Comics.SQL {
                 command.Parameters.AddWithValue("@" + key_display_title, comic.Title);
                 command.Parameters.AddWithValue("@" + key_display_author, comic.Author);
                 command.Parameters.AddWithValue("@" + key_display_category, comic.Category);
-                command.Parameters.AddWithValue("@" + key_thumbnail_source, comic.ThumbnailSourcePath);
+                command.Parameters.AddWithValue("@" + key_thumbnail_source, comic.ThumbnailSource);
                 command.Parameters.AddWithValue("@" + key_loved, Convert.ToInt32(comic.Loved));
                 command.Parameters.AddWithValue("@" + key_disliked, Convert.ToInt32(comic.Disliked));
                 command.Parameters.AddWithValue("@" + key_title, comic.real_title);

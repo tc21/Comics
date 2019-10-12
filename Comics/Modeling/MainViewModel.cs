@@ -279,7 +279,7 @@ namespace Comics {
             AddComicToAvailableComics(comic, target);
 
             if (recreateThumbnail || !(File.Exists(comic.ThumbnailPath))) {
-                comic.RecreateThumbnail();
+                comic.GenerateThumbnail();
             }
            
             comic.Save();
@@ -402,7 +402,7 @@ namespace Comics {
         private void GenerateComicThumbnails() {
             foreach (Comic comic in this.AvailableComics) {
                 if (!(File.Exists(comic.ThumbnailPath))) {
-                    comic.RecreateThumbnail();
+                    comic.GenerateThumbnail();
                 }
             }
         }

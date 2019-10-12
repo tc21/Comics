@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /Comics/migration.py
+/Comics/SQL/Migrations/2.sql

@@ -236,18 +236,20 @@ namespace Comics {
                 return;
             }
 
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog {
                 InitialDirectory = comic.path
             };
+
             if (openFileDialog.ShowDialog() != true) {
                 return;
             }
 
-            comic.Metadata.ThumbnailSource = openFileDialog.FileName;
+            comic.ThumbnailSource = openFileDialog.FileName;
             comic.Save();
 
             File.Delete(comic.ThumbnailPath);
-            comic.RecreateThumbnail();
+            comic.GenerateThumbnail();
+
             RefreshComics();
         }
 
