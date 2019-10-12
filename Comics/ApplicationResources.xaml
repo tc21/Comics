@@ -41,7 +41,7 @@
                 <Setter Property="Padding" Value="4,-1,0,0"/>
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" TargetName="checkBoxBorder" Value="{DynamicResource LightBorderColor}"/>
+                <Setter Property="Background" TargetName="checkBoxBorder" Value="{DynamicResource ButtonHighlightColor}"/>
                 <Setter Property="Fill" TargetName="optionMark" Value="{DynamicResource FillColor}"/>
                 <Setter Property="Fill" TargetName="indeterminateMark" Value="{Binding FillColor}"/>
             </Trigger>
@@ -228,6 +228,11 @@
         <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
         <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+    </Style>
+    <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}">
+        <Setter Property="Background" Value="{DynamicResource BackgroundColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
     </Style>
 
     <!-- Indicate item hovering over -->

@@ -5,10 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Comics.UI"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             >
   <DockPanel x:Name="RootElement">
-    <Label x:Name="LabelElement" DockPanel.Dock="Left" Content="{Binding Label}" Width="72" />
-    <Label x:Name="ChangedIndicator" DockPanel.Dock="Left" Content="(Edited)" Width="52" FontStyle="Italic" Opacity="0.6" Visibility="Hidden"/>
-    <TextBox x:Name="TextBox" Text="{Binding Value}" TextChanged="TextBox_TextChanged"/>
+    <Label x:Name="LabelElement" DockPanel.Dock="Left" Content="{Binding Label}" Width="72" Foreground="{DynamicResource TextColor}" />
+    <Label x:Name="ChangedIndicator" DockPanel.Dock="Left" Content="(Edited)" Width="52"
+           Foreground="{DynamicResource TextColor}" FontStyle="Italic" Opacity="0.6" Visibility="Hidden"/>
+    <TextBox x:Name="TextBox" Style="{StaticResource TextBoxStyle}" Text="{Binding Value}" TextChanged="TextBox_TextChanged"/>
   </DockPanel>
 </UserControl>

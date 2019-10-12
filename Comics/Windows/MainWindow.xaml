@@ -199,8 +199,8 @@
             <StatusBarItem Grid.Column="0" HorizontalAlignment="Left" FontSize="11">
                 <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}" Content="⚙" Click="ShowSettingsContextMenu" ContextMenu="{StaticResource SettingsContextMenu}"/>
             </StatusBarItem>
-            <StatusBarItem x:Name="Footer" Grid.Column="1" HorizontalAlignment="Center" FontSize="11" Padding="0">
-                <Label Content="Comics" Foreground="{DynamicResource FooterColor}" />
+            <StatusBarItem Grid.Column="1" HorizontalAlignment="Center" FontSize="11" Padding="0">
+                <TextBlock x:Name="FooterText" Text="Comics" Foreground="{DynamicResource FooterColor}" />
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" FontSize="11">
                 <Button x:Name="RightSidebarButton" Style="{StaticResource RightSidebarButtonStyle}" Click="ToggleRightSidebar" />

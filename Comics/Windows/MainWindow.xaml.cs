@@ -95,7 +95,7 @@ namespace Comics {
             }
 
             if (key == this.footerKeys.Last()) {
-                this.Footer.Content = this.footerStrings[key];
+                this.FooterText.Text = this.footerStrings[key];
             }
         }
 
@@ -113,7 +113,7 @@ namespace Comics {
                     newFooter = this.footerStrings[this.footerKeys.Last()];
                 }
 
-                this.Footer.Content = newFooter;
+                this.FooterText.Text = newFooter;
             }
         }
 
