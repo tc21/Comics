@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Threading;
 
 namespace Comics {
     public partial class MainWindow : Window {
@@ -27,7 +28,6 @@ namespace Comics {
         // The text currently inside the search bar
         private string searchText = null;
 
-
         // Allow a queue of strings to be pushed to thefooter
         private List<string> footerKeys = new List<string>();
         private Dictionary<string, string> footerStrings = new Dictionary<string, string>();
@@ -37,6 +37,9 @@ namespace Comics {
         private ICollectionView AuthorView => CollectionViewSource.GetDefaultView(this.AuthorSelector?.ItemsSource);
         private ICollectionView TagView => CollectionViewSource.GetDefaultView(this.TagSelector?.ItemsSource);
         private ICollectionView CategoryView => CollectionViewSource.GetDefaultView(this.CategorySelector?.ItemsSource);
+
+        private HashSet<string> FilteredComics = new HashSet<string>();
+        private CancellationTokenSource cts;
 
         public MainWindow() {
             InitializeComponent();
@@ -135,9 +138,10 @@ namespace Comics {
             }
         }
         
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
+        private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             this.searchText = this.SearchBox.Text;
-            RefreshComics();
+
+            await FilterComics();
         }
         
         // Detects the display scaling and stores it in settings
@@ -155,8 +159,47 @@ namespace Comics {
 
         // With the actual filtering done asynchronously, the filter imposed on the views are then quite simple.
         private bool ComicFilter(object item) {
-            Comic comic = (Comic)item;
+            var comic = (Comic)item;
+            return !FilteredComics.Contains(comic.UniqueIdentifier);
+        }
 
+        private async Task FilterComics() {
+            /* note: I am not convinced the cancellation token actually improves performance, and it
+             * looks like we'll need libraries much larger than my ~2000 items to test it */
+            cts?.Cancel();
+
+            PushFooter("FilterComics", "Filtering...");
+            try {
+                cts = new CancellationTokenSource();
+                await FilterComics(cts.Token);
+                RefreshComics();
+            } catch (OperationCanceledException) {
+            }
+            PopFooter("FilterComics");
+        }
+
+        private async Task FilterComics(CancellationToken ct) {
+            var count = 0;
+            var filtered = new HashSet<string>();
+
+            await Task.Run(() => {
+                foreach (var comic in App.ViewModel.AvailableComics) {
+                    if (!ComicMatchesFilter(comic)) {
+                        filtered.Add(comic.UniqueIdentifier);
+                    }
+
+                    count++;
+                    if (count % 100 == 0) {
+                        ct.ThrowIfCancellationRequested();
+                    }
+                }
+
+            }, ct);
+
+            this.FilteredComics = filtered;
+        }
+
+        private bool ComicMatchesFilter(Comic comic) {
             return comic.MatchesSearchText(this.searchText)
                 && comic.MatchesAuthors(this.selectedAuthors)
                 && comic.MatchesCategories(this.selectedCategories)
@@ -203,22 +246,24 @@ namespace Comics {
             OpenSelectedComics();
         }
 
-        private void ContextMenu_Love(object sender, RoutedEventArgs e) {
+        private async void ContextMenu_Love(object sender, RoutedEventArgs e) {
             foreach (var c in this.Collection.SelectedItems) {
-                Comic comic = (c as Comic);
+                var comic = (c as Comic);
                 if (comic != null) {
                     comic.Loved = !comic.Loved;
                 }
             }
+            await FilterComics();
         }
 
-        private void ContextMenu_Dislike(object sender, RoutedEventArgs e) {
+        private async void ContextMenu_Dislike(object sender, RoutedEventArgs e) {
             foreach (var c in this.Collection.SelectedItems) {
-                Comic comic = (c as Comic);
+                var comic = (c as Comic);
                 if (comic != null) {
                     comic.Disliked = !comic.Disliked;
                 }
             }
+            await FilterComics();
         }
 
         private void ContextMenu_ShowInExplorer(object sender, RoutedEventArgs e) {
@@ -373,7 +418,7 @@ namespace Comics {
         }
 
         // Handlers for when the user checks and unchecks sidebar options
-        private void Category_Changed(object sender, RoutedEventArgs e) {
+        private async void Category_Changed(object sender, RoutedEventArgs e) {
             if (sender as CheckBox is CheckBox checkbox &&
                 checkbox.IsChecked is bool isChecked) {
                 if (isChecked) {
@@ -381,10 +426,11 @@ namespace Comics {
                 } else {
                     this.selectedCategories.Remove(checkbox.Content.ToString());
                 }
-                RefreshComics();
+
+                await FilterComics();
             }
         }
-        private void Author_Changed(object sender, RoutedEventArgs e) {
+        private async void Author_Changed(object sender, RoutedEventArgs e) {
             if (sender as CheckBox is CheckBox checkbox &&
                 checkbox.IsChecked is bool isChecked) {
                 if (isChecked) {
@@ -396,11 +442,12 @@ namespace Comics {
                         this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
                     }
                 }
-                RefreshComics();
+
+                await FilterComics();
             }
         }
 
-        private void Tag_Changed(object sender, RoutedEventArgs e) {
+        private async void Tag_Changed(object sender, RoutedEventArgs e) {
 
             if (sender as CheckBox is CheckBox checkbox &&
                 checkbox.IsChecked is bool isChecked) {
@@ -413,21 +460,24 @@ namespace Comics {
                         this.RemoveSelectedTagsLink.Visibility = Visibility.Hidden;
                     }
                 }
-                RefreshComics();
+
+                await FilterComics();
             }
         }
 
-        private void ShowLoved_Changed(object sender, RoutedEventArgs e) {
+        private async void ShowLoved_Changed(object sender, RoutedEventArgs e) {
             if ((sender as CheckBox).IsChecked is bool isChecked) {
                 this.onlyShowLoved = isChecked;
-                RefreshComics();
+
+                await FilterComics();
             }
         }
 
-        private void ShowDisliked_Changed(object sender, RoutedEventArgs e) {
+        private async void ShowDisliked_Changed(object sender, RoutedEventArgs e) {
             if ((sender as CheckBox).IsChecked is bool isChecked) {
                 this.showDisliked = isChecked;
-                RefreshComics();
+
+                await FilterComics();
             }
         }
 
