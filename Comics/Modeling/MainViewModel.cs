@@ -16,7 +16,6 @@ using Comics.Support;
 
 namespace Comics {
     public class MainViewModel : INotifyPropertyChanged {
-        //private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         public const string ManuallyAddedComicCategoryName = "Manually Added";
 
         // Properties conforming to INotifyPropertyChanged, so they automatically update the UI when changed
@@ -32,9 +31,11 @@ namespace Comics {
 
                 this.availableComics = value;
                 NotifyPropertyChanged(AvailableComicsPropertyName);
+
                 // it's on the main window to update sort descriptions, which has to happen after the main window knows
                 // about the change in this property
                 App.ComicsWindow?.UpdateComicSortDescriptions();
+                UpdateFilterLists();
             }
         }
 
@@ -184,8 +185,13 @@ namespace Comics {
             App.ComicsWindow?.RefreshComics();
         }
 
+        /* Loads comics from database in a 3-step process:
+         *  1. Retrieves all active comics from database
+         *   -- this is when the program becomes usable --
+         *  2. Validates all items exist on disk; deactivates those that don't
+         *  3. Generate thumbnails if necessary
+         */
         private async Task LoadComicsFromDatabase() {
-
             App.ComicsWindow?.PushFooter("LoadingIndicator", "Reloading...");
             App.ComicsWindow?.DisableInteractions();
 
@@ -207,13 +213,14 @@ namespace Comics {
 
         private void ValidateLoadedComics() {
             var validatedComics = new ObservableCollection<Comic>();
+            var invalidComics = new List<Comic>();
 
             foreach (var comic in AvailableComics) {
                 try {
                     var validatedComic = new Comic(comic.real_title, comic.real_author, comic.real_category, comic.path, comic.Metadata);
                     validatedComics.Add(validatedComic);
                 } catch (ComicLoadException) {
-                    // do nothing
+                    invalidComics.Add(comic);
                 }
             }
 
@@ -221,7 +228,7 @@ namespace Comics {
                 this.AvailableComics = validatedComics;
             });
 
-            UpdateFilterLists();
+            SQL.Database.Manager.RemoveComics(invalidComics);
         }
 
         // function that actually reloads comics
@@ -243,8 +250,6 @@ namespace Comics {
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics = newAvailableComics;
             });
-
-            UpdateFilterLists();
 
             await Task.Run(() => GenerateComicThumbnails());
 
@@ -299,20 +304,16 @@ namespace Comics {
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics = comic_collection;
             });
-
-            UpdateFilterLists();
         }
 
         public void UpdateFilterLists() {
             var authors_set = new HashSet<Checkable<string>>();
             var categories_set = new HashSet<string>();
-            //var tags_set = new HashSet<Checkable<string>>();
             var tags_dict = new Dictionary<string, int>();
 
             foreach (var comic in this.AvailableComics) {
                 authors_set.Add(comic.Author);
                 categories_set.Add(comic.Category);
-                //tags_set.UnionWith(comic.Tags.Select<string, Checkable<string>>((s) => s));
                 foreach (var tag in comic.Tags) {
                     if (tags_dict.ContainsKey(tag)) {
                         tags_dict[tag] += 1;
@@ -324,7 +325,6 @@ namespace Comics {
 
             var authors = new ObservableCollection<Checkable<string>>(authors_set);
             var categories = new ObservableCollection<string>(categories_set);
-            //var tags = new ObservableCollection<Checkable<string>>(tags_set);
             var tags = new ObservableCollection<Checkable<CustomSort<string>>>(
                 tags_dict.Select(p => new Checkable<CustomSort<string>>(new CustomSort<string>(p.Key, p.Value)))
             );
@@ -365,8 +365,6 @@ namespace Comics {
                     }
                 }
             }
-
-            UpdateFilterLists();
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author

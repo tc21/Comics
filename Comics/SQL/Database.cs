@@ -36,8 +36,6 @@ namespace Comics.SQL {
         private const string key_progress_comicid = "comicid";
         private const string key_progress = "progress";
 
-        private static readonly object databaseLock = new object();
-
         private static string profile = null;
         private static DatabaseConnection shared = null;
 
@@ -61,21 +59,15 @@ namespace Comics.SQL {
             }
 
             private int ExecuteNonQuery(SQLiteCommand c) {
-                //lock (databaseLock) {
                 return c.ExecuteNonQuery();
-                //}
             }
 
             private object ExecuteScalar(SQLiteCommand c) {
-                //lock (databaseLock) {
                 return c.ExecuteScalar();
-                //}
             }
 
             private SQLiteDataReader ExecuteReader(SQLiteCommand c) {
-                //lock (databaseLock) {
                 return c.ExecuteReader();
-                //}
             }
 
             public static DatabaseConnection ForCurrentProfile(bool empty = false) {
@@ -560,6 +552,16 @@ namespace Comics.SQL {
                 var conn = DatabaseConnection.ForCurrentProfile();
                 if (conn.HasComic(c.UniqueIdentifier)) {
                     conn.InvalidateComic(c);
+                }
+            }
+
+            public static void RemoveComics(IEnumerable<Comic> cs) {
+                var conn = DatabaseConnection.ForCurrentProfile();
+
+                foreach (var c in cs) {
+                    if (conn.HasComic(c.UniqueIdentifier)) {
+                        conn.InvalidateComic(c);
+                    }
                 }
             }
 
