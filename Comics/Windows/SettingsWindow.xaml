@@ -26,7 +26,7 @@
             <Setter Property="Foreground" Value="{DynamicResource FooterColor}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Height" Value="24" />
-            <Setter Property="Margin" Value="0,-8" />
+            <Setter Property="Margin" Value="0,-6,0,6" />
         </Style>
         <ContextMenu x:Key="ProfileOptionsContextMenu">
             <MenuItem Header="Rename" Click="ProfileMenu_Rename" />
@@ -138,7 +138,7 @@
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Label DockPanel.Dock="Left" Content="Subtitle Font Size" Width="180" Foreground="{DynamicResource TextColor}" />
-                            <TextBox IsEnabled="False"/>
+                            <TextBox BorderBrush="{DynamicResource BorderColor}" IsEnabled="False"/>
                         </DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="4,2,16,2">
                             <Button Style="{StaticResource ButtonStyle}" DockPanel.Dock="Left" Margin="4,2,16,2" Click="SwitchTheme" Content="Switch Theme" />
