@@ -1,6 +1,8 @@
 ﻿CREATE TABLE version (
-    version INTEGER NOT NULL DEFAULT 1
+    version INTEGER NOT NULL
 );
+
+INSERT INTO version (version) VALUES (1);
 
 CREATE TABLE comics (
     -- rowid INTEGER PRIMARY KEY AUTOINCREMENT,

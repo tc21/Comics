@@ -47,7 +47,6 @@ namespace Comics.SQL {
             private DatabaseConnection(string path) {
                 Connection = new SQLiteConnection("Data Source=" + path + ";Version=3;");
                 Connection.Open();
-                Migrate();
             }
 
             ~DatabaseConnection() {
@@ -72,19 +71,24 @@ namespace Comics.SQL {
 
             public static DatabaseConnection ForCurrentProfile(bool empty = false) {
                 bool init = (empty || !File.Exists(Defaults.Profile.DatabaseFile));
+                bool reload = (shared is null || profile != Defaults.Profile.DatabaseFile);
 
                 if (init) {
                     SQLiteConnection.CreateFile(Defaults.Profile.DatabaseFile);
                 }
 
 
-                if (shared is null || profile != Defaults.Profile.DatabaseFile) {
+                if (reload) {
                     shared = new DatabaseConnection(Defaults.Profile.DatabaseFile);
                     profile = Defaults.Profile.DatabaseFile;
                 }
 
                 if (init) {
                     shared.Init();
+                }
+
+                if (init || reload) {
+                    shared.Migrate();
                 }
 
                 return shared;
@@ -99,19 +103,22 @@ namespace Comics.SQL {
 
                 while (version < DatabaseConnection.version) {
                     version += 1;
-                    var migration = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-                        string.Format("Comics.SQL.{0}.sql", version)
-                    );
 
-                    using (var reader = new StreamReader(migration)) {
-                        var command = new SQLiteCommand(reader.ReadToEnd(), this.Connection);
-                        ExecuteNonQuery(command);
-                    }
+                    this.ExecuteResource(string.Format("Comics.SQL.Migrations.{0}.sql", version));
 
                     ExecuteNonQuery(new SQLiteCommand(
                         string.Format("UPDATE version SET version = {0}", version),
                         this.Connection
                     ));
+                }
+            }
+
+            private void ExecuteResource(string name) {
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+
+                using (var reader = new StreamReader(stream)) {
+                    var command = new SQLiteCommand(reader.ReadToEnd(), this.Connection);
+                    ExecuteNonQuery(command);
                 }
             }
 

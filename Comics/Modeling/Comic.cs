@@ -35,6 +35,10 @@ namespace Comics {
         public string ThumbnailSource {
             get => this.Metadata.ThumbnailSource;
             set {
+                if (!File.Exists(value)) {
+                    return;
+                }
+
                 var info = new FileInfo(value);
                 if (info.IsChildOf(this.path)) {
                     this.Metadata.ThumbnailSource = value.Substring(this.path.Length + 1);
@@ -47,6 +51,10 @@ namespace Comics {
 
         public string AbsoluteThumbnailSource {
             get {
+                if (this.ThumbnailSource == null) {
+                    return null;
+                }
+
                 if (Path.IsPathRooted(this.ThumbnailSource)) {
                     return this.ThumbnailSource;
                 }
@@ -139,17 +147,6 @@ namespace Comics {
             }
         }
 
-        private static string FirstImageInComic(Comic comic) {
-            foreach (var file in comic.FilePaths) {
-                var ext = Path.GetExtension(file).ToLowerInvariant();
-                if (Defaults.ImageExtensions.Contains(ext)) {
-                    return file;
-                }
-            }
-
-            return null;
-        }
-
         /* Creates a thumbnail for this comic and saves it to disk
          * Returns the *source* file from which the thumbnail was generated
          */
@@ -180,6 +177,10 @@ namespace Comics {
 
         // returns whether a thumbnail was successfully generated from the file at path
         private bool AttemptGenerateThumbnailFromFile(string path) {
+            if (path == null || !File.Exists(path)) {
+                return false;
+            }
+
             int width = Defaults.ThumbnailWidthForVisual();
 
             return (
