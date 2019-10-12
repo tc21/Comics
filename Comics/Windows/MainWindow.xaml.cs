@@ -56,7 +56,7 @@ namespace Comics {
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             RefreshComics();
-            this.ComicsView.Filter = this.ComicFilter;
+            RefreshFilter();
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e) {
@@ -74,14 +74,16 @@ namespace Comics {
         // Asynchronously updates comics and refreshes the main view. 
         // Used when a category or author selection changes
         public void RefreshComics() {
-            this.ComicsView.Refresh();
+            this.ComicsView?.Refresh();
             var count = this.Collection.Items.Count;
             this.PushFooter("ItemCount", count.ToString() + " Item" + (count == 1 ? "" : "s"));
         }
 
         // we need to call this when we reassign things in the viewmodel
         public void RefreshFilter() {
-            this.ComicsView.Filter = this.ComicFilter;
+            if (this.ComicsView != null) {
+                this.ComicsView.Filter = this.ComicFilter;
+            }
         }
 
         public void PushFooter(string key, string text) {
@@ -323,6 +325,10 @@ namespace Comics {
         }
 
         public void UpdateComicSortDescriptions(bool randomize = true) {
+            if (this.ComicsView == null) {
+                return;
+            }
+
             this.ComicsView.SortDescriptions.Clear();
 
             if (this.SortOrderBox.SelectedIndex == Comic.RandomSortIndex && randomize) {

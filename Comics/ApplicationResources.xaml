@@ -8,197 +8,6 @@
     <SolidColorBrush x:Key="DisabledColor" Color="#FF939393" />
     <SolidColorBrush x:Key="LovedColor" Color="#FFFF145F" />
 
-    <!-- Indicate item hovering over -->
-    <Style x:Key="HoverEffect" TargetType="{x:Type Border}">
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource SelectedBackgroundColor}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource SelectedBorderColor}"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-    <!-- Cleaner menu items via: https://stackoverflow.com/questions/5276826/system-windows-controls-menuitem-without-icon-area -->
-    <ItemsPanelTemplate x:Key="MenuItemPanelTemplate">
-        <StackPanel Background="{DynamicResource BackgroundColor}"/>
-    </ItemsPanelTemplate>
-    <Style TargetType="{x:Type MenuItem}">
-        <Setter Property="ItemsPanel" Value="{StaticResource MenuItemPanelTemplate}"/>
-    </Style>
-    <!-- General styling -->
-    <Style x:Key="Dropdown" TargetType="{x:Type DockPanel}">
-        <Setter Property="Margin" Value="0,0,4,0" />
-        <Setter Property="DockPanel.Dock" Value="Right" />
-        <Style.Resources>
-            <Style TargetType="{x:Type Label}">
-                <Setter Property="DockPanel.Dock" Value="Left" />
-                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-            </Style>
-            <Style TargetType="{x:Type ComboBox}">
-                <Setter Property="Template" Value="{DynamicResource StylableComboBoxControlTemplate}" />
-                <Setter Property="DockPanel.Dock" Value="Right" />
-                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
-            </Style>
-        </Style.Resources>
-    </Style>
-    <Style x:Key="FooterButton" TargetType="{x:Type Button}">
-        <Setter Property="Width" Value="16"/>
-        <Setter Property="Height" Value="16"/>
-        <Setter Property="Padding" Value="-1,-2,0,0"/>
-        <Setter Property="Background" Value="{x:Null}"/>
-        <Setter Property="Foreground" Value="{DynamicResource FooterColor}"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="BorderThickness" Value="0"/>
-    </Style>
-    <Style x:Key="PreferenceOverlay" TargetType="{x:Type Polygon}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Loved}" Value="True">
-                <Setter Property="Visibility" Value="Visible" />
-                <Setter Property="Fill" Value="{StaticResource LovedColor}" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding Disliked}" Value="True">
-                <Setter Property="Visibility" Value="Visible" />
-                <Setter Property="Fill" Value="{StaticResource DisabledColor}" />
-            </DataTrigger>
-        </Style.Triggers>
-        <Setter Property="Points" Value="0,0 0,-36 36,0" />
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-    </Style>
-    <Style x:Key="PreferenceLabel" TargetType="{x:Type TextBlock}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Loved}" Value="True">
-                <Setter Property="Text" Value="♥" />
-                <Setter Property="Visibility" Value="Visible" />
-                <Setter Property="FontSize" Value="18" />
-                <Setter Property="Margin" Value="4,-1" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding Disliked}" Value="True">
-                <Setter Property="Text" Value="✖" />
-                <Setter Property="Visibility" Value="Visible" />
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="Margin" Value="2,3" />
-            </DataTrigger>
-        </Style.Triggers>
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-    </Style>
-    <Style x:Key="Rotate90Degrees" TargetType="{x:Type Label}">
-        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-        <Setter Property="RenderTransform">
-            <Setter.Value>
-                <TransformGroup>
-                    <ScaleTransform />
-                    <SkewTransform />
-                    <RotateTransform Angle="90" />
-                    <TranslateTransform />
-                </TransformGroup>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style x:Key="UnstyledBox" TargetType="{x:Type TextBox}">
-        <Setter Property="Margin" Value="0"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Background" Value="{x:Null}"/>
-    </Style>
-    <Style x:Key="DataGridStyle" TargetType="{x:Type DataGrid}">
-        <Setter Property="Padding" Value="0"/>
-        <Setter Property="SelectionMode" Value="Single"/>
-        <Setter Property="SelectionUnit" Value="Cell"/>
-        <Setter Property="CanUserReorderColumns" Value="False"/>
-        <Setter Property="AutoGenerateColumns" Value="False"/>
-        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
-        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
-        <Setter Property="RowHeaderWidth" Value="0"/>
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="CanUserAddRows" Value="True" />
-        <Setter Property="CanUserDeleteRows" Value="True" />
-        <Setter Property="ColumnHeaderStyle">
-            <Setter.Value>
-                <Style TargetType="{x:Type DataGridColumnHeader}">
-                    <Setter Property="Background" Value="{StaticResource {x:Static SystemColors.MenuBarBrushKey}}" />
-                    <Setter Property="BorderThickness" Value="0,0,1,0" />
-                    <Setter Property="BorderBrush" Value="{StaticResource {x:Static SystemColors.ActiveBorderBrushKey}}" />
-                    <Setter Property="Padding" Value="4,2,4,2" />
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource HoveredBackgroundColor}" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="CellStyle">
-            <Setter.Value>
-                <Style TargetType="{x:Type DataGridCell}">
-                    <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="Padding" Value="2" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource HoveredBackgroundColor}" />
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SelectedBackgroundColor}" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style x:Key="ScrollableCheckBoxStyle" TargetType="ItemsControl">
-        <Setter Property="Margin" Value="4,0" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto" Template="{DynamicResource StylableScrollViewerControlTemplate}">
-                        <ItemsPresenter />
-                    </ScrollViewer>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Style.Resources>
-            <Style TargetType="{x:Type CheckBox}">
-                <Setter Property="Margin" Value="4,2,4,2" />
-            </Style>
-        </Style.Resources>
-    </Style>
-
-    <!-- Dark theme styles -->
-
-    <Style x:Key="CheckBoxStyle" TargetType="{x:Type CheckBox}">
-        <Setter Property="Template" Value="{DynamicResource StylableCheckBoxControlTemplate}" />
-        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
-        <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
-        <Setter Property="Margin" Value="4,2" />
-    </Style>
-    
-    <Style x:Key="ComboBoxStyle" TargetType="{x:Type ComboBox}">
-        <Setter Property="Template" Value="{DynamicResource StylableComboBoxControlTemplate}" />
-        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
-        <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
-    </Style>
-
-
     <!-- Dark theme control templates -->
     <ControlTemplate x:Key="StylableCheckBoxControlTemplate" TargetType="{x:Type CheckBox}">
         <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
@@ -358,7 +167,243 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+    <ControlTemplate x:Key="StylableButtonControlTemplate" TargetType="{x:Type Button}">
+        <Border TextBlock.Foreground="{TemplateBinding Foreground}"
+                x:Name="Border"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                Background="{TemplateBinding Background}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                Padding="{TemplateBinding Padding}"
+                Margin="{TemplateBinding Margin}"
+                >
+            
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualStateGroup.Transitions>
+                        <VisualTransition GeneratedDuration="0:0:0.5" />
+                        <VisualTransition GeneratedDuration="0" To="Pressed" />
+                    </VisualStateGroup.Transitions>
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <Storyboard>
+                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="Border">
+                                <EasingColorKeyFrame KeyTime="0" Value="{DynamicResource BorderColorCode}" />
+                            </ColorAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsDefault" Value="true">
+                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource LightBorderColor}" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter TargetName="Border" Property="Background" Value="{DynamicResource ButtonHighlightColor}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="false">
+                <Setter TargetName="Border" Property="Background" Value="{DynamicResource LightBackgroundColor}" />
+                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Dark theme styles -->
+    <Style x:Key="CheckBoxStyle" TargetType="{x:Type CheckBox}">
+        <Setter Property="Template" Value="{DynamicResource StylableCheckBoxControlTemplate}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+        <Setter Property="Margin" Value="4,2" />
+    </Style>
+    <Style x:Key="ComboBoxStyle" TargetType="{x:Type ComboBox}">
+        <Setter Property="Template" Value="{DynamicResource StylableComboBoxControlTemplate}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+    </Style>
+    <Style x:Key="ButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Template" Value="{DynamicResource StylableButtonControlTemplate}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+    </Style>
+
+    <!-- Indicate item hovering over -->
+    <Style x:Key="HoverEffect" TargetType="{x:Type Border}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource SelectedBackgroundColor}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource SelectedBorderColor}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <!-- Cleaner menu items via: https://stackoverflow.com/questions/5276826/system-windows-controls-menuitem-without-icon-area -->
+    <ItemsPanelTemplate x:Key="MenuItemPanelTemplate">
+        <StackPanel Background="{DynamicResource BackgroundColor}"/>
+    </ItemsPanelTemplate>
+    <Style TargetType="{x:Type MenuItem}">
+        <Setter Property="ItemsPanel" Value="{StaticResource MenuItemPanelTemplate}"/>
+    </Style>
     
+    <!-- General styling -->
+    <Style x:Key="Dropdown" TargetType="{x:Type DockPanel}">
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="DockPanel.Dock" Value="Right" />
+        <Style.Resources>
+            <Style TargetType="{x:Type Label}">
+                <Setter Property="DockPanel.Dock" Value="Left" />
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style TargetType="{x:Type ComboBox}">
+                <Setter Property="Template" Value="{DynamicResource StylableComboBoxControlTemplate}" />
+                <Setter Property="DockPanel.Dock" Value="Right" />
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+            </Style>
+        </Style.Resources>
+    </Style>
+    <Style x:Key="FooterButton" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonStyle}">
+        <Setter Property="Width" Value="22"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Margin" Value="-1,-2,0,0"/>
+        <Setter Property="Background" Value="{x:Null}"/>
+        <Setter Property="Foreground" Value="{DynamicResource FooterColor}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style x:Key="PreferenceOverlay" TargetType="{x:Type Polygon}">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Loved}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+                <Setter Property="Fill" Value="{StaticResource LovedColor}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Disliked}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+                <Setter Property="Fill" Value="{StaticResource DisabledColor}" />
+            </DataTrigger>
+        </Style.Triggers>
+        <Setter Property="Points" Value="0,0 0,-36 36,0" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style x:Key="PreferenceLabel" TargetType="{x:Type TextBlock}">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Loved}" Value="True">
+                <Setter Property="Text" Value="♥" />
+                <Setter Property="Visibility" Value="Visible" />
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="Margin" Value="4,-1" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Disliked}" Value="True">
+                <Setter Property="Text" Value="✖" />
+                <Setter Property="Visibility" Value="Visible" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Margin" Value="2,3" />
+            </DataTrigger>
+        </Style.Triggers>
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style x:Key="Rotate90Degrees" TargetType="{x:Type Label}">
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <TransformGroup>
+                    <ScaleTransform />
+                    <SkewTransform />
+                    <RotateTransform Angle="90" />
+                    <TranslateTransform />
+                </TransformGroup>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="UnstyledBox" TargetType="{x:Type TextBox}">
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Background" Value="{x:Null}"/>
+    </Style>
+    <Style x:Key="DataGridStyle" TargetType="{x:Type DataGrid}">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="SelectionUnit" Value="Cell"/>
+        <Setter Property="CanUserReorderColumns" Value="False"/>
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
+        <Setter Property="RowHeaderWidth" Value="0"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="CanUserAddRows" Value="True" />
+        <Setter Property="CanUserDeleteRows" Value="True" />
+        <Setter Property="ColumnHeaderStyle">
+            <Setter.Value>
+                <Style TargetType="{x:Type DataGridColumnHeader}">
+                    <Setter Property="Background" Value="{StaticResource {x:Static SystemColors.MenuBarBrushKey}}" />
+                    <Setter Property="BorderThickness" Value="0,0,1,0" />
+                    <Setter Property="BorderBrush" Value="{StaticResource {x:Static SystemColors.ActiveBorderBrushKey}}" />
+                    <Setter Property="Padding" Value="4,2,4,2" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource HoveredBackgroundColor}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="CellStyle">
+            <Setter.Value>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Padding" Value="2" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource HoveredBackgroundColor}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource SelectedBackgroundColor}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextColor}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="ScrollableCheckBoxStyle" TargetType="ItemsControl">
+        <Setter Property="Margin" Value="4,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <ScrollViewer SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto" Template="{DynamicResource StylableScrollViewerControlTemplate}">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <Style TargetType="{x:Type CheckBox}">
+                <Setter Property="Margin" Value="4,2,4,2" />
+            </Style>
+        </Style.Resources>
+    </Style>
+
     <!-- All of this is scroll bar related -->
     <Style x:Key="FocusVisual">
         <Setter Property="Control.Template">

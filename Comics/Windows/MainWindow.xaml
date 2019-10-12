@@ -184,7 +184,7 @@
     <!-- Actual Window -->
     <DockPanel>
         <!-- Status bar -->
-        <StatusBar DockPanel.Dock="Bottom" Height="22" Background="{DynamicResource LightBackgroundColor}">
+        <StatusBar DockPanel.Dock="Bottom" Height="24" Background="{DynamicResource LightBackgroundColor}">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -197,10 +197,10 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0" HorizontalAlignment="Left" FontSize="11">
-                <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}"  Content="⚙" Click="ShowSettingsContextMenu" ContextMenu="{StaticResource SettingsContextMenu}"/>
+                <Button x:Name="SettingsButton" Style="{StaticResource FooterButton}" Content="⚙" Click="ShowSettingsContextMenu" ContextMenu="{StaticResource SettingsContextMenu}"/>
             </StatusBarItem>
             <StatusBarItem x:Name="Footer" Grid.Column="1" HorizontalAlignment="Center" FontSize="11" Padding="0">
-                <Label Content="Comics" Foreground="{DynamicResource FooterColor}"/>
+                <Label Content="Comics" Foreground="{DynamicResource FooterColor}" />
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" FontSize="11">
                 <Button x:Name="RightSidebarButton" Style="{StaticResource RightSidebarButtonStyle}" Click="ToggleRightSidebar" />

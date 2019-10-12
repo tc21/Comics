@@ -1,17 +1,32 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Comics.Windows.Themes">
-    <SolidColorBrush x:Key="BackgroundColor" Color="White" />
-    <SolidColorBrush x:Key="LightBackgroundColor" Color="#FFDCDCDC" />
+
+    <Color x:Key="BackgroundColorCode">#FFFFFFFF</Color>
+    <Color x:Key="LightBackgroundColorCode">#FFDCDCDC</Color>
+
+    <Color x:Key="ButtonColorCode">#FFF0F0F0</Color>
+    <Color x:Key="ButtonHighlightColorCode">#FF3E424D</Color>
+
+    <Color x:Key="BorderColorCode">#FFABADB3</Color>
+    <Color x:Key="LightBorderColorCode">#FFBCBCBC</Color>
+
+    <Color x:Key="TextColorCode">#FF000000</Color>
+    <Color x:Key="LightTextColorCode">#FF7F7F7F</Color>
+
+    <SolidColorBrush x:Key="BackgroundColor" Color="{DynamicResource BackgroundColorCode}" />
+    <SolidColorBrush x:Key="LightBackgroundColor" Color="{DynamicResource LightBackgroundColorCode}" />
+    
     <SolidColorBrush x:Key="BorderColor" Color="#FFABADB3" /> 
     <SolidColorBrush x:Key="LightBorderColor" Color="#FFBCBCBC" />
     <SolidColorBrush x:Key="ButtonColor" Color="#FFF0F0F0" />
     <SolidColorBrush x:Key="ButtonHighlightColor" Color="#FF3E424D" />
-    <SolidColorBrush x:Key="TextColor" Color="Black" />
-    <SolidColorBrush x:Key="FillColor" Color="Black" />
-    <SolidColorBrush x:Key="LightTextColor" Color="#FF7F7F7F" />
-    <SolidColorBrush x:Key="DisabledTextColor" Color="#FF7F7F7F" />
-    <SolidColorBrush x:Key="DisabledFillColor" Color="#FF7F7F7F" />
+    
+    <SolidColorBrush x:Key="TextColor" Color="{DynamicResource TextColorCode}" />
+    <SolidColorBrush x:Key="FillColor" Color="{DynamicResource TextColorCode}" />
+    <SolidColorBrush x:Key="LightTextColor" Color="{DynamicResource LightTextColorCode}" />
+    <SolidColorBrush x:Key="DisabledTextColor" Color="{DynamicResource LightTextColorCode}" />
+    <SolidColorBrush x:Key="DisabledFillColor" Color="{DynamicResource LightTextColorCode}" />
 
     <SolidColorBrush x:Key="FooterColor" Color="#FF37383A" />
     <SolidColorBrush x:Key="SelectedBackgroundColor" Color="#FFCCE8FF" />

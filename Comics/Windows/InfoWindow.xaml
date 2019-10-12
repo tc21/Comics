@@ -25,9 +25,12 @@
 
         <DockPanel Margin="4">
             <DockPanel DockPanel.Dock="Bottom">
-                <Button DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
-                <Button DockPanel.Dock="Right" Content="Apply" Click="Button_Apply"  Margin="2" Padding="4,2,4,2"/>
+                <Button Style="{StaticResource ButtonStyle}"
+                        DockPanel.Dock="Right" Content="Confirm" Click="Button_Confirm" Margin="2" Padding="4,2,4,2"/>
+                <Button Style="{StaticResource ButtonStyle}"
+                        DockPanel.Dock="Right" Content="Cancel" Click="Button_Cancel" Margin="2" Padding="4,2,4,2"/>
+                <Button Style="{StaticResource ButtonStyle}"
+                        DockPanel.Dock="Right" Content="Apply" Click="Button_Apply"  Margin="2" Padding="4,2,4,2"/>
                 <Rectangle />
             </DockPanel>
             <TabControl Background="{DynamicResource LightBackgroundColor}">
