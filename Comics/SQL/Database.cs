@@ -65,6 +65,7 @@ namespace Comics.SQL {
                 return c.ExecuteScalar();
             }
 
+            /** this is now deprecated and should only be used when reading single columns */
             private SQLiteDataReader ExecuteReader(SQLiteCommand c) {
                 return c.ExecuteReader();
             }
@@ -320,15 +321,18 @@ namespace Comics.SQL {
                 key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics
             );
 
-            private SQLiteDataReader GetComicReaderWithContraint(string constraintName, object constraintValue) {
-                var command = new SQLiteCommand(
-                    string.Format(getComicQuery + " WHERE {0} = @{0}", constraintName),
-                    this.Connection
-                );
+            private static readonly List<string> getComicQueryKeys = new List<string> {
+                    "rowid", key_path, key_title, key_author, key_category, key_display_title, key_display_author,
+                    key_display_category, key_thumbnail_source, key_loved, key_disliked
+                };
 
-                command.Parameters.AddWithValue("@" + constraintName, constraintValue);
+            private SQLiteDictionaryReader GetComicReaderWithContraint(string constraintName, object constraintValue) {
+                var parameters = new Dictionary<string, object> {
+                    { "@" + constraintName, constraintValue }
+                };
 
-                return this.ExecuteReader(command);
+                return SQLiteDictionaryReader.ExecuteSelect(this.Connection, table_comics, getComicQueryKeys,
+                    string.Format(" WHERE {0} = @{0}", constraintName), parameters);
             }
 
             public Comic GetComic(string uniqueIdentifier) 
@@ -365,17 +369,12 @@ namespace Comics.SQL {
             }
 
             public IEnumerable<Comic> AllComics() {
-                var command = new SQLiteCommand(
-                    string.Format(getComicQuery + " WHERE {0} = 1", key_active),
-                    Connection
-                );
-
-                var reader = ExecuteReader(command);
+                var reader = this.GetComicReaderWithContraint(key_active, 1);
 
                 var comics = new List<Comic>();
 
                 while (reader.Read()) {
-                    var comic = ComicFromRow(reader);
+                    var comic = this.ComicFromRow(reader);
                     if (comic != null) {
                         comics.Add(comic);
                     }
@@ -430,12 +429,12 @@ namespace Comics.SQL {
 
             // ordering is an implementation detail defined by getComicQuery
             // returns null if data is invalid
-            private Comic ComicFromRow(SQLiteDataReader reader) {
-                var path = reader.GetString(0);
-                var title = reader.GetString(1);
-                var author = reader.GetString(2);
-                var category = reader.GetString(3);
-                var rowid = reader.GetInt32(10);
+            private Comic ComicFromRow(SQLiteDictionaryReader reader) {
+                var path = reader.GetString(key_path);
+                var title = reader.GetString(key_title);
+                var author = reader.GetString(key_author);
+                var category = reader.GetString(key_category);
+                var rowid = reader.GetInt32("rowid");
                 var metadata = this.ComicMetadataFromRow(reader);
 
                 try {
@@ -447,16 +446,16 @@ namespace Comics.SQL {
                 return null;
             }
 
-            private Metadata ComicMetadataFromRow(SQLiteDataReader reader) {
-                var rowid = reader.GetInt32(10);
+            private Metadata ComicMetadataFromRow(SQLiteDictionaryReader reader) {
+                var rowid = reader.GetInt32("rowid");
 
                 var m = new Metadata {
-                    Title = reader.IsDBNull(4) ? null : reader.GetString(4),
-                    Author = reader.IsDBNull(5) ? null : reader.GetString(5),
-                    Category = reader.IsDBNull(6) ? null : reader.GetString(6),
-                    ThumbnailSource = reader.IsDBNull(7) ? null : reader.GetString(7),
-                    Loved = reader.GetBoolean(8),
-                    Disliked = reader.GetBoolean(9),
+                    Title = reader.GetStringOrNull(key_display_title),
+                    Author = reader.GetStringOrNull(key_display_author),
+                    Category = reader.GetStringOrNull(key_display_category),
+                    ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
+                    Loved = reader.GetBoolean(key_loved),
+                    Disliked = reader.GetBoolean(key_disliked),
                     Tags = new HashSet<string>(this.ReadTags(rowid))
                 };
 

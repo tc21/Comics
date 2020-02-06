@@ -417,7 +417,7 @@ namespace Comics {
             return tags.Count == 0 || tags.Intersect(this.Tags).Count() > 0;
         }
 
-        public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category", "Random" };
+        public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category", "Date Added", "Random" };
         public static readonly int DefaultSortIndex = 0;
         public static readonly int RandomSortIndex = 3;
         public static List<string> SortDescriptionPropertyNamesForIndex(int index) {

@@ -83,6 +83,7 @@
     <Compile Include="Commands\ApplicationCommands.cs" />
     <Compile Include="Modeling\Comic.cs" />
     <Compile Include="SQL\Database.cs" />
+    <Compile Include="SQL\SQLiteDictionaryReader.cs" />
     <Compile Include="Support\CheckableObject.cs" />
     <Compile Include="Support\CustomSort.cs" />
     <Compile Include="Support\Defaults.cs" />
