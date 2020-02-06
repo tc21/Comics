@@ -330,8 +330,10 @@ namespace Comics {
 
             var authors = new ObservableCollection<Checkable<string>>(authors_set);
             var categories = new ObservableCollection<string>(categories_set);
+
             var tags = new ObservableCollection<Checkable<CustomSort<string>>>(
-                tags_dict.Select(p => new Checkable<CustomSort<string>>(new CustomSort<string>(p.Key, p.Value)))
+                tags_dict.Where(p =>  p.Value > 1)
+                         .Select(p => new Checkable<CustomSort<string>>(new CustomSort<string>(p.Key, p.Value)))
             );
 
             App.Current.Dispatcher.Invoke(() => {
