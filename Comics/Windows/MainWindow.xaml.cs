@@ -38,6 +38,7 @@ namespace Comics {
         private ICollectionView TagView => CollectionViewSource.GetDefaultView(this.TagSelector?.ItemsSource);
         private ICollectionView CategoryView => CollectionViewSource.GetDefaultView(this.CategorySelector?.ItemsSource);
 
+        // this set contains the unique identifiers of comics that are filtered out (i.e. not shown)
         private HashSet<string> FilteredComics = new HashSet<string>();
         private CancellationTokenSource cts;
 
@@ -428,6 +429,7 @@ namespace Comics {
                 }
 
                 await FilterComics();
+                App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
             }
         }
         private async void Author_Changed(object sender, RoutedEventArgs e) {
@@ -444,6 +446,7 @@ namespace Comics {
                 }
 
                 await FilterComics();
+                App.ViewModel.UpdateFilterLists(updateAuthors: false, excludedIds: this.FilteredComics);
             }
         }
 
@@ -462,6 +465,7 @@ namespace Comics {
                 }
 
                 await FilterComics();
+                App.ViewModel.UpdateFilterLists(updateTags: false, excludedIds: this.FilteredComics);
             }
         }
 
@@ -470,6 +474,7 @@ namespace Comics {
                 this.onlyShowLoved = isChecked;
 
                 await FilterComics();
+                App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
             }
         }
 
@@ -478,6 +483,7 @@ namespace Comics {
                 this.showDisliked = isChecked;
 
                 await FilterComics();
+                App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
             }
         }
 
@@ -571,18 +577,26 @@ namespace Comics {
             this.RemoveSelectedTagsLink.Visibility = Visibility.Hidden;
         }
 
-        private void RemoveSelectedAuthorsLink_Click(object sender, RoutedEventArgs e) {
+        private async void RemoveSelectedAuthorsLink_Click(object sender, RoutedEventArgs e) {
             RemoveSelectedAuthors();
             foreach (var item in App.ViewModel.AvailableAuthors) {
                 item.IsChecked = false;
             }
+
+            await FilterComics();
+            App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
+
             RefreshComics();
         }
-        private void RemoveSelectedTagsLink_Click(object sender, RoutedEventArgs e) {
+        private async void RemoveSelectedTagsLink_Click(object sender, RoutedEventArgs e) {
             RemoveSelectedTags();
             foreach (var item in App.ViewModel.AvailableTags) {
                 item.IsChecked = false;
             }
+
+            await FilterComics();
+            App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
+
             RefreshComics();
         }
 

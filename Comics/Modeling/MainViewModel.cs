@@ -306,12 +306,17 @@ namespace Comics {
             });
         }
 
-        public void UpdateFilterLists() {
+        public void UpdateFilterLists(bool updateAuthors = true, bool updateCategories = true, bool updateTags = true, 
+                                      HashSet<string> excludedIds = null) {
             var authors_set = new HashSet<Checkable<string>>();
             var categories_set = new HashSet<string>();
             var tags_dict = new Dictionary<string, int>();
 
             foreach (var comic in this.AvailableComics) {
+                if (excludedIds != null && excludedIds.Contains(comic.UniqueIdentifier)) {
+                    continue;
+                }
+
                 authors_set.Add(comic.Author);
                 categories_set.Add(comic.Category);
                 foreach (var tag in comic.Tags) {
@@ -330,10 +335,15 @@ namespace Comics {
             );
 
             App.Current.Dispatcher.Invoke(() => {
-                this.AvailableAuthors = authors;
-                this.AvailableCategories = categories;
-                this.AvailableTags = tags;
-
+                if (updateAuthors) {
+                    this.AvailableAuthors = authors;
+                    }
+                if (updateCategories) {
+                    this.AvailableCategories = categories;
+                }
+                if (updateTags) {
+                    this.AvailableTags = tags;
+                }
                 App.ComicsWindow.RefreshFilter();
             });
         }
