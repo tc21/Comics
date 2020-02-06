@@ -446,7 +446,7 @@ namespace Comics {
                 }
 
                 await FilterComics();
-                App.ViewModel.UpdateFilterLists(updateAuthors: false, excludedIds: this.FilteredComics);
+                App.ViewModel.UpdateFilterLists(updateCategories: false, updateAuthors: false, excludedIds: this.FilteredComics);
             }
         }
 
@@ -465,7 +465,7 @@ namespace Comics {
                 }
 
                 await FilterComics();
-                App.ViewModel.UpdateFilterLists(updateTags: false, excludedIds: this.FilteredComics);
+                App.ViewModel.UpdateFilterLists(updateCategories: false, updateTags: false, excludedIds: this.FilteredComics);
             }
         }
 
@@ -474,7 +474,7 @@ namespace Comics {
                 this.onlyShowLoved = isChecked;
 
                 await FilterComics();
-                App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
+                App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
             }
         }
 
@@ -483,7 +483,7 @@ namespace Comics {
                 this.showDisliked = isChecked;
 
                 await FilterComics();
-                App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
+                App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
             }
         }
 
@@ -571,7 +571,7 @@ namespace Comics {
             this.selectedAuthors.Clear();
             this.RemoveSelectedAuthorsLink.Visibility = Visibility.Hidden;
         }
-        
+
         private void RemoveSelectedTags() {
             this.selectedTags.Clear();
             this.RemoveSelectedTagsLink.Visibility = Visibility.Hidden;
@@ -584,10 +584,11 @@ namespace Comics {
             }
 
             await FilterComics();
-            App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
+            App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
 
             RefreshComics();
         }
+
         private async void RemoveSelectedTagsLink_Click(object sender, RoutedEventArgs e) {
             RemoveSelectedTags();
             foreach (var item in App.ViewModel.AvailableTags) {
@@ -595,11 +596,10 @@ namespace Comics {
             }
 
             await FilterComics();
-            App.ViewModel.UpdateFilterLists(excludedIds: this.FilteredComics);
+            App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
 
             RefreshComics();
         }
-
         private void Sidebar_SizeChanged(object sender, SizeChangedEventArgs e) {
             UpdateTagSelectorMaxHeight(e.NewSize.Height);
         }
