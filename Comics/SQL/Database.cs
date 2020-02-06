@@ -28,6 +28,7 @@ namespace Comics.SQL {
         private const string key_loved = "loved";
         private const string key_disliked = "disliked";
         private const string key_active = "active";
+        private const string key_date_added = "date_added";
 
         private const string key_tag_name = "name";
         private const string key_xref_comic_id = "comicid";
@@ -315,15 +316,9 @@ namespace Comics.SQL {
                 return GetRowids(table_comics, new Dictionary<string, object> { [key_unique_id] = uniqueIdentifier }).Count != 0;
             }
 
-            private static readonly string getComicQuery = string.Format(
-                "SELECT {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, rowid FROM {10}",
-                key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-                key_display_category, key_thumbnail_source, key_loved, key_disliked, table_comics
-            );
-
             private static readonly List<string> getComicQueryKeys = new List<string> {
                     "rowid", key_path, key_title, key_author, key_category, key_display_title, key_display_author,
-                    key_display_category, key_thumbnail_source, key_loved, key_disliked
+                    key_display_category, key_thumbnail_source, key_loved, key_disliked, key_date_added
                 };
 
             private SQLiteDictionaryReader GetComicReaderWithContraint(string constraintName, object constraintValue) {
@@ -436,9 +431,13 @@ namespace Comics.SQL {
                 var category = reader.GetString(key_category);
                 var rowid = reader.GetInt32("rowid");
                 var metadata = this.ComicMetadataFromRow(reader);
+                var dateAdded = reader.GetString(key_date_added);
 
                 try {
-                    return new Comic(title, author, category, path, metadata, validate: false);
+                    var comic = new Comic(title, author, category, path, metadata, validate: false) {
+                        DateAdded = dateAdded
+                    };
+                    return comic;
                 } catch (ComicLoadException) {
                     this.InvalidateComic(rowid);
                 }

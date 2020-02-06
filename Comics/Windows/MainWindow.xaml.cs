@@ -380,8 +380,8 @@ namespace Comics {
                 App.ViewModel.RandomizeComics();
             }
 
-            foreach (string propertyName in Comic.SortDescriptionPropertyNamesForIndex(this.SortOrderBox.SelectedIndex)) {
-                this.ComicsView.SortDescriptions.Add(new SortDescription(propertyName, ListSortDirection.Ascending));
+            foreach (var property in Comic.SortDescriptionPropertiesForIndex(this.SortOrderBox.SelectedIndex)) {
+                this.ComicsView.SortDescriptions.Add(new SortDescription(property.Name, property.ListSortDirection));
             }
         }
 

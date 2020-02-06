@@ -69,6 +69,9 @@ namespace Comics {
         public IEnumerable<string> FilePaths => RetrieveFilesForComicAtPath(this.path);
         public int Random { get; set; }
 
+        // For sorting only, for now
+        public string DateAdded { get; set; }
+
         public Metadata Metadata { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -76,11 +79,13 @@ namespace Comics {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public Comic(string title, string author, string category, string path, Metadata metadata = null, bool validate = true) {
+        public Comic(string title, string author, string category, string path, Metadata metadata = null, bool validate = true,
+                     string dateAdded = "1970-01-01 00:00:00") {
             this.real_title = title;
             this.real_author = author;
             this.real_category = category;
             this.path = path;
+            this.DateAdded = dateAdded;
 
             if (validate && !(Directory.Exists(path) || File.Exists(path))) {
                 throw new ComicLoadException("Invalid path given to comic");
@@ -417,13 +422,29 @@ namespace Comics {
             return tags.Count == 0 || tags.Intersect(this.Tags).Count() > 0;
         }
 
-        public static readonly List<string> SortPropertyNames = new List<string> { "Author", "Title", "Category", "Date Added", "Random" };
+        public class SortPropertyInfo {
+            public string DisplayName { get; set; }
+            public string Name { get; set; }
+            public ListSortDirection ListSortDirection { get; set; }
+        }
+
+
+        public static readonly List<SortPropertyInfo> SortProperties = new List<SortPropertyInfo>() {
+            new SortPropertyInfo { DisplayName = "Author", Name = "Author", ListSortDirection = ListSortDirection.Ascending },
+            new SortPropertyInfo { DisplayName = "Title", Name = "Title", ListSortDirection = ListSortDirection.Ascending },
+            new SortPropertyInfo { DisplayName = "Category", Name = "Category", ListSortDirection = ListSortDirection.Ascending },
+            new SortPropertyInfo { DisplayName = "Date Added", Name = "DateAdded", ListSortDirection = ListSortDirection.Descending },
+            new SortPropertyInfo { DisplayName = "Random", Name = "Random", ListSortDirection = ListSortDirection.Ascending },
+        };
+
+        public static readonly IEnumerable<string> SortPropertyNames = SortProperties.Select((property) => property.DisplayName);
+
         public static readonly int DefaultSortIndex = 0;
         public static readonly int RandomSortIndex = 3;
-        public static List<string> SortDescriptionPropertyNamesForIndex(int index) {
-            List<string> sortPropertyNames = new List<string>(SortPropertyNames);
+        public static List<SortPropertyInfo> SortDescriptionPropertiesForIndex(int index) {
+            var sortPropertyNames = new List<SortPropertyInfo>(SortProperties);
             if (index > 0 && index < sortPropertyNames.Count) {
-                string preferredProperty = sortPropertyNames[index];
+                var preferredProperty = sortPropertyNames[index];
                 sortPropertyNames.RemoveAt(index);
                 sortPropertyNames.Insert(0, preferredProperty);
             }

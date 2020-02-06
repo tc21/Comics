@@ -18,7 +18,7 @@ using System.Windows;
  *        current program only allows you to have one way to open stuff, which will have to be changed.
  *    or folders as subitems in a work
  * 4. Add keyboard shortcuts and controls since basically everything only works from the mouse right now
- * 6. Add the ability to have custom actions: for example, you may be able to assign an action
+ * 6. Add the ability to have custom actions: for example, you may be able to assign an action (see item 12)
  *        type: right click menu item
  *        name: upsample comic using waifu2x
  *        action: {
@@ -34,7 +34,8 @@ using System.Windows;
  * 7. Tag matching: switch between AND mode / OR mode
  * 8. Right click: show only this author
  * 9. (Long term) live author filtering
- * 10. Scroll bar for tags (min-height for scroll views)?
+ * 11. Add the ability to group works by sort criteria, in addition to sorting.
+ * 12. Add an extension system.
  * 
  * Last modified Tianyi Cao, 2019-05-02.
  */
