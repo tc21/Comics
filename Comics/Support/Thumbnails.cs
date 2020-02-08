@@ -11,12 +11,12 @@ namespace Comics {
         // Thumbnail from image just uses Windows.Media.Imaging
         // From audio tags relies on TagLib
         // From video relies on ffmpeg (NReco.VideoConverter)
-        private static string[] AudioTagExtensions = { ".mp3", ".m4a", ".ogg", ".flac", ".aiff", ".mp4" };
-        private static string[] VideoExtensions = { ".mp4", ".mov", ".mkv", ".flv", ".avi", ".wmv", ".rmvb", ".m4v" };
+        private static readonly string[] AudioTagExtensions = { ".mp3", ".m4a", ".ogg", ".flac", ".aiff", ".mp4" };
+        private static readonly string[] VideoExtensions = { ".mp4", ".mov", ".mkv", ".flv", ".avi", ".wmv", ".rmvb", ".m4v" };
 
         public static bool CreateThumbnailFromImage(string path, int width, string pathToSave) {
             try {
-                BitmapImage image = new BitmapImage();
+                var image = new BitmapImage();
                 image.BeginInit();
                 image.UriSource = new Uri(path);
                 image.DecodePixelWidth = width;
@@ -34,9 +34,22 @@ namespace Comics {
         }
 
         public static bool CreateThumbnailFromAudio(string path, int width, string pathToSave) {
-            TagLib.File tagFile;
             try {
-                tagFile = TagLib.File.Create(path);
+                using (var tagFile = TagLib.File.Create(path)) {
+                    if (tagFile.Tag.Pictures.Length == 0) {
+                        return false;
+                    }
+
+                    var dataStream = new MemoryStream(tagFile.Tag.Pictures[0].Data.Data);
+
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.StreamSource = dataStream;
+                    image.DecodePixelWidth = width;
+                    image.EndInit();
+
+                    SaveBitmapImageToFile(image, pathToSave);
+                }
             } catch (TagLib.CorruptFileException) {
                 return false;
             } catch (DirectoryNotFoundException) {
@@ -44,20 +57,6 @@ namespace Comics {
             } catch (FileNotFoundException) {
                 return false;
             }
-
-            if (tagFile.Tag.Pictures.Length == 0) {
-                return false;
-            }
-
-            MemoryStream dataStream = new MemoryStream(tagFile.Tag.Pictures[0].Data.Data);
-
-            BitmapImage image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = dataStream;
-            image.DecodePixelWidth = width;
-            image.EndInit();
-
-            SaveBitmapImageToFile(image, pathToSave);
             return true;
         }
 
@@ -66,11 +65,11 @@ namespace Comics {
         }
 
         public static bool CreateThumbnailFromVideo(string path, int width, string pathToSave) {
-            NReco.VideoConverter.FFMpegConverter ffmpeg = new NReco.VideoConverter.FFMpegConverter();
-            string tempPath = Path.GetTempFileName();
+            var ffmpeg = new NReco.VideoConverter.FFMpegConverter();
+            var tempPath = Path.GetTempFileName();
             ffmpeg.GetVideoThumbnail(path, tempPath, 21);
 
-            BitmapImage image = new BitmapImage();
+            var image = new BitmapImage();
             image.BeginInit();
             image.UriSource = new Uri(tempPath);
             image.DecodePixelWidth = width;
@@ -81,9 +80,9 @@ namespace Comics {
         }
 
         private static void SaveBitmapImageToFile(BitmapImage image, string pathToSave) {
-            JpegBitmapEncoder bitmapEncoder = new JpegBitmapEncoder();
+            var bitmapEncoder = new JpegBitmapEncoder();
             bitmapEncoder.Frames.Add(BitmapFrame.Create(image));
-            using (FileStream fileStream = new FileStream(pathToSave, FileMode.Create)) {
+            using (var fileStream = new FileStream(pathToSave, FileMode.Create)) {
                 bitmapEncoder.Save(fileStream);
             }
         }

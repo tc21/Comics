@@ -23,7 +23,6 @@ namespace Comics {
         private const string defaultFontFamily = "Segoe UI";
         private const int defaultWidth = 180;  // Using the "recommended" value of height / sqrt(2)
         private const int defaultMargin = 3;
-        private const int defaultReactionTime = 140;
         private const int defaultWorkTraversalDepth = 1;  // starts at 1
 
         // may be able to customize in the future
@@ -71,10 +70,8 @@ namespace Comics {
             public StartupApplication DefaultApplication { get; set; }
             public string ExecutionArguments { get; set; }
 
-
-
-            public int ItemHeight => ImageHeight + LabelHeight + 2 * TileMargin;
-            public int ItemWidth => ImageWidth + 2 * TileMargin;
+            public int ItemHeight => this.ImageHeight + LabelHeight + (2 * TileMargin);
+            public int ItemWidth => this.ImageWidth + (2 * TileMargin);
             public string DatabaseFile => Path.Combine(UserDatabaseFolder, Profile.ProfileName + ".library.db");
         }
 
@@ -179,11 +176,11 @@ namespace Comics {
 
         // Calculates the height of a label containing a font with this size. 
         public static int LineHeightForFontWithSize(int fontsize) {
-            return (int)Math.Ceiling(fontsize * 4.0 / 3.0);
+            return Convert.ToInt32(Math.Ceiling(fontsize * 4.0 / 3.0));
         }
 
         public static bool NameShouldBeIgnored(string name) {
-            foreach (string prefix in Profile.IgnoredPrefixes) {
+            foreach (var prefix in Profile.IgnoredPrefixes) {
                 if (name.StartsWith(prefix)) {
                     return true;
                 }
@@ -195,24 +192,24 @@ namespace Comics {
         // How the application was first coded
 
         // Provides dynamically-sized widths and heights to the wrap panel
-        private static int MaximumDynamicWidth => (int)(16.301 / 10 * Profile.ItemWidth + 1);
+        private static int MaximumDynamicWidth => (int)((16.301 / 10 * Profile.ItemWidth) + 1);
         public static Size DynamicSize(double viewPortWidth) {
             if (viewPortWidth < Profile.ItemWidth) {
                 return new Size(Profile.ItemWidth, Profile.ItemHeight);
             }
 
             viewPortWidth -= SafetyMargin;
-            int numberOfColumns = EstimateNumberOfColumns(viewPortWidth / Profile.ItemWidth);
-            int dynamicWidth = (int)(viewPortWidth / numberOfColumns);
-            int dynamicImageWidth = dynamicWidth - 2 * TileMargin;
-            int dynamicImageHeight = (int)Math.Round((double)Profile.ImageHeight * dynamicImageWidth / Profile.ItemWidth);
-            return new Size(dynamicImageWidth + 2 * TileMargin, dynamicImageHeight + LabelHeight + 2 * TileMargin);
+            var numberOfColumns = EstimateNumberOfColumns(viewPortWidth / Profile.ItemWidth);
+            var dynamicWidth = (int)(viewPortWidth / numberOfColumns);
+            var dynamicImageWidth = dynamicWidth - (2 * TileMargin);
+            var dynamicImageHeight = (int)Math.Round((double)Profile.ImageHeight * dynamicImageWidth / Profile.ItemWidth);
+            return new Size(dynamicImageWidth + (2 * TileMargin), dynamicImageHeight + LabelHeight + (2 * TileMargin));
         }
 
         // Some weird formula
         private static int EstimateNumberOfColumns(double n) {
             double[] magic_numbers = { 0.857, 2.037, 3.427, 4.973, 6.644, 8.418, 12.221, 14.23, 16.301 };
-            for (int i = 0; i < 9; i++) {
+            for (var i = 0; i < 9; i++) {
                 if (n < magic_numbers[i]) {
                     return i + 1;
                 }
@@ -231,16 +228,16 @@ namespace Comics {
 
         // Only one thumbnail is generated, which needs to account for display scaling
         public static int ThumbnailWidthForVisual() {
-            double scale = Properties.Settings.Default.DisplayScale;
+            var scale = Properties.Settings.Default.DisplayScale;
             return (int)Math.Ceiling(scale * MaximumDynamicWidth);
         }
 
         // Where to store user data (hint: it's Username\AppData\Local\TC-C7)
         public static string UserDataFolder {
             get {
-                string userDataFolder = Properties.Settings.Default.StorageFullPath;
+                var userDataFolder = Properties.Settings.Default.StorageFullPath;
                 if (!Path.IsPathRooted(userDataFolder)) {
-                    string parentFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var parentFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                     userDataFolder = Path.Combine(parentFolder, "TC-C7", "Comics");
                     Properties.Settings.Default.StorageFullPath = userDataFolder;
                     Properties.Settings.Default.Save();
@@ -271,11 +268,11 @@ namespace Comics {
         public static string UserDatabaseFolder => UserFolderFor("database");
 
         public static void SaveProfile() {
-            XmlSerializer writer = new XmlSerializer(typeof(UserDefaults));
-            string path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".profile.xml");
-            string tempPath = path + ".tmp";
+            var writer = new XmlSerializer(typeof(UserDefaults));
+            var path = Path.Combine(UserProfileFolder, Profile.ProfileName + ".profile.xml");
+            var tempPath = path + ".tmp";
 
-            using (FileStream tempFile = File.Create(tempPath)) {
+            using (var tempFile = File.Create(tempPath)) {
                 writer.Serialize(tempFile, Profile);
             }
 
@@ -288,14 +285,14 @@ namespace Comics {
 
         public static bool LoadProfile(string name) {
             UserDefaults profile;
-            XmlSerializer reader = new XmlSerializer(typeof(UserDefaults));
-            string path = Path.Combine(UserProfileFolder, name + ".profile.xml");
+            var reader = new XmlSerializer(typeof(UserDefaults));
+            var path = Path.Combine(UserProfileFolder, name + ".profile.xml");
 
             if (!File.Exists(path)) {
                 return false;
             }
 
-            using (StreamReader file = new StreamReader(path)) {
+            using (var file = new StreamReader(path)) {
                 profile = (UserDefaults)reader.Deserialize(file);
             }
 
@@ -340,7 +337,7 @@ namespace Comics {
         }
 
         public static bool NameIsValidNameForNewProfile(string name) {
-            string path = Path.Combine(UserProfileFolder, name + ".profle.xml");
+            var path = Path.Combine(UserProfileFolder, name + ".profle.xml");
             return !File.Exists(path);
         }
 
@@ -349,8 +346,8 @@ namespace Comics {
                 return suggestedName;
             }
 
-            for (int i = 1; i <= 65536; i++) {
-                string name = suggestedName + " (" + i.ToString() + ")";
+            for (var i = 1; i <= 65536; i++) {
+                var name = suggestedName + " (" + i.ToString() + ")";
                 if (NameIsValidNameForNewProfile(name)) {
                     return name;
                 }
@@ -363,7 +360,7 @@ namespace Comics {
                 return;
             }
 
-            string previousName = Profile.ProfileName;
+            var previousName = Profile.ProfileName;
             Profile.ProfileName = newname;
             SaveProfile();
             if (File.Exists(Path.Combine(UserProfileFolder, Profile.ProfileName + ".profle.xml"))) {
@@ -374,7 +371,7 @@ namespace Comics {
         }
 
         public static bool IsValidFileName(string name) {
-            foreach (char invalid in Path.GetInvalidFileNameChars()) {
+            foreach (var invalid in Path.GetInvalidFileNameChars()) {
                 if (name.Contains(invalid)) {
                     return false;
                 }

@@ -25,7 +25,7 @@ namespace Comics.Support
 
         public override string ToString()
         {
-            return stored.ToString();
+            return this.stored.ToString();
         }
 
         public int CompareSort(CustomSort<T> cs)
@@ -42,7 +42,7 @@ namespace Comics.Support
         {
             if (obj is CustomSort<T> custom)
             {
-                return CompareSort(custom) == 0 && this.stored.Equals(custom.stored);
+                return this.CompareSort(custom) == 0 && this.stored.Equals(custom.stored);
             }
 
             return this.stored.Equals(obj);
@@ -52,7 +52,7 @@ namespace Comics.Support
         {
             if (obj is CustomSort<T> custom)
             {
-                return CompareSort(custom);
+                return this.CompareSort(custom);
             }
 
             throw new NotImplementedException();

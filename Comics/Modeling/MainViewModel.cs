@@ -30,12 +30,12 @@ namespace Comics {
                 }
 
                 this.availableComics = value;
-                NotifyPropertyChanged(AvailableComicsPropertyName);
+                this.NotifyPropertyChanged(AvailableComicsPropertyName);
 
                 // it's on the main window to update sort descriptions, which has to happen after the main window knows
                 // about the change in this property
                 App.ComicsWindow?.UpdateComicSortDescriptions();
-                UpdateFilterLists();
+                this.UpdateFilterLists();
             }
         }
 
@@ -49,7 +49,7 @@ namespace Comics {
                 }
 
                 this.availableAuthors = value;
-                NotifyPropertyChanged(AvailableAuthorsPropertyName);
+                this.NotifyPropertyChanged(AvailableAuthorsPropertyName);
                 App.ComicsWindow?.UpdateAuthorSortDescriptions();
             }
         }
@@ -65,7 +65,7 @@ namespace Comics {
                 }
 
                 this.availableCategories = value;
-                NotifyPropertyChanged(AvailableCategoriesPropertyName);
+                this.NotifyPropertyChanged(AvailableCategoriesPropertyName);
                 App.ComicsWindow?.UpdateCategorySortDescriptions();
             }
         }
@@ -81,7 +81,7 @@ namespace Comics {
                 }
 
                 this.availableTags = value;
-                NotifyPropertyChanged(AvailableTagsPropertyName);
+                this.NotifyPropertyChanged(AvailableTagsPropertyName);
                 App.ComicsWindow?.UpdateTagSortDescriptions();
             }
         }
@@ -97,8 +97,8 @@ namespace Comics {
                 }
 
                 this.selectedProfile = value;
-                NotifyPropertyChanged(SelectedProfileCategoryName);
-                ProfileChanged();
+                this.NotifyPropertyChanged(SelectedProfileCategoryName);
+                this.ProfileChanged();
             }
         }
 
@@ -113,7 +113,7 @@ namespace Comics {
                 }
 
                 this.profiles = value;
-                NotifyPropertyChanged(ProfilesPropertyName);
+                this.NotifyPropertyChanged(ProfilesPropertyName);
             }
         }
 
@@ -122,16 +122,16 @@ namespace Comics {
 
         // Initializer. Populates profiles and loads comics
         public MainViewModel() {
-            LoadProfiles();
-            UpdateComicsAfterProfileChanged();
+            this.LoadProfiles();
+            this.UpdateComicsAfterProfileChanged();
         }
 
         private void LoadProfiles() {
-            FileInfo[] files = new DirectoryInfo(Defaults.UserProfileFolder).GetFilesInNaturalOrder("*.profile.xml");
+            var files = new DirectoryInfo(Defaults.UserProfileFolder).GetFilesInNaturalOrder("*.profile.xml");
 
-            int index = 0;
-            for (int i = 0; i < files.Length; i++) {
-                string name = files[i].Name.Substring(0, files[i].Name.Length - ".profile.xml".Length);
+            var index = 0;
+            for (var i = 0; i < files.Length; i++) {
+                var name = files[i].Name.Substring(0, files[i].Name.Length - ".profile.xml".Length);
                 this.Profiles.Add(name);
                 if (Defaults.Profile.ProfileName == name) {
                     this.SelectedProfile = index;
@@ -143,8 +143,8 @@ namespace Comics {
 
         public void ReloadProfiles() {
             this.Profiles.Clear();
-            LoadProfiles();
-            ProfileChanged();
+            this.LoadProfiles();
+            this.ProfileChanged();
         }
 
         public void ProfileChanged() {
@@ -152,27 +152,27 @@ namespace Comics {
                 return;
             }
 
-            string profile = this.Profiles[this.selectedProfile];
+            var profile = this.Profiles[this.selectedProfile];
             if (Defaults.Profile.ProfileName == profile) {
                 return;
             }
 
             if (Defaults.LoadProfile(profile)) {
                 App.ComicsWindow?.ClearSelections();
-                UpdateComicsAfterProfileChanged();
+                this.UpdateComicsAfterProfileChanged();
             }
         }
 
         // Reloads the comics based on the new profile, and then notifies the windows to update their UI.
         public async void UpdateComicsAfterProfileChanged() {
-            await LoadComicsFromDatabase();
+            await this.LoadComicsFromDatabase();
             App.SettingsWindow?.PopulateProfileSettings();
             App.ComicsWindow?.RefreshComics();
         }
 
         public async void UpdateComicsAfterProfileUpdated() {
             // currently the same for debugging
-            await LoadComicsFromDatabase();
+            await this.LoadComicsFromDatabase();
             App.SettingsWindow?.PopulateProfileSettings();
             App.ComicsWindow?.RefreshComics();
         }
@@ -180,7 +180,7 @@ namespace Comics {
 
         // Public interface to reload all comics
         public async Task ReloadComics() {
-            await ReloadComicsFromDisk();
+            await this.ReloadComicsFromDisk();
             App.ComicsWindow?.ClearSelections();
             App.ComicsWindow?.RefreshComics();
         }
@@ -199,13 +199,13 @@ namespace Comics {
             this.AvailableAuthors.Clear();
             this.AvailableCategories.Clear();
             this.AvailableTags.Clear();
-            await Task.Run(() => PopulateComicsFromDatabase());
+            await Task.Run(() => this.PopulateComicsFromDatabase());
 
             App.ComicsWindow?.PushFooter("LoadingIndicator", "Validating...");
-            await Task.Run(() => ValidateLoadedComics());
+            await Task.Run(() => this.ValidateLoadedComics());
 
             App.ComicsWindow?.PushFooter("LoadingIndicator", "Generating thumbnails...");
-            await Task.Run(() => GenerateComicThumbnails());
+            await Task.Run(() => this.GenerateComicThumbnails());
 
             App.ComicsWindow?.PopFooter("LoadingIndicator");
             App.ComicsWindow?.EnableInteractions();
@@ -215,9 +215,10 @@ namespace Comics {
             var validatedComics = new ObservableCollection<Comic>();
             var invalidComics = new List<Comic>();
 
-            foreach (var comic in AvailableComics) {
+            foreach (var comic in this.AvailableComics) {
                 try {
-                    var validatedComic = new Comic(comic.real_title, comic.real_author, comic.real_category, comic.path, comic.Metadata, dateAdded: comic.DateAdded);
+                    var validatedComic = new Comic(comic.real_title, comic.real_author, comic.real_category, comic.path,
+                                                   comic.Metadata, dateAdded: comic.DateAdded);
                     validatedComics.Add(validatedComic);
                 } catch (ComicLoadException) {
                     invalidComics.Add(comic);
@@ -233,40 +234,37 @@ namespace Comics {
 
         // function that actually reloads comics
         private async Task ReloadComicsFromDisk() {
-            
             App.ComicsWindow?.PushFooter("LoadingIndicator", "Reloading...");
             App.ComicsWindow?.DisableInteractions();
 
             var cachedComics = this.AvailableComics.Where(c => c.Category == ManuallyAddedComicCategoryName).ToArray();
-
             var newAvailableComics = new ObservableCollection<Comic>();
 
-            await Task.Run(() => LoadComicsFromDisk(newAvailableComics));
+            await Task.Run(() => this.LoadComicsFromDisk(newAvailableComics));
 
             foreach (var comic in cachedComics) {
-                AddComic(comic, newAvailableComics);
+                this.AddComic(comic, newAvailableComics);
             }
 
             App.Current.Dispatcher.Invoke(() => {
                 this.AvailableComics = newAvailableComics;
             });
 
-            await Task.Run(() => GenerateComicThumbnails());
+            await Task.Run(() => this.GenerateComicThumbnails());
 
             App.ComicsWindow?.PopFooter("LoadingIndicator");
-            //App.ComicsWindow?.EnableInteractions();
 
-            await UpdateDatabase();
+            await this.UpdateDatabase();
         }
 
         // Public interface to reload (regenerate) all thumbnails
         public async Task ReloadComicThumbnails() {
-            await Task.Run(() => GenerateComicThumbnails());
+            await Task.Run(() => this.GenerateComicThumbnails());
             App.ComicsWindow?.RefreshComics();
         }
 
         public void AddComicFromDisk(string title, string author, string category, string path, ObservableCollection<Comic> target) {
-            AddComic(new Comic(title, author, category, path), target, true);
+            this.AddComic(new Comic(title, author, category, path), target, true);
         }
 
         private void AddComic(Comic comic, ObservableCollection<Comic> target, bool recreateThumbnail = false) {
@@ -276,7 +274,7 @@ namespace Comics {
                 }
             }
 
-            AddComicToAvailableComics(comic, target);
+            this.AddComicToAvailableComics(comic, target);
 
             if (recreateThumbnail || !(File.Exists(comic.ThumbnailPath))) {
                 comic.GenerateThumbnail();
@@ -352,27 +350,28 @@ namespace Comics {
 
         // Loads all comics based on the current profile
         private void LoadComicsFromDisk(ObservableCollection<Comic> target) {
-            foreach (Defaults.CategorizedPath categorizedPath in Defaults.Profile.RootPaths) {
+            foreach (var categorizedPath in Defaults.Profile.RootPaths) {
                 if (!Directory.Exists(categorizedPath.Path)) {
                     continue;
                 }
 
-                DirectoryInfo rootDirectory = new DirectoryInfo(categorizedPath.Path);
-                DirectoryInfo[] authorDirectories = rootDirectory.GetDirectoriesInNaturalOrder();
+                var rootDirectory = new DirectoryInfo(categorizedPath.Path);
+                var authorDirectories = rootDirectory.GetDirectoriesInNaturalOrder();
 
-                foreach (DirectoryInfo authorDirectory in authorDirectories) {
+                foreach (var authorDirectory in authorDirectories) {
                     if (Defaults.NameShouldBeIgnored(authorDirectory.Name)) {
                         continue;
                     }
-                    
-                    LoadComicsForAuthorFromDisk(authorDirectory, authorDirectory.Name, categorizedPath.Category, Defaults.Profile.WorkTraversalDepth, null, target);
+
+                    this.LoadComicsForAuthorFromDisk(authorDirectory, authorDirectory.Name, categorizedPath.Category, 
+                        Defaults.Profile.WorkTraversalDepth, null, target);
 
                     // for pdfs and such
-                    FileInfo[] rootFiles = authorDirectory.GetFilesInNaturalOrder();
-                    foreach (FileInfo file in rootFiles) {
+                    var rootFiles = authorDirectory.GetFilesInNaturalOrder();
+                    foreach (var file in rootFiles) {
                         if (Defaults.Profile.Extensions.Contains(file.Extension)) {
                             var comic = new Comic(file.Name, authorDirectory.Name, categorizedPath.Category, file.FullName);
-                            AddComicToAvailableComics(comic, target);
+                            this.AddComicToAvailableComics(comic, target);
                         }
                     }
                 }
@@ -380,28 +379,29 @@ namespace Comics {
         }
 
         // Given a directory corresponding to an author, adds subfolders in the directory as works by the author
-        private void LoadComicsForAuthorFromDisk(DirectoryInfo directory, string author, string category, int depth, string previousParts, ObservableCollection<Comic> target) {
+        private void LoadComicsForAuthorFromDisk(DirectoryInfo directory, string author, string category, int depth, 
+                                                 string previousParts, ObservableCollection<Comic> target) {
             depth -= 1;
-            DirectoryInfo[] comicDirectories = directory.GetDirectoriesInNaturalOrder();
+            var comicDirectories = directory.GetDirectoriesInNaturalOrder();
 
-            foreach (DirectoryInfo comicDirectory in comicDirectories) {
+            foreach (var comicDirectory in comicDirectories) {
                 if (Defaults.NameShouldBeIgnored(comicDirectory.Name)) {
                     continue;
                 }
 
-                string currentName = comicDirectory.Name;
+                var currentName = comicDirectory.Name;
                 if (previousParts != null) {
                     currentName = previousParts + " - " + currentName;
                 }
 
-                Comic comic = new Comic(currentName, author, category, comicDirectory.FullName);
+                var comic = new Comic(currentName, author, category, comicDirectory.FullName);
 
                 if (depth > 0 && Defaults.Profile.SubdirectoryAction == Defaults.SubdirectoryAction.SEPARATE) {
-                    LoadComicsForAuthorFromDisk(comicDirectory, author, category, depth, currentName, target);
+                    this.LoadComicsForAuthorFromDisk(comicDirectory, author, category, depth, currentName, target);
                 }
 
                 if (comic.FilePaths.Count() > 0) {
-                    AddComicToAvailableComics(comic, target);
+                    this.AddComicToAvailableComics(comic, target);
                 }
             }
         }
@@ -412,7 +412,7 @@ namespace Comics {
 
         // Generates thumbnails for comics
         private void GenerateComicThumbnails() {
-            foreach (Comic comic in this.AvailableComics) {
+            foreach (var comic in this.AvailableComics) {
                 if (!(File.Exists(comic.ThumbnailPath))) {
                     comic.GenerateThumbnail();
                 }
@@ -421,8 +421,8 @@ namespace Comics {
 
         // Randomizes the .Random field for each comic
         public void RandomizeComics() {
-            Random random = new Random();
-            foreach (Comic comic in this.AvailableComics) {
+            var random = new Random();
+            foreach (var comic in this.AvailableComics) {
                 comic.Random = random.Next();
             }
         }

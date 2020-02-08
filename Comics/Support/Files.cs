@@ -44,28 +44,28 @@ namespace Comics.Support {
     }
 
     public static class DirectoryInfoExtension {
-        private static FileUtilsInterop.NaturalFileSystemInfoComparer naturalComparer = new FileUtilsInterop.NaturalFileSystemInfoComparer();
+        private static readonly FileUtilsInterop.NaturalFileSystemInfoComparer naturalComparer = new FileUtilsInterop.NaturalFileSystemInfoComparer();
 
         public static DirectoryInfo[] GetDirectoriesInNaturalOrder(this DirectoryInfo dir) {
-            DirectoryInfo[] dirs = dir.GetDirectories();
+            var dirs = dir.GetDirectories();
             SortInNaturalOrder(dirs);
             return dirs;
         }
 
         public static DirectoryInfo[] GetDirectoriesInNaturalOrder(this DirectoryInfo dir, string searchPattern) {
-            DirectoryInfo[] dirs = dir.GetDirectories(searchPattern);
+            var dirs = dir.GetDirectories(searchPattern);
             SortInNaturalOrder(dirs);
             return dirs;
         }
 
         public static FileInfo[] GetFilesInNaturalOrder(this DirectoryInfo dir) {
-            FileInfo[] files = dir.GetFiles();
+            var files = dir.GetFiles();
             SortInNaturalOrder(files);
             return files;
         }
 
         public static FileInfo[] GetFilesInNaturalOrder(this DirectoryInfo dir, string searchPattern) {
-            FileInfo[] files = dir.GetFiles(searchPattern);
+            var files = dir.GetFiles(searchPattern);
             SortInNaturalOrder(files);
             return files;
         }

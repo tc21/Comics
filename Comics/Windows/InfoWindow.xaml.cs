@@ -31,16 +31,16 @@ namespace Comics {
                     this.Title += string.Format(" and {0} more", value.Count - 1);
                 }
                 this.Title += "...";
-                PopulateInitialInfo();
+                this.PopulateInitialInfo();
             }
         }
 
         public List<string> Tags { get; set; }
 
         public InfoWindow() {
-            InitializeComponent();
+            this.InitializeComponent();
             App.InfoWindow = this;
-            PopulateInitialInfo();
+            this.PopulateInitialInfo();
         }
 
         protected override void OnInitialized(EventArgs e) {
@@ -103,7 +103,7 @@ namespace Comics {
                 }
 
                 this.comicTitle = value;
-                NotifyPropertyChanged(ComicTitlePropertyName);
+                this.NotifyPropertyChanged(ComicTitlePropertyName);
             }
 
         }
@@ -118,7 +118,7 @@ namespace Comics {
                 }
 
                 this.comicAuthor = value;
-                NotifyPropertyChanged(ComicAuthorPropertyName);
+                this.NotifyPropertyChanged(ComicAuthorPropertyName);
             }
         }
 
@@ -132,7 +132,7 @@ namespace Comics {
                 }
 
                 this.comicTags = value;
-                NotifyPropertyChanged(ComicTagsPropertyName);
+                this.NotifyPropertyChanged(ComicTagsPropertyName);
             }
         }
 
@@ -165,32 +165,20 @@ namespace Comics {
             }
 
             App.ComicsWindow.ComicInfoUpdated();
-            PopulateInitialInfo();
+            this.PopulateInitialInfo();
         }
 
-        //private void Tag_Checked(object sender, RoutedEventArgs e) {
-        //    // todo
-        //}
-
-        //private void Tag_Unchecked(object sender, RoutedEventArgs e) {
-
-        //}
-
-        //private void Button_EditTags(object sender, RoutedEventArgs e) {
-
-        //}
-
         private void Button_Confirm(object sender, RoutedEventArgs e) {
-            SaveChanges();
-            Close();
+            this.SaveChanges();
+            this.Close();
         }
 
         private void Button_Apply(object sender, RoutedEventArgs e) {
-            SaveChanges();
+            this.SaveChanges();
         }
 
         private void Button_Cancel(object sender, RoutedEventArgs e) {
-            Close();
+            this.Close();
         }
         
         private void InfoWindow_Closing(object sender, CancelEventArgs e) {

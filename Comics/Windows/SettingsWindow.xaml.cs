@@ -35,7 +35,7 @@ namespace Comics {
                 }
 
                 this.profiles = value;
-                NotifyPropertyChanged(ProfilesPropertyName);
+                this.NotifyPropertyChanged(ProfilesPropertyName);
             }
         }
         // The extensions for the currently selected profile
@@ -49,7 +49,7 @@ namespace Comics {
                 }
 
                 this.extensions = value;
-                NotifyPropertyChanged(ExtensionsPropertyName);
+                this.NotifyPropertyChanged(ExtensionsPropertyName);
             }
         }
         // Categories | Paths for the current profile
@@ -63,7 +63,7 @@ namespace Comics {
                 }
 
                 this.categories = value;
-                NotifyPropertyChanged(CategoriesPropertyName);
+                this.NotifyPropertyChanged(CategoriesPropertyName);
             }
         }
         // List of ignored prefixes for the profile
@@ -77,7 +77,7 @@ namespace Comics {
                 }
 
                 this.ignoredPrefixes = value;
-                NotifyPropertyChanged(IgnoredPrefixesPropertyName);
+                this.NotifyPropertyChanged(IgnoredPrefixesPropertyName);
             }
         }
         // An indicator that the profile was modified
@@ -91,32 +91,32 @@ namespace Comics {
                 }
 
                 this.profileChanged = value;
-                NotifyPropertyChanged(ProfileChangedPropertyName);
+                this.NotifyPropertyChanged(ProfileChangedPropertyName);
             }
         }
 
         // Initializer
         public SettingsWindow() {
-            InitializeComponent();
+            this.InitializeComponent();
             App.SettingsWindow = this;
-            PopulateProfileSettings();
+            this.PopulateProfileSettings();
         }
 
         // Populates the extensions, categories, and prefixes boxes after a profile is selected.
         public void PopulateProfileSettings() {
             this.Profiles = new ObservableCollection<string>(App.ViewModel.Profiles);
             this.ProfileSelector.SelectedIndex = App.ViewModel.SelectedProfile;
-            this.Extensions = StringCollection(Defaults.Profile.Extensions);
+            this.Extensions = this.StringCollection(Defaults.Profile.Extensions);
             this.Categories = new ObservableCollection<Defaults.CategorizedPath>(Defaults.Profile.RootPaths);
-            this.IgnoredPrefixes = StringCollection(Defaults.Profile.IgnoredPrefixes);
+            this.IgnoredPrefixes = this.StringCollection(Defaults.Profile.IgnoredPrefixes);
             this.OpenApplicationTextBox.Text = Defaults.Profile.DefaultApplication?.Name ?? "";
             this.OpenArgumentsTextBox.Text = Defaults.Profile.ExecutionArguments;
         }
 
         // Creates an observable collection of "String Objects" from a collectoin of strings
         private ObservableCollection<StringObject> StringCollection(ICollection<string> collection) {
-            ObservableCollection<StringObject> result = new ObservableCollection<StringObject>();
-            foreach (string str in collection) {
+            var result = new ObservableCollection<StringObject>();
+            foreach (var str in collection) {
                 result.Add(new StringObject { Value = str });
             }
 
@@ -135,10 +135,10 @@ namespace Comics {
             }
 
             this.ProfileChanged = false;
-            Defaults.Profile.Extensions = this.Extensions.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
+            Defaults.Profile.Extensions = this.Extensions.Select(o => o.Value).Where(o => !string.IsNullOrEmpty(o)).ToList();
 
-            Defaults.Profile.IgnoredPrefixes = this.IgnoredPrefixes.Select(o => o.Value).Where(o => !String.IsNullOrEmpty(o)).ToList();
-            Defaults.Profile.RootPaths = this.Categories.Where(o => !String.IsNullOrEmpty(o.Category) && !String.IsNullOrEmpty(o.Path)).ToList();
+            Defaults.Profile.IgnoredPrefixes = this.IgnoredPrefixes.Select(o => o.Value).Where(o => !string.IsNullOrEmpty(o)).ToList();
+            Defaults.Profile.RootPaths = this.Categories.Where(o => !string.IsNullOrEmpty(o.Category) && !string.IsNullOrEmpty(o.Path)).ToList();
 
             try {
                 Defaults.Profile.DefaultApplication = Defaults.StartupApplication.Interpolate(this.OpenApplicationTextBox.Text);
@@ -150,16 +150,16 @@ namespace Comics {
         }
 
         private void Button_Cancel(object sender, RoutedEventArgs e) {
-            Close();
+            this.Close();
         }
 
         private void Button_Apply(object sender, RoutedEventArgs e) {
-            WriteChangesToProfile();
+            this.WriteChangesToProfile();
         }
 
         private void Button_Confirm(object sender, RoutedEventArgs e) {
-            WriteChangesToProfile();
-            Close();
+            this.WriteChangesToProfile();
+            this.Close();
         }
 
         // Implementation of INotifyPropertyChanged
@@ -177,13 +177,11 @@ namespace Comics {
         // or sets it to null.
         private void CellEditEnding(object sender, DataGridCellEditEndingEventArgs e) {
             if (e.EditAction == DataGridEditAction.Commit) {
-                string header = e.Column.Header as string;
-                TextBox textBox = e.EditingElement as TextBox;
-                if (header is null || textBox is null) {
+                if (!(e.Column.Header is string header) || !(e.EditingElement is TextBox textBox)) {
                     return;
                 }
 
-                if (String.IsNullOrWhiteSpace(textBox.Text)) {
+                if (string.IsNullOrWhiteSpace(textBox.Text)) {
                     return;
                 }
 
@@ -202,7 +200,7 @@ namespace Comics {
                         textBox.Text = null;
                         break;
                 }
-                if (String.IsNullOrEmpty(textBox.Text)) {
+                if (string.IsNullOrEmpty(textBox.Text)) {
                     e.Cancel = true;
                 }
 
@@ -235,18 +233,24 @@ namespace Comics {
         }
 
         private void ProfileMenu_Delete(object sender, RoutedEventArgs e) {
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete this profile? This action cannot be undone.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var result = MessageBox.Show(
+                "Are you sure you want to delete this profile? This action cannot be undone.",
+                "Warning",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning
+            );
+
             if (result == MessageBoxResult.No) {
                 return;
             }
 
             Defaults.DeleteCurrentProfile();
 
-            int index = this.ProfileSelector.SelectedIndex;
+            var index = this.ProfileSelector.SelectedIndex;
             index += (index == 0) ? 1 : -1;
 
             App.ViewModel.ReloadProfiles();
-            PopulateProfileSettings();
+            this.PopulateProfileSettings();
 
             if (index < this.Profiles.Count) {
                 App.ViewModel.SelectedProfile = index;
@@ -255,13 +259,13 @@ namespace Comics {
         }
 
         private void ProfileMenu_New(object sender, RoutedEventArgs e) {
-            string newname = Defaults.GenerateValidNameForNewProfile(Defaults.Profile.ProfileName);
+            var newname = Defaults.GenerateValidNameForNewProfile(Defaults.Profile.ProfileName);
 
             Defaults.CreateNewProfile(newname);
             App.ViewModel.ReloadProfiles();
-            PopulateProfileSettings();
+            this.PopulateProfileSettings();
 
-            int newindex = this.Profiles.IndexOf(newname);
+            var newindex = this.Profiles.IndexOf(newname);
             App.ViewModel.SelectedProfile = newindex;
             this.ProfileSelector.SelectedIndex = newindex;
 
@@ -270,18 +274,18 @@ namespace Comics {
         private void ProfileNameEditor_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
                 this.ProfileNameEditor.Visibility = Visibility.Hidden;
-                string newname = this.ProfileNameEditor.Text.Trim();
+                var newname = this.ProfileNameEditor.Text.Trim();
 
-                if (String.IsNullOrEmpty(newname) || !Defaults.IsValidFileName(this.ProfileNameEditor.Text)) {
+                if (string.IsNullOrEmpty(newname) || !Defaults.IsValidFileName(this.ProfileNameEditor.Text)) {
                     return;
                 }
 
                 Defaults.RenameCurrentProfile(newname);
 
                 App.ViewModel.ReloadProfiles();
-                PopulateProfileSettings();
+                this.PopulateProfileSettings();
 
-                int newindex = this.Profiles.IndexOf(newname);
+                var newindex = this.Profiles.IndexOf(newname);
                 App.ViewModel.SelectedProfile = newindex;
                 this.ProfileSelector.SelectedIndex = newindex;
             }
@@ -289,7 +293,7 @@ namespace Comics {
 
         private void OpenArgumentsTextBox_TextChanged(object sender, TextChangedEventArgs e) {
             try {
-                string arguments = Comic.TestExecutionString(this.OpenArgumentsTextBox.Text);
+                var arguments = Comic.TestExecutionString(this.OpenArgumentsTextBox.Text);
                 this.CommandExampleLabel.Text = "\"" + this.OpenApplicationTextBox.Text + "\" " + arguments;
             } catch (Exception ex) {
                 this.CommandExampleLabel.Text = "Error: " + ex.Message;
@@ -299,9 +303,9 @@ namespace Comics {
         }
 
         private void OpenApplicationTextBox_TextChanged(object sender, TextChangedEventArgs e) {
-            string application = this.OpenApplicationTextBox.Text;
+            var application = this.OpenApplicationTextBox.Text;
             if (application == Defaults.StartupApplication.ViewerIndicator || File.Exists(application)) {
-                OpenArgumentsTextBox_TextChanged(sender, e);
+                this.OpenArgumentsTextBox_TextChanged(sender, e);
             } else {
                 this.CommandExampleLabel.Text = "Error: File not found";
             }

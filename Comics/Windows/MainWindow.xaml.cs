@@ -19,9 +19,9 @@ namespace Comics {
         // These sets are in sync with the user's checked items in the sidebar
         // They are stored in a hashset for easy filtering
         // todo: take a look at ObservableHashSet
-        private HashSet<string> selectedAuthors = new HashSet<string>();
-        private HashSet<string> selectedCategories = new HashSet<string>();
-        private HashSet<string> selectedTags = new HashSet<string>();
+        private readonly HashSet<string> selectedAuthors = new HashSet<string>();
+        private readonly HashSet<string> selectedCategories = new HashSet<string>();
+        private readonly HashSet<string> selectedTags = new HashSet<string>();
         // The two sidebar options
         private bool onlyShowLoved = false;
         private bool showDisliked = false;
@@ -29,8 +29,8 @@ namespace Comics {
         private string searchText = null;
 
         // Allow a queue of strings to be pushed to thefooter
-        private List<string> footerKeys = new List<string>();
-        private Dictionary<string, string> footerStrings = new Dictionary<string, string>();
+        private readonly List<string> footerKeys = new List<string>();
+        private readonly Dictionary<string, string> footerStrings = new Dictionary<string, string>();
 
         // This property returns the view containing objects so the view can be updated 
         private ICollectionView ComicsView => CollectionViewSource.GetDefaultView(this.Collection?.ItemsSource);
@@ -43,7 +43,7 @@ namespace Comics {
         private CancellationTokenSource cts;
 
         public MainWindow() {
-            InitializeComponent();
+            this.InitializeComponent();
             App.ComicsWindow = this;
             this.DataContext = App.ViewModel;
             // Sets the windows size to its saved state
@@ -59,8 +59,8 @@ namespace Comics {
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-            RefreshComics();
-            RefreshFilter();
+            this.RefreshComics();
+            this.RefreshFilter();
         }
 
         private void MainWindow_Closing(object sender, CancelEventArgs e) {
@@ -122,8 +122,8 @@ namespace Comics {
         }
 
         public void DisableInteractions() {
-            ProfileSelector.IsEnabled = false;
-            SettingsButton.IsEnabled = false;
+            this.ProfileSelector.IsEnabled = false;
+            this.SettingsButton.IsEnabled = false;
 
             if (App.SettingsWindow != null) {
                 App.SettingsWindow.ProfileSelector.IsEnabled = false;
@@ -131,8 +131,8 @@ namespace Comics {
         }
 
         public void EnableInteractions() {
-            ProfileSelector.IsEnabled = true;
-            SettingsButton.IsEnabled = true;
+            this.ProfileSelector.IsEnabled = true;
+            this.SettingsButton.IsEnabled = true;
 
             if (App.SettingsWindow != null) {
                 App.SettingsWindow.ProfileSelector.IsEnabled = true;
@@ -142,13 +142,13 @@ namespace Comics {
         private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             this.searchText = this.SearchBox.Text;
 
-            await FilterComics();
+            await this.FilterComics();
         }
         
         // Detects the display scaling and stores it in settings
         public void UpdateDisplayScale() {
-            PresentationSource presentationSource = PresentationSource.FromVisual(this);
-            double scale = presentationSource.CompositionTarget.TransformToDevice.M11;
+            var presentationSource = PresentationSource.FromVisual(this);
+            var scale = presentationSource.CompositionTarget.TransformToDevice.M11;
             Properties.Settings.Default.DisplayScale = scale;
             Properties.Settings.Default.Save();
         }
@@ -161,22 +161,23 @@ namespace Comics {
         // With the actual filtering done asynchronously, the filter imposed on the views are then quite simple.
         private bool ComicFilter(object item) {
             var comic = (Comic)item;
-            return !FilteredComics.Contains(comic.UniqueIdentifier);
+            return !this.FilteredComics.Contains(comic.UniqueIdentifier);
         }
 
         private async Task FilterComics() {
             /* note: I am not convinced the cancellation token actually improves performance, and it
              * looks like we'll need libraries much larger than my ~2000 items to test it */
-            cts?.Cancel();
+            this.cts?.Cancel();
 
-            PushFooter("FilterComics", "Filtering...");
+            this.PushFooter("FilterComics", "Filtering...");
             try {
-                cts = new CancellationTokenSource();
-                await FilterComics(cts.Token);
-                RefreshComics();
+                this.cts = new CancellationTokenSource();
+                await this.FilterComics(this.cts.Token);
+                this.RefreshComics();
             } catch (OperationCanceledException) {
+                // do nothing
             }
-            PopFooter("FilterComics");
+            this.PopFooter("FilterComics");
         }
 
         private async Task FilterComics(CancellationToken ct) {
@@ -185,7 +186,7 @@ namespace Comics {
 
             await Task.Run(() => {
                 foreach (var comic in App.ViewModel.AvailableComics) {
-                    if (!ComicMatchesFilter(comic)) {
+                    if (!this.ComicMatchesFilter(comic)) {
                         filtered.Add(comic.UniqueIdentifier);
                     }
 
@@ -205,14 +206,12 @@ namespace Comics {
                 && comic.MatchesAuthors(this.selectedAuthors)
                 && comic.MatchesCategories(this.selectedCategories)
                 && comic.MatchesTags(this.selectedTags)
-                && (!onlyShowLoved || comic.Loved)
-                && (showDisliked || !comic.Disliked);
+                && (!this.onlyShowLoved || comic.Loved)
+                && (this.showDisliked || !comic.Disliked);
         }
         
         // Happens when the "toggle right sidebar" footer button is pressed
         private void ToggleRightSidebar(object sender, RoutedEventArgs e) {
-            Button button = sender as Button;
-
             if (this.RightSidebar.Visibility == Visibility.Collapsed) {
                 this.RightSidebar.Visibility = Visibility.Visible;
             } else {
@@ -244,7 +243,7 @@ namespace Comics {
 
         // Handlers for context menu items. This includes the right click and settings menus
         private void ContextMenu_Open(object sender, RoutedEventArgs e) {
-            OpenSelectedComics();
+            this.OpenSelectedComics();
         }
 
         private async void ContextMenu_Love(object sender, RoutedEventArgs e) {
@@ -254,7 +253,7 @@ namespace Comics {
                     comic.Loved = !comic.Loved;
                 }
             }
-            await FilterComics();
+            await this.FilterComics();
         }
 
         private async void ContextMenu_Dislike(object sender, RoutedEventArgs e) {
@@ -264,7 +263,7 @@ namespace Comics {
                     comic.Disliked = !comic.Disliked;
                 }
             }
-            await FilterComics();
+            await this.FilterComics();
         }
 
         private void ContextMenu_ShowInExplorer(object sender, RoutedEventArgs e) {
@@ -279,7 +278,7 @@ namespace Comics {
                 return;
             }
 
-            Comic comic = (this.Collection.SelectedItem as Comic);
+            var comic = (this.Collection.SelectedItem as Comic);
             if (comic is null) {
                 return;
             }
@@ -298,7 +297,7 @@ namespace Comics {
             File.Delete(comic.ThumbnailPath);
             comic.GenerateThumbnail();
 
-            RefreshComics();
+            this.RefreshComics();
         }
 
         private async void ContextMenu_ReloadComics(object sender, RoutedEventArgs e) {
@@ -308,12 +307,18 @@ namespace Comics {
         private async void ContextMenu_ReloadThumbnails(object sender, RoutedEventArgs e) {
             // Delete existing ones first, but warn the user that it'll take a long time
             // Currently does basically nothing (unless you accidentally deleted something)
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be deleted and regenerated. This may take a long times.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var result = MessageBox.Show(
+                "Are you sure you want to reload thumbnails? All thumbnails (for items in this library) will be"
+                    + " deleted and regenerated. This may take a long times.", "Warning", 
+                MessageBoxButton.YesNo, 
+                MessageBoxImage.Warning
+            );
+
             if (result == MessageBoxResult.Yes) {
                 return;
             }
 
-            foreach (Comic comic in App.ViewModel.AvailableComics) {
+            foreach (var comic in App.ViewModel.AvailableComics) {
                 if (File.Exists(comic.ThumbnailPath)) {
                     File.Delete(comic.ThumbnailPath);
                 }
@@ -358,16 +363,16 @@ namespace Comics {
                 return;
             }
 
-            UpdateComicSortDescriptions();
+            this.UpdateComicSortDescriptions();
 
             Properties.Settings.Default.SelectedSortIndex = this.SortOrderBox.SelectedIndex;
         }
 
         public void UpdateSortDescriptions(bool randomize = true) {
-            UpdateComicSortDescriptions(randomize);
-            UpdateAuthorSortDescriptions();
-            UpdateCategorySortDescriptions();
-            UpdateTagSortDescriptions();
+            this.UpdateComicSortDescriptions(randomize);
+            this.UpdateAuthorSortDescriptions();
+            this.UpdateCategorySortDescriptions();
+            this.UpdateTagSortDescriptions();
         }
 
         public void UpdateComicSortDescriptions(bool randomize = true) {
@@ -404,18 +409,18 @@ namespace Comics {
 
         // Ways for the user to open a comic
         private void Collection_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-            OpenSelectedComics();
+            this.OpenSelectedComics();
         }
 
         private void Collection_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
-                OpenSelectedComics();
+                this.OpenSelectedComics();
             }
         }
 
         // Ensures the collection is sorted when it is first loaded.
         private void Collection_Loaded(object sender, RoutedEventArgs e) {
-            UpdateSortDescriptions();
+            this.UpdateSortDescriptions();
         }
 
         // Handlers for when the user checks and unchecks sidebar options
@@ -428,7 +433,7 @@ namespace Comics {
                     this.selectedCategories.Remove(checkbox.Content.ToString());
                 }
 
-                await FilterComics();
+                await this.FilterComics();
                 App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
             }
         }
@@ -445,7 +450,7 @@ namespace Comics {
                     }
                 }
 
-                await FilterComics();
+                await this.FilterComics();
                 App.ViewModel.UpdateFilterLists(updateCategories: false, updateAuthors: false, excludedIds: this.FilteredComics);
             }
         }
@@ -464,7 +469,7 @@ namespace Comics {
                     }
                 }
 
-                await FilterComics();
+                await this.FilterComics();
                 App.ViewModel.UpdateFilterLists(updateCategories: false, updateTags: false, excludedIds: this.FilteredComics);
             }
         }
@@ -473,7 +478,7 @@ namespace Comics {
             if ((sender as CheckBox).IsChecked is bool isChecked) {
                 this.onlyShowLoved = isChecked;
 
-                await FilterComics();
+                await this.FilterComics();
                 App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
             }
         }
@@ -482,7 +487,7 @@ namespace Comics {
             if ((sender as CheckBox).IsChecked is bool isChecked) {
                 this.showDisliked = isChecked;
 
-                await FilterComics();
+                await this.FilterComics();
                 App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
             }
         }
@@ -508,7 +513,7 @@ namespace Comics {
                 source = VisualTreeHelper.GetParent(source);
             }
 
-            if (source is ListBoxItem item) {
+            if (source is ListBoxItem) {
                 this.dragStart = e.GetPosition(null);
                 if (this.Collection.SelectedItems.Count > 1) {
                     this.selectedComics = new List<Comic>(this.Collection.SelectedItems.Cast<Comic>());
@@ -525,9 +530,9 @@ namespace Comics {
         }
 
         private void Collection_MouseMove(object sender, MouseEventArgs e) {
-            if (dragStart is Point start) {
-                Point mouse = e.GetPosition(null);
-                Vector difference = start - mouse;
+            if (this.dragStart is Point start) {
+                var mouse = e.GetPosition(null);
+                var difference = start - mouse;
 
                 if (e.LeftButton == MouseButtonState.Pressed &&
                     Math.Abs(difference.X) > SystemParameters.MinimumHorizontalDragDistance &&
@@ -546,14 +551,14 @@ namespace Comics {
                         this.selectedComics = null;
                     }
 
-                    string dataFormat = DataFormats.FileDrop;
-                    string[] files = new string[this.Collection.SelectedItems.Count];
+                    var dataFormat = DataFormats.FileDrop;
+                    var files = new string[this.Collection.SelectedItems.Count];
 
-                    for (int i = 0; i < this.Collection.SelectedItems.Count; i++) {
+                    for (var i = 0; i < this.Collection.SelectedItems.Count; i++) {
                         files[i] = (this.Collection.SelectedItems[i] as Comic).path;
                     }
 
-                    DataObject dataObject = new DataObject(dataFormat, files);
+                    var dataObject = new DataObject(dataFormat, files);
                     DragDrop.DoDragDrop(this.Collection, dataObject, DragDropEffects.Copy);
                     // DoDragDrop takes over control, and at this point the mouse is released
                     this.dragStart = null;
@@ -578,40 +583,40 @@ namespace Comics {
         }
 
         private async void RemoveSelectedAuthorsLink_Click(object sender, RoutedEventArgs e) {
-            RemoveSelectedAuthors();
+            this.RemoveSelectedAuthors();
             foreach (var item in App.ViewModel.AvailableAuthors) {
                 item.IsChecked = false;
             }
 
-            await FilterComics();
+            await this.FilterComics();
             App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
 
-            RefreshComics();
+            this.RefreshComics();
         }
 
         private async void RemoveSelectedTagsLink_Click(object sender, RoutedEventArgs e) {
-            RemoveSelectedTags();
+            this.RemoveSelectedTags();
             foreach (var item in App.ViewModel.AvailableTags) {
                 item.IsChecked = false;
             }
 
-            await FilterComics();
+            await this.FilterComics();
             App.ViewModel.UpdateFilterLists(updateCategories: false, excludedIds: this.FilteredComics);
 
-            RefreshComics();
+            this.RefreshComics();
         }
         private void Sidebar_SizeChanged(object sender, SizeChangedEventArgs e) {
-            UpdateTagSelectorMaxHeight(e.NewSize.Height);
+            this.UpdateTagSelectorMaxHeight(e.NewSize.Height);
         }
 
         private void Sidebar_Loaded(object sender, RoutedEventArgs e) {
-            UpdateTagSelectorMaxHeight((e.Source as DockPanel).ActualHeight);
+            this.UpdateTagSelectorMaxHeight((e.Source as DockPanel).ActualHeight);
         }
 
         private void UpdateTagSelectorMaxHeight(double containerHeight) {
             // 120 is a magic number limiting the max size of the tag selector such that
             // the tag and author selectors fill up the same amount of space
-            TagSelector.MaxHeight = (containerHeight - CategorySelector.ActualHeight - 120) / 2;
+            this.TagSelector.MaxHeight = (containerHeight - this.CategorySelector.ActualHeight - 120) / 2;
         }
 
         private void Collection_DragEnter(object sender, DragEventArgs e) {

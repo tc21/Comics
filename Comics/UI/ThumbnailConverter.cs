@@ -20,7 +20,7 @@ namespace UI {
             }
 
             try {
-                BitmapImage image = new BitmapImage();
+                var image = new BitmapImage();
                 image.BeginInit();
                 image.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                 image.CacheOption = BitmapCacheOption.OnLoad; // Does this line still matter after the previous line?

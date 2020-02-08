@@ -16,7 +16,7 @@ namespace Comics {
     /// </summary>
     class VisualHelper {
         public static T FindParentWithType<T>(DependencyObject obj) where T : DependencyObject {
-            DependencyObject current = obj;
+            var current = obj;
             while (current != null && !(current is T)) {
                 current = VisualTreeHelper.GetParent(current);
             }

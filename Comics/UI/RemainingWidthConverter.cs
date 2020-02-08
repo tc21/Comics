@@ -10,11 +10,11 @@ using System.Windows.Data;
 namespace UI {
     class RemainingWidthConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-            ListView listView = value as ListView;
-            GridView gridView = listView.View as GridView;
+            var listView = value as ListView;
+            var gridView = listView.View as GridView;
 
             double total = 0;
-            for (int i = 0; i < gridView.Columns.Count - 1; i++) {
+            for (var i = 0; i < gridView.Columns.Count - 1; i++) {
                 total += gridView.Columns[i].Width;
             }
 

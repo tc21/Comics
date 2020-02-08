@@ -10,7 +10,7 @@ namespace Comics {
         private readonly T stored;
 
         public Checkable(T obj) {
-            stored = obj;
+            this.stored = obj;
         }
 
         public static implicit operator Checkable<T>(T obj) {
@@ -18,7 +18,7 @@ namespace Comics {
         }
 
         public override string ToString() {
-            return stored.ToString();
+            return this.stored.ToString();
         }
 
         public override bool Equals(object obj) {
@@ -26,7 +26,7 @@ namespace Comics {
                 return this.stored.Equals(checkable.stored);
             }
 
-            return stored.Equals(obj);
+            return this.stored.Equals(obj);
         }
 
 
@@ -35,15 +35,15 @@ namespace Comics {
                 return this.stored.CompareTo(checkable.stored);
             }
 
-            return stored.CompareTo(obj);
+            return this.stored.CompareTo(obj);
         }
 
         private bool isChecked = false;
         public bool IsChecked {
-            get => isChecked;
+            get => this.isChecked;
             set {
-                isChecked = value;
-                NotifyPropertyChanged("IsChecked");
+                this.isChecked = value;
+                this.NotifyPropertyChanged("IsChecked");
             }
         }
 

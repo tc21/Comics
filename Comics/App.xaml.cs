@@ -57,12 +57,12 @@ namespace Comics {
         }
 
         private void Application_Startup(object sender, StartupEventArgs e) {
-            UpdateTheme();
+            this.UpdateTheme();
         }
 
         public void SwitchTheme() {
             Comics.Properties.Settings.Default.DarkModeEnabled = !Comics.Properties.Settings.Default.DarkModeEnabled;
-            UpdateTheme();
+            this.UpdateTheme();
         }
 
         public void UpdateTheme() {

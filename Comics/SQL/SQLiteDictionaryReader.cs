@@ -15,9 +15,9 @@ namespace Comics.SQL {
      * The keys provided are not sanitized. They must be trusted.
      */
     public class SQLiteDictionaryReader: IReadOnlyDictionary<string, object> {
-        private SQLiteDataReader reader;
+        private readonly SQLiteDataReader reader;
         // not sure if using a dictionary will actually save time, but it will emit the correct error when using a nonexistent key
-        private Dictionary<string, int> keys = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> keys = new Dictionary<string, int>();
 
         /**
          * arguments:
@@ -47,14 +47,15 @@ namespace Comics.SQL {
          */
         public static SQLiteDictionaryReader ExecuteSelect(SQLiteConnection connection, string table, IEnumerable<string> keys, 
                     string restOfQuery = "", IDictionary<string, object> queryParameters = null) {
-            var command = new SQLiteCommand(string.Format("SELECT {0} FROM {1} {2}", string.Join(", ", keys), table, restOfQuery), connection);
-            if (queryParameters != null) {
-                foreach (var pair in queryParameters) {
-                    command.Parameters.AddWithValue(pair.Key, pair.Value);
+            using (var command = new SQLiteCommand(string.Format("SELECT {0} FROM {1} {2}", string.Join(", ", keys), table, restOfQuery), connection)) {
+                if (queryParameters != null) {
+                    foreach (var pair in queryParameters) {
+                        command.Parameters.AddWithValue(pair.Key, pair.Value);
+                    }
                 }
+                var reader = command.ExecuteReader();
+                return new SQLiteDictionaryReader(reader, keys);
             }
-            var reader = command.ExecuteReader();
-            return new SQLiteDictionaryReader(reader, keys);
         }
 
         /* we're only supporting SQLite's native data types + int32 and bool */

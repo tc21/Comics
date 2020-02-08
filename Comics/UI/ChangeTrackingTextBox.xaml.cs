@@ -18,26 +18,26 @@ namespace Comics.UI {
 
     public partial class ChangeTrackingTextBox : UserControl {
         public ChangeTrackingTextBox() {
-            InitializeComponent();
+            this.InitializeComponent();
             this.RootElement.DataContext = this;
         }
 
         protected override void OnInitialized(EventArgs e) {
             base.OnInitialized(e);
-            SaveState();
+            this.SaveState();
         }
 
         public string Label {
-            get => (string)GetValue(LabelProperty);
-            set => SetValue(LabelProperty, value);
+            get => this.GetValue(LabelProperty) as string;
+            set => this.SetValue(LabelProperty, value);
         }
 
         public static readonly DependencyProperty LabelProperty =
             DependencyProperty.Register("Label", typeof(string), typeof(ChangeTrackingTextBox), new PropertyMetadata(""));
 
         public string Value {
-            get => (string)GetValue(ValueProperty);
-            set => SetValue(ValueProperty, value);
+            get => this.GetValue(ValueProperty) as string;
+            set => this.SetValue(ValueProperty, value);
         }
 
         public static readonly DependencyProperty ValueProperty =
@@ -45,14 +45,14 @@ namespace Comics.UI {
 
 
         public Brush InactiveForeground {
-            get => (Brush)GetValue(InactiveForegroundProperty);
-            set => SetValue(InactiveForegroundProperty, value);
+            get => this.GetValue(InactiveForegroundProperty) as Brush;
+            set => this.SetValue(InactiveForegroundProperty, value);
         }
 
         public static readonly DependencyProperty InactiveForegroundProperty =
             DependencyProperty.Register("InactiveForeground", typeof(Brush), typeof(ChangeTrackingTextBox), new PropertyMetadata(InactiveTextForeground));
 
-        private static Brush InactiveTextForeground = new SolidColorBrush(Color.FromRgb(0x7f, 0x7f, 0x7f));
+        private static readonly Brush InactiveTextForeground = new SolidColorBrush(Color.FromRgb(0x7f, 0x7f, 0x7f));
         private string savedValue;
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e) {
@@ -65,12 +65,12 @@ namespace Comics.UI {
 
         public void SaveState() {
             this.savedValue = this.Value;
-            Initialize();
+            this.Initialize();
         }
 
         public void RevertChanges() {
             this.Value = this.savedValue;
-            Initialize();
+            this.Initialize();
         }
 
         private void Initialize() {

@@ -13,14 +13,12 @@ using Comics.Support;
 
 namespace Comics {
     public class ComicLoadException : Exception {
-        public ComicLoadException(string message) : base(message) {
-        }
-        public ComicLoadException() : base() {
-        }
+        public ComicLoadException(string message) : base(message) { }
+        public ComicLoadException() : base() { }
     }
 
     public class Comic : INotifyPropertyChanged {
-        private static Random randomizer = new Random();
+        private static readonly Random randomizer = new Random();
 
         public readonly string real_title;
         public readonly string real_author;
@@ -32,6 +30,7 @@ namespace Comics {
 
         public string UniqueIdentifier => CreateUniqueIdentifier(this.real_author, this.real_title);
 
+        /* If the thumbnail is contained within the work path, it will be stored as a relative path. */
         public string ThumbnailSource {
             get => this.Metadata.ThumbnailSource;
             set {
@@ -104,7 +103,7 @@ namespace Comics {
             this.Random = randomizer.Next();
 
             if (validate && !File.Exists(this.ThumbnailPath)) {
-                this.ThumbnailSource = CreateThumbnailAndReturnLocation();
+                this.ThumbnailSource = this.CreateThumbnailAndReturnLocation();
             }
         }
 
@@ -118,15 +117,13 @@ namespace Comics {
                 return new List<string> { path };
             }
 
-            DirectoryInfo di = new DirectoryInfo(path);
+            var di = new DirectoryInfo(path);
             return RetrieveFilesForComicAtPath(di, currentDepth);
         }
 
         private static IEnumerable<string> RetrieveFilesForComicAtPath(DirectoryInfo dir, int currentDepth = 0) {
-            var contained = new List<string>();
-
             foreach (var file in ValidFilesForComicAtPath(dir, currentDepth)) {
-                string suffix = Path.GetExtension(file.Name).ToLowerInvariant();
+                var suffix = Path.GetExtension(file.Name).ToLowerInvariant();
                 if (Defaults.Profile.Extensions.Contains(suffix)) {
                     yield return file.FullName;
                 }
@@ -135,7 +132,7 @@ namespace Comics {
         
         private static IEnumerable<FileInfo> ValidFilesForComicAtPath(DirectoryInfo dir, int currentDepth = 0) {
             var files = dir.GetFilesInNaturalOrder("*.*");
-            foreach (FileInfo file in files) {
+            foreach (var file in files) {
                 yield return file;
             }
 
@@ -157,14 +154,14 @@ namespace Comics {
          */
         public string CreateThumbnailAndReturnLocation() {
             if (File.Exists(this.path)) {
-                if (AttemptGenerateThumbnailFromFile(this.path)) {
+                if (this.AttemptGenerateThumbnailFromFile(this.path)) {
                     return this.path;
                 }
                 return null;
             }
 
             foreach (var file in ValidFilesForComicAtPath(new DirectoryInfo(this.path))) {
-                if (AttemptGenerateThumbnailFromFile(file.FullName)) {
+                if (this.AttemptGenerateThumbnailFromFile(file.FullName)) {
                     return file.FullName;
                 }
             }
@@ -177,7 +174,7 @@ namespace Comics {
                 File.Delete(this.ThumbnailPath);
             }
 
-            AttemptGenerateThumbnailFromFile(this.AbsoluteThumbnailSource);
+            this.AttemptGenerateThumbnailFromFile(this.AbsoluteThumbnailSource);
         }
 
         // returns whether a thumbnail was successfully generated from the file at path
@@ -186,7 +183,7 @@ namespace Comics {
                 return false;
             }
 
-            int width = Defaults.ThumbnailWidthForVisual();
+            var width = Defaults.ThumbnailWidthForVisual();
 
             return (
                 (File.Exists(path) && Thumbnails.CreateThumbnailFromImage(path, width, this.ThumbnailPath)) ||
@@ -198,35 +195,45 @@ namespace Comics {
         // Public properties that update the UI when changed
         public string Title {
             get => this.Metadata.Title ?? this.real_title;
-            set { this.Metadata.Title = value; Save(); NotifyPropertyChanged("Title"); }
+            set { this.Metadata.Title = value; this.Save(); this.NotifyPropertyChanged("Title"); }
         }
 
         public string Author {
             get => this.Metadata.Author ?? this.real_author;
-            set { this.Metadata.Author = value; Save(); NotifyPropertyChanged("Author"); }
+            set { this.Metadata.Author = value; this.Save(); this.NotifyPropertyChanged("Author"); }
         }
 
         public string Category {
             get => this.real_category;
             set { }
-            //get => this.Metadata.Category ?? this.real_category;
-            //set { this.Metadata.Category = value; Save(); NotifyPropertyChanged("Category"); }
         }
 
         public bool Loved {
             get => this.Metadata.Loved;
-            set { this.Metadata.Loved = value; Save(); NotifyPropertyChanged("Loved"); }
+            set {
+                this.Metadata.Loved = value;
+                this.Save();
+                this.NotifyPropertyChanged("Loved");
+            }
         }
 
         public bool Disliked {
             get => this.Metadata.Disliked;
-            set { this.Metadata.Disliked = value; Save(); NotifyPropertyChanged("Disliked"); }
+            set {
+                this.Metadata.Disliked = value;
+                this.Save();
+                this.NotifyPropertyChanged("Disliked");
+            }
         }
 
         // tags separated by commas
         public string TagString {
             get => (this.Metadata.Tags is null) ? "" : (string.Join(", ", this.Metadata.Tags) ?? "");
-            set { this.Metadata.Tags = ParseTags(value); Save(); NotifyPropertyChanged("Tags"); }
+            set {
+                this.Metadata.Tags = this.ParseTags(value);
+                this.Save();
+                this.NotifyPropertyChanged("Tags");
+            }
         }
 
         private HashSet<string> ParseTags(string tags) {
@@ -284,7 +291,7 @@ namespace Comics {
                 var token = new List<char>();
                 foreach (var c in format) {
                     if (token.Count == 0) {
-                        if (!Char.IsWhiteSpace(c)) {
+                        if (!char.IsWhiteSpace(c)) {
                             token.Add(c);
                         }
                     } else {
@@ -304,7 +311,7 @@ namespace Comics {
                                 token.Add(c);
                             }
                         } else {
-                            if (Char.IsWhiteSpace(c)) {
+                            if (char.IsWhiteSpace(c)) {
                                 yield return new string(token.ToArray());
                                 token.Clear();
                             } else {
@@ -337,7 +344,7 @@ namespace Comics {
                 }
             }
 
-            private static List<string> testfiles = new List<string>
+            private static readonly List<string> testfiles = new List<string>
             {
                 "C:\\comic\\first.png",
                 "C:\\comic\\second.png",
@@ -350,7 +357,7 @@ namespace Comics {
 
             // pass in a null comic for a test result
             private static IEnumerable<string> ProcessToken(Comic comic, string key, bool argsGiven, string args) {
-                IEnumerable<string> files = comic?.FilePaths ?? testfiles;
+                var files = comic?.FilePaths ?? testfiles;
 
                 switch (key) {
                     case FirstFileKey:
@@ -466,44 +473,4 @@ namespace Comics {
         public bool Disliked { get; set; }
         public string ThumbnailSource { get; set; }
     }
-    
-    //public class SortedString : IComparable {
-    //    public string Display { get; set; }
-    //    public string Sort { get; set; }
-
-    //    public SortedString() { }
-
-    //    public SortedString(string display, string sort) {
-    //        this.Display = display;
-    //        this.Sort = sort;
-    //    }
-
-    //    public SortedString(string display) : this(display, display) { }
-
-    //    public SortedString(SortedString ss) : this(ss.Display, ss.Sort) { }
-
-    //    public override string ToString() {
-    //        return this.Display.ToString();
-    //    }
-
-    //    public override bool Equals(object obj) {
-    //        if (obj is SortedString) {
-    //            return this.Sort.Equals(((SortedString)obj).Sort);
-    //        }
-
-    //        return this.Sort.Equals(obj);
-    //    }
-
-    //    public override int GetHashCode() {
-    //        return this.Sort.GetHashCode();
-    //    }
-
-    //    public int CompareTo(object other) {
-    //        if (other is SortedString) {
-    //            return this.Sort.CompareTo(((SortedString)other).Sort);
-    //        }
-
-    //        return this.Sort.CompareTo(other);
-    //    }
-    //}
 }
