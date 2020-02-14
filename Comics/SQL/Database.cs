@@ -425,12 +425,9 @@ namespace Comics.SQL {
                 var category = reader.GetString(key_category);
                 var rowid = reader.GetInt32("rowid");
                 var metadata = this.ComicMetadataFromRow(reader);
-                var dateAdded = reader.GetString(key_date_added);
 
                 try {
-                    var comic = new Comic(title, author, category, path, metadata, validate: false) {
-                        DateAdded = dateAdded
-                    };
+                    var comic = new Comic(title, author, category, path, metadata, validate: false);
                     return comic;
                 } catch (ComicLoadException) {
                     this.InvalidateComic(rowid);
@@ -449,7 +446,8 @@ namespace Comics.SQL {
                     ThumbnailSource = reader.GetStringOrNull(key_thumbnail_source),
                     Loved = reader.GetBoolean(key_loved),
                     Disliked = reader.GetBoolean(key_disliked),
-                    Tags = new HashSet<string>(this.ReadTags(rowid))
+                    Tags = new HashSet<string>(this.ReadTags(rowid)),
+                    DateAdded = reader.GetString(key_date_added)
                 };
 
                 return m;

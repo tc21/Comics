@@ -69,7 +69,7 @@ namespace Comics {
         public int Random { get; set; }
 
         // For sorting only, for now
-        public string DateAdded { get; set; }
+        public string DateAdded => this.Metadata.DateAdded;
 
         public Metadata Metadata { get; set; }
 
@@ -78,13 +78,11 @@ namespace Comics {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public Comic(string title, string author, string category, string path, Metadata metadata = null, bool validate = true,
-                     string dateAdded = "1970-01-01 00:00:00") {
+        public Comic(string title, string author, string category, string path, Metadata metadata = null, bool validate = true) {
             this.real_title = title;
             this.real_author = author;
             this.real_category = category;
             this.path = path;
-            this.DateAdded = dateAdded;
 
             if (validate && !(Directory.Exists(path) || File.Exists(path))) {
                 throw new ComicLoadException("Invalid path given to comic");
@@ -472,5 +470,11 @@ namespace Comics {
         public bool Loved { get; set; }
         public bool Disliked { get; set; }
         public string ThumbnailSource { get; set; }
+        public string DateAdded { get; set; }
+
+        public Metadata() {
+            // an estimate of the actual dateAdded, assuming the comic is saved immediately, in SQLite's default format
+            this.DateAdded = DateTime.Now.ToString("yyyy-mm-dd HH:mm:ss");
+        }
     }
 }

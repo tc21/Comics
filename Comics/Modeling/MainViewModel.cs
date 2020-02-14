@@ -218,7 +218,7 @@ namespace Comics {
             foreach (var comic in this.AvailableComics) {
                 try {
                     var validatedComic = new Comic(comic.real_title, comic.real_author, comic.real_category, comic.path,
-                                                   comic.Metadata, dateAdded: comic.DateAdded);
+                                                   comic.Metadata);
                     validatedComics.Add(validatedComic);
                 } catch (ComicLoadException) {
                     invalidComics.Add(comic);
