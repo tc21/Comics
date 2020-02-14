@@ -263,8 +263,71 @@ namespace Comics {
             App.ComicsWindow?.RefreshComics();
         }
 
+        /**
+         * Attempts to add a comic, or multiple comics from disk.
+         * 
+         * If the work already exists, it will not be added.
+         * 
+         * If the folder contains subfolders, but no files, it will attempt to add each subfolder instead.
+         * 
+         * If it is a subfolder of an existing category specification, it will be added under that category.
+         * Otherwise, it is added under a "Manually Added" category name
+         */
+        public void ManuallyAddComicFromDisk(DirectoryInfo directory) {
+            /* ignored prefixes */
+            foreach (var prefix in Defaults.Profile.IgnoredPrefixes) {
+                if (directory.Name.StartsWith(prefix)) {
+                    return;
+                }
+            }
+
+            /* recursively add comics if we determine this is a containing folder instead of a work */
+            if (directory.GetFiles().Length == 0) {
+                foreach (var subdirectory in directory.GetDirectories()) {
+                    this.ManuallyAddComicFromDisk(subdirectory);
+                }
+                return;
+            }
+
+            /* skip if comic already added */
+            var names = directory.FullName.Split('\\');
+            var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
+            var title = names[names.Length - 1];
+            var uniqueIdentifier = Comic.CreateUniqueIdentifier(author, title);
+
+            foreach (var comic in this.AvailableComics) {
+                if (comic.UniqueIdentifier == uniqueIdentifier) {
+                    return;
+                }
+            }
+
+            /* attempt to automatically determine category */
+            var category = MainViewModel.ManuallyAddedComicCategoryName;
+
+            foreach (var rootPath in Defaults.Profile.RootPaths) {
+                var rootInfo = new DirectoryInfo(rootPath.Path);
+
+                if (directory.IsChildOf(rootInfo)) {
+                    category = rootPath.Category;
+                    break;
+                }
+            }
+
+            this.AddComicFromDisk(title, author, category, directory.FullName, this.AvailableComics);
+
+            /* metadata-related */
+            if (!this.AvailableCategories.Contains(category)) {
+                this.AvailableCategories.Add(category);
+            }
+
+            if (!this.AvailableAuthors.Contains(author)) {
+                this.AvailableAuthors.Add(author);
+            }
+
+        }
+
         public void AddComicFromDisk(string title, string author, string category, string path, ObservableCollection<Comic> target) {
-            this.AddComic(new Comic(title, author, category, path), target, true);
+            this.AddComic(new Comic(title, author, category, path), target);
         }
 
         private void AddComic(Comic comic, ObservableCollection<Comic> target, bool recreateThumbnail = false) {

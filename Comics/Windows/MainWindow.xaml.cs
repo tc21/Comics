@@ -629,14 +629,11 @@ namespace Comics {
 
                 foreach (var file in files) {
                     if (Directory.Exists(file)) {
-                        var names = file.Split('\\');
-
-                        var author = names.Length > 1 ? names[names.Length - 2] : "Unknown Author";
-                        var title = names[names.Length - 1];
-
-                        App.ViewModel.AddComicFromDisk(title, author, MainViewModel.ManuallyAddedComicCategoryName, file, App.ViewModel.AvailableComics);
+                        App.ViewModel.ManuallyAddComicFromDisk(new DirectoryInfo(file));
                     }
                 }
+
+                this.RefreshComics();
             }
         }
     }
