@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Comics.Support;
@@ -123,6 +124,7 @@ namespace Comics {
         // Initializer. Populates profiles and loads comics
         public MainViewModel() {
             this.LoadProfiles();
+            App.ComicsWindow?.LoadExtensions();
             this.UpdateComicsAfterProfileChanged();
         }
 
@@ -159,6 +161,7 @@ namespace Comics {
 
             if (Defaults.LoadProfile(profile)) {
                 App.ComicsWindow?.ClearSelections();
+                App.ComicsWindow?.LoadExtensions();
                 this.UpdateComicsAfterProfileChanged();
             }
         }

@@ -90,6 +90,44 @@ namespace Comics {
             }
         }
 
+        public void LoadExtensions() {
+            var upper = (object[])this.FindResource("ComicsUpperContextMenu");
+            var lower = (object[])this.FindResource("ComicsLowerContextMenu");
+
+
+            if (this.Collection.ContextMenu == null) {
+                this.Collection.ContextMenu = new ContextMenu();
+            }
+
+            var menuItems = this.Collection.ContextMenu.Items;
+
+            menuItems.Clear();
+
+            foreach (var item in upper) {
+                menuItems.Add(item);
+            }
+
+            var extensionAdded = false;
+            foreach (var item in Extensions.Loader.Actions()) {
+                extensionAdded = true;
+                var menuItem = new MenuItem() {
+                    Header = item.Item1
+                };
+
+                menuItem.Command = item.Item2;
+
+                menuItems.Add(menuItem);
+            }
+
+            if (extensionAdded) {
+                menuItems.Add(new Separator());
+            }
+
+            foreach (var item in lower) {
+                menuItems.Add(item);
+            }
+        }
+
         public void PushFooter(string key, string text) {
             if (this.footerKeys.Contains(key)) {
                 this.footerStrings[key] = text;

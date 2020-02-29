@@ -5,6 +5,7 @@
         xmlns:local="clr-namespace:Comics"
         xmlns:ui="clr-namespace:UI"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
         x:Class="Comics.MainWindow"
         mc:Ignorable="d"
@@ -101,7 +102,7 @@
         </CollectionViewSource>
         
         <!-- Context menus -->
-        <ContextMenu x:Key="ComicsContextMenu">
+        <x:Array Type="{x:Type sys:Object}" x:Key="ComicsUpperContextMenu">
             <MenuItem Header="Open" Click="ContextMenu_Open" />
             <MenuItem Header="Edit Info" Command="local:ApplicationCommands.EditInfo" />
             <Separator />
@@ -109,12 +110,14 @@
             <MenuItem Header="Dislike" Click="ContextMenu_Dislike" />
             <Separator />
             <MenuItem Header="Show in Explorer" Click="ContextMenu_ShowInExplorer" />
-            <!-- This option should ideally be in "Edit Info" -->
             <MenuItem Header="Redefine Thumbnail" Click="ContextMenu_RedefineThumbnail" />
             <Separator />
+        </x:Array>
+        <x:Array Type="{x:Type sys:Object}" x:Key="ComicsLowerContextMenu">
             <MenuItem Header="Remove From Database" Click="ContextMenu_RemoveFromDatabase" />
             <MenuItem Header="Delete Local Files" IsEnabled="False" />
-        </ContextMenu>
+        </x:Array>
+
         <ContextMenu x:Key="SettingsContextMenu">
             <MenuItem Header="Settings" Click="ContextMenu_ShowSettings" />
             <!--<MenuItem Header="Quick Toggles" IsEnabled="False">
@@ -305,7 +308,6 @@
                     x:Name="Collection"
                     Style="{StaticResource CollectionListBoxStyle}"
                     ItemsSource="{Binding Source={StaticResource AvailableComicsSource}}"
-                    ContextMenu="{StaticResource ComicsContextMenu}"
                     MouseDoubleClick="Collection_MouseDoubleClick"
                     KeyDown="Collection_KeyDown"
                     Loaded="Collection_Loaded"

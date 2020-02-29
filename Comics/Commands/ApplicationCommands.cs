@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Comics {
@@ -30,5 +31,9 @@ namespace Comics {
 
     public static class ApplicationCommands {
         public static readonly RoutedUICommand EditInfo = new RoutedUICommand("Edit Info", "EditInfo", typeof(ApplicationCommands));
+
+        public static void Collection_OneOrMore_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = (sender as ListBox).SelectedItems.Count > 0;
+        }
     }
 }

@@ -266,6 +266,7 @@ namespace Comics {
         public static string UserThumbnailsFolder => UserFolderFor("thumbnails");
         public static string UserMetadataFolder => UserFolderFor("metadata");
         public static string UserDatabaseFolder => UserFolderFor("database");
+        public static string UserExtensionsFolder => UserFolderFor("extensions");
 
         public static void SaveProfile() {
             var writer = new XmlSerializer(typeof(UserDefaults));
